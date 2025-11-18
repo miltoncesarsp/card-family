@@ -1,1 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Criar Cartas</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <h1>Criar Nova Carta</h1>
+
+  <div class="card-form">
+    <label>Nome:</label>
+    <input id="cardName" type="text">
+
+    <label>Força:</label>
+    <input id="cardPower" type="number" min="0">
+
+    <label>Raridade:</label>
+    <select id="cardRarity">
+      <option value="comum">Comum (cinza)</option>
+      <option value="rara">Rara (azul)</option>
+      <option value="epica">Épica (roxa)</option>
+      <option value="lendaria">Lendária (laranja)</option>
+      <option value="divina">Divina (amarela)</option>
+    </select>
+
+    <label>Elemento:</label>
+    <select id="cardElement">
+      <option value="terra">Terra</option>
+      <option value="fogo">Fogo</option>
+      <option value="agua">Água</option>
+      <option value="ar">Ar</option>
+      <option value="tecnologia">Tecnologia</option>
+      <option value="luz">Luz</option>
+      <option value="sombra">Sombra</option>
+    </select>
+
+    <label>Imagem da carta:</label>
+    <input id="fileInput" type="file" accept="image/*">
+
+    <button onclick="uploadCard()">Salvar Carta</button>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
 
