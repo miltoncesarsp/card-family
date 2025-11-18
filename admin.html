@@ -1,50 +1,72 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Admin - Criar Cartas</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
+console.log("Admin.js carregado!");
 
-<body>
-  <h1>Criar Nova Carta</h1>
+async function uploadCard() {
+    console.log("Iniciando upload da carta...");
 
-  <div class="card-form">
-    <label>Nome:</label>
-    <input id="cardName" type="text">
+    // Capturar valores do formulário
+    const name = document.getElementById("cardName").value;
+    const power = document.getElementById("cardPower").value;
+    const rarity = document.getElementById("cardRarity").value;
+    const element = document.getElementById("cardElement").value;
+    const fileInput = document.getElementById("fileInput");
 
-    <label>Força:</label>
-    <input id="cardPower" type="number" min="0">
+    if (!name || !power || !rarity || !element) {
+        alert("Preencha todos os campos!");
+        return;
+    }
 
-    <label>Raridade:</label>
-    <select id="cardRarity">
-      <option value="comum">Comum (cinza)</option>
-      <option value="rara">Rara (azul)</option>
-      <option value="epica">Épica (roxa)</option>
-      <option value="lendaria">Lendária (laranja)</option>
-      <option value="divina">Divina (amarela)</option>
-    </select>
+    if (!fileInput.files.length) {
+        alert("Envie uma imagem!");
+        return;
+    }
 
-    <label>Elemento:</label>
-    <select id="cardElement">
-      <option value="terra">Terra</option>
-      <option value="fogo">Fogo</option>
-      <option value="agua">Água</option>
-      <option value="ar">Ar</option>
-      <option value="tecnologia">Tecnologia</option>
-      <option value="luz">Luz</option>
-      <option value="sombra">Sombra</option>
-    </select>
+    const file = fileInput.files[0];
 
-    <label>Imagem da carta:</label>
-    <input id="fileInput" type="file" accept="image/*">
+    // Nome da imagem no storage
+    const fileName = `cards/${Date.now()}_${file.name}`;
 
-    <button onclick="uploadCard()">Salvar Carta</button>
-  </div>
+    console.log("Enviando imagem:", fileName);
 
-<script src="https://unpkg.com/@supabase/supabase-js"></script>
-<script src="supabaseClient.js"></script>
-<script src="admin.js"></script>
-</body>
-</html>
+    // Upload para o Storage do Supabase
+    const { error: uploadError } = await supabase
+        .storage
+        .from("cards")
+        .upload(fileName, file);
 
+    if (uploadError) {
+        console.error(uploadError);
+        alert("Erro ao enviar a imagem!");
+        return;
+    }
+
+    console.log("Imagem enviada com sucesso!");
+
+    // URL pública da imagem
+    const { data: publicUrlData } = supabase
+        .storage
+        .from("cards")
+        .getPublicUrl(fileName);
+
+    const imageUrl = publicUrlData.publicUrl;
+
+    console.log("URL pública:", imageUrl);
+
+    // Inserir carta no banco
+    const { error: insertError } = await supabase
+        .from("cards")
+        .insert({
+            name: name,
+            power: power,
+            rarity: rarity,
+            element: element,
+            image_url: imageUrl
+        });
+
+    if (insertError) {
+        console.error(insertError);
+        alert("Erro ao salvar no banco!");
+        return;
+    }
+
+    alert("Carta criada com sucesso!");
+}
