@@ -1,5 +1,5 @@
 // NÃO declare nenhuma variável do Supabase aqui
-// Apenas use o cliente já criado no supabaseClient.js
+// O cliente supabase já vem do supabaseClient.js
 
 function compressImage(file) {
   return new Promise((resolve) => {
@@ -30,25 +30,30 @@ function compressImage(file) {
 async function uploadCard() {
   console.log("Iniciando upload da carta...");
 
-  // PEGAR OS CAMPOS
-  const name = document.getElementById("card-name").value;
-  const rarity = document.getElementById("card-rarity").value;
-  const element = document.getElementById("card-element").value;
-  const power = parseInt(document.getElementById("card-power").value);
-  const fileInput = document.getElementById("card-image-file");
+  // IDs CORRETOS conforme o admin.html
+  const name = document.getElementById("cardName").value;
+  const rarity = document.getElementById("cardRarity").value;
+  const element = document.getElementById("cardElement").value;
+  const power = parseInt(document.getElementById("cardPower").value);
+  const fileInput = document.getElementById("fileInput");
   const file = fileInput.files[0];
+
+  if (!name || !rarity || !element || !power) {
+    alert("Preencha todos os campos!");
+    return;
+  }
 
   if (!file) {
     alert("Selecione uma imagem primeiro!");
     return;
   }
 
-  // COMPACTAR A IMAGEM
+  // COMPACTAÇÃO (opcional mas recomendado)
   const compressed = await compressImage(file);
 
   // UPLOAD NO STORAGE
   const filePath = `cartas/${Date.now()}_${file.name}`;
-  const { data: uploadData, error: uploadError } = await supabase.storage
+  const { error: uploadError } = await supabase.storage
     .from("cartas")
     .upload(filePath, compressed);
 
@@ -66,10 +71,16 @@ async function uploadCard() {
   const imageUrl = publicUrl.publicUrl;
 
   // SALVAR NO BANCO
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("cards")
     .insert([
-      { name, rarity, element, power, image_url: imageUrl }
+      { 
+        name, 
+        rarity, 
+        element, 
+        power, 
+        image_url: imageUrl 
+      }
     ]);
 
   if (error) {
