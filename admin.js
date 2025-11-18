@@ -52,9 +52,9 @@ async function uploadCard() {
   const compressed = await compressImage(file);
 
   // UPLOAD NO STORAGE
-  const filePath = `cartas/${Date.now()}_${file.name}`;
+  const filePath = `cards/${Date.now()}_${file.name}`;
   const { error: uploadError } = await supabase.storage
-    .from("cartas")
+    .from("cards")
     .upload(filePath, compressed);
 
   if (uploadError) {
@@ -65,7 +65,7 @@ async function uploadCard() {
 
   // PEGAR URL PÚBLICA
   const { data: publicUrl } = supabase.storage
-    .from("cartas")
+    .from("cards")
     .getPublicUrl(filePath);
 
   const imageUrl = publicUrl.publicUrl;
