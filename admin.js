@@ -40,7 +40,7 @@ async function uploadCard() {
     return;
   }
 
-  // Compressão opcional
+  // Compressão da imagem
   const compressed = await compressImage(file);
 
   // Upload no bucket 'cards'
@@ -62,7 +62,7 @@ async function uploadCard() {
 
   const imageUrl = publicUrl.publicUrl;
 
-  // Inserir no banco de dados 'public.cards'
+  // Inserir na tabela 'public.cards'
   const { error: dbError } = await supabase
     .from("cards")
     .insert([
@@ -83,6 +83,6 @@ async function uploadCard() {
 
   alert("Carta salva com sucesso!");
 
-  // Limpar campos após salvar
+  // Limpar formulário
   document.getElementById("cardForm").reset();
 }
