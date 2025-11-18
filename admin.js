@@ -29,19 +29,14 @@ async function uploadCard() {
   console.log("Iniciando upload da carta...");
 
   const name = document.getElementById("cardName").value.trim();
-  const rarity = document.getElementById("cardRarity").value.trim();
-  const element = document.getElementById("cardElement").value.trim();
+  const rarity = document.getElementById("cardRarity").value;
+  const element = document.getElementById("cardElement").value;
   const power = parseInt(document.getElementById("cardPower").value);
   const fileInput = document.getElementById("fileInput");
   const file = fileInput.files[0];
 
-  if (!name || !rarity || !element || !power) {
-    alert("Preencha todos os campos!");
-    return;
-  }
-
-  if (!file) {
-    alert("Selecione uma imagem primeiro!");
+  if (!name || !rarity || !element || !power || !file) {
+    alert("Preencha todos os campos e selecione uma imagem!");
     return;
   }
 
@@ -87,10 +82,7 @@ async function uploadCard() {
   }
 
   alert("Carta salva com sucesso!");
-  // Opcional: limpar formulário
-  document.getElementById("cardName").value = "";
-document.getElementById("cardPower").value = "";
-document.getElementById("cardRarity").value = "comum";
-document.getElementById("cardElement").value = "terra";
-document.getElementById("fileInput").value = "";
+
+  // Limpar campos após salvar
+  document.getElementById("cardForm").reset();
 }
