@@ -11,7 +11,7 @@
 <body>
   <h1>Criar Nova Carta</h1>
 
-  <div class="card-form">
+<form id="cardForm" class="card-form">
     
     <label>Nome:</label>
     <input id="cardName" type="text">
@@ -43,7 +43,7 @@
     <input id="fileInput" type="file" accept="image/*">
 
     <button onclick="uploadCard()">Salvar Carta</button>
-  </div>
+</form>
 
   <!-- Carrega SDK do Supabase -->
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
