@@ -1,6 +1,6 @@
 // 🔥 CONFIGURE SUA SUPABASE AQUI 🔥
-const SUPABASE_URL = "COLE_AQUI_SUA_URL";
-const SUPABASE_ANON = "COLE_AQUI_SUA_ANON_KEY";
+const SUPABASE_URL = "https://ujpbdoykjrntqketqjxa.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqcGJkb3lranJudHFrZXRxanhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0NTcxNDAsImV4cCI6MjA3OTAzMzE0MH0.kYstg_WVcsAANWWf942_qhrJLYyrPRR_gbN83kIqQxQ";
 
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
