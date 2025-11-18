@@ -40,11 +40,26 @@ async function uploadCard() {
     return;
   }
 
-  // Compressão da imagem
+  // 1️⃣ Buscar origem do personagem na tabela Personagens_Base
+  const { data: baseData, error: baseError } = await supabase
+    .from("Personagens_Base")
+    .select("Origem")
+    .eq("Personagem", name)
+    .single();
+
+  if (baseError || !baseData) {
+    console.error("Erro ao buscar origem:", baseError);
+    alert("Não foi possível encontrar a origem do personagem!");
+    return;
+  }
+
+  const origem = baseData.Origem;
+
+  // 2️⃣ Compressão da imagem
   const compressed = await compressImage(file);
 
-  // Upload no bucket 'cards'
-  const filePath = `${Date.now()}_${file.name}`;
+  // 3️⃣ Upload no bucket cards, subpasta pela origem
+  const filePath = `cards/${origem}/${Date.now()}_${file.name}`;
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from("cards")
     .upload(filePath, compressed);
@@ -55,14 +70,14 @@ async function uploadCard() {
     return;
   }
 
-  // Pegar URL pública do arquivo
+  // 4️⃣ Pegar URL pública
   const { data: publicUrl } = supabase.storage
     .from("cards")
     .getPublicUrl(filePath);
 
   const imageUrl = publicUrl.publicUrl;
 
-  // Inserir na tabela 'public.cards'
+  // 5️⃣ Inserir na tabela Cartas_Nivel (ou cards)
   const { error: dbError } = await supabase
     .from("cards")
     .insert([
@@ -82,7 +97,5 @@ async function uploadCard() {
   }
 
   alert("Carta salva com sucesso!");
-
-  // Limpar formulário
   document.getElementById("cardForm").reset();
 }
