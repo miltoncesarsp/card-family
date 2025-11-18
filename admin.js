@@ -88,5 +88,9 @@ async function uploadCard() {
 
   alert("Carta salva com sucesso!");
   // Opcional: limpar formulário
-  document.getElementById("cardForm").reset();
+  document.getElementById("cardName").value = "";
+document.getElementById("cardPower").value = "";
+document.getElementById("cardRarity").value = "comum";
+document.getElementById("cardElement").value = "terra";
+document.getElementById("fileInput").value = "";
 }
