@@ -25,26 +25,36 @@ function compressImage(file) {
   });
 }
 
-async function uploadCard() {
-  console.log("Iniciando upload da carta...");
+function previewImage() {
+  const fileInput = document.getElementById("fileInput");
+  const preview = document.getElementById("cardPreview");
+  const file = fileInput.files[0];
+  if (file) {
+    preview.src = URL.createObjectURL(file);
+  } else {
+    preview.src = "";
+  }
+}
 
+async function uploadCard() {
   const name = document.getElementById("cardName").value.trim();
+  const level = parseInt(document.getElementById("cardLevel").value);
   const rarity = document.getElementById("cardRarity").value;
   const element = document.getElementById("cardElement").value;
   const power = parseInt(document.getElementById("cardPower").value);
   const fileInput = document.getElementById("fileInput");
   const file = fileInput.files[0];
 
-  if (!name || !rarity || !element || !power || !file) {
-    alert("Preencha todos os campos e selecione uma imagem!");
+  if (!name || !raridade || !element || !power || !level || !file) {
+    alert("Preencha todos os campos!");
     return;
   }
 
-  // 1️⃣ Buscar origem do personagem na tabela Personagens_Base
+  // 1️⃣ Buscar origem do personagem
   const { data: baseData, error: baseError } = await supabase
-    .from("Personagens_Base")
-    .select("Origem")
-    .eq("Personagem", name)
+    .from("personagens_base")
+    .select("origem, id_base")
+    .eq("personagem", name)
     .single();
 
   if (baseError || !baseData) {
@@ -53,14 +63,15 @@ async function uploadCard() {
     return;
   }
 
-  const origem = baseData.Origem;
+  const origem = baseData.origem;
+  const id_base = baseData.id_base;
 
   // 2️⃣ Compressão da imagem
   const compressed = await compressImage(file);
 
-  // 3️⃣ Upload no bucket cards, subpasta pela origem
-  const filePath = `cards/${origem}/${Date.now()}_${file.name}`;
-  const { data: uploadData, error: uploadError } = await supabase.storage
+  // 3️⃣ Upload no bucket cards, subpasta por origem
+  const filePath = `cards/${origem}/${id_base}_${level}_${Date.now()}.jpeg`;
+  const { error: uploadError } = await supabase.storage
     .from("cards")
     .upload(filePath, compressed);
 
@@ -77,18 +88,17 @@ async function uploadCard() {
 
   const imageUrl = publicUrl.publicUrl;
 
-  // 5️⃣ Inserir na tabela Cartas_Nivel (ou cards)
+  // 5️⃣ Inserir na tabela cartas_nivel
   const { error: dbError } = await supabase
-    .from("cards")
-    .insert([
-      {
-        name,
-        rarity,
-        element,
-        power,
-        image_url: imageUrl
-      }
-    ]);
+    .from("cartas_nivel")
+    .insert([{
+      id_base,
+      nivel: level,
+      raridade: rarity,
+      forca: power,
+      element: element,
+      imagem_url: imageUrl
+    }]);
 
   if (dbError) {
     console.error("Erro ao salvar no banco:", dbError);
@@ -98,4 +108,5 @@ async function uploadCard() {
 
   alert("Carta salva com sucesso!");
   document.getElementById("cardForm").reset();
+  document.getElementById("cardPreview").src = "";
 }
