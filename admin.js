@@ -40,32 +40,78 @@ function getElementIcon(element) {
   }
 }
 
+function getRarityColors(rarity) {
+    switch (rarity.toLowerCase()) {
+        case "mítica":
+            return {
+                primary: "#FFD700", // Amarelo Dourado
+                background: "linear-gradient(145deg, #FFD700 0%, #FFA500 100%)", // Ouro para Laranja
+                boxShadow: "0 0 15px rgba(255, 215, 0, 0.8)"
+            };
+        case "lendária":
+            return {
+                primary: "#FF8C00", // Laranja Escuro
+                background: "linear-gradient(145deg, #FF8C00 0%, #FF4500 100%)", // Laranja Forte para Vermelho Alaranjado
+                boxShadow: "0 0 15px rgba(255, 140, 0, 0.7)"
+            };
+        case "épica":
+            return {
+                primary: "#9932CC", // Roxo Escuro
+                background: "linear-gradient(145deg, #9932CC 0%, #8A2BE2 100%)", // Roxo Forte para Violeta
+                boxShadow: "0 0 15px rgba(153, 50, 204, 0.7)"
+            };
+        case "rara":
+            return {
+                primary: "#1E90FF", // Azul Forte
+                background: "linear-gradient(145deg, #1E90FF 0%, #4169E1 100%)", // Azul para Azul Real
+                boxShadow: "0 0 15px rgba(30, 144, 255, 0.7)"
+            };
+        default:
+            return {
+                primary: "#A9A9A9", // Cinza Escuro
+                background: "linear-gradient(145deg, #A9A9A9 0%, #808080 100%)", // Cinza Claro para Escuro
+                boxShadow: "0 0 10px rgba(169, 169, 169, 0.5)"
+            };
+    }
+}
+
 // Preview da carta
 function previewCard() {
-  const name = document.getElementById("cardName").value.trim();
-  const power = document.getElementById("cardPower").value;
-  const rarity = document.getElementById("cardRarity").value;
-  const element = document.getElementById("cardElement").value;
-  const fileInput = document.getElementById("fileInput");
-  const file = fileInput.files[0];
+    const name = document.getElementById("cardName").value.trim();
+    const power = document.getElementById("cardPower").value;
+    const rarity = document.getElementById("cardRarity").value;
+    const element = document.getElementById("cardElement").value;
+    const fileInput = document.getElementById("fileInput");
+    const file = fileInput.files[0];
 
-  const container = document.getElementById("cardPreviewContainer");
-  container.innerHTML = "";
+    const container = document.getElementById("cardPreviewContainer");
+    container.innerHTML = "";
 
-  if (!name && !power && !file) return;
+    if (!name && !power && !file) return;
 
-  const div = document.createElement("div");
-  div.className = "card-preview";
+    const div = document.createElement("div");
+    div.className = "card-preview";
 
-  const colorCode = getRarityColor(rarity);
-  if (file) div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+    // 1. CHAMA A NOVA FUNÇÃO QUE RETORNA O OBJETO
+    const rarityStyles = getRarityColors(rarity);
 
-  div.innerHTML = `
-    <div class="rarity-badge" style="background-color:${colorCode}">${rarity}</div>
-    <div class="card-element-badge">${getElementIcon(element)}</div>
-    <div class="card-name-footer">${name}</div>
-    <div class="card-force-circle">${power}</div>
-  `;
+    if (file) div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+
+    div.innerHTML = `
+        <div class="rarity-badge" 
+            style="background: ${rarityStyles.background}; 
+                   box-shadow: ${rarityStyles.boxShadow}">
+            ${rarity}
+        </div>
+        
+        <div class="card-element-badge">${getElementIcon(element)}</div>
+        
+        <div class="card-name-footer" 
+            style="background-color: ${rarityStyles.primary}">
+            ${name}
+        </div>
+        <div class="card-force-circle">${power}</div>
+    `;
 
   container.appendChild(div);
 }
