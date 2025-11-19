@@ -41,38 +41,49 @@ function getElementIcon(element) {
 }
 
 function getRarityColors(rarity) {
+    let colors;
+    let textColor = "#fff"; // Cor padrão do texto (branco)
+
     switch (rarity.toLowerCase()) {
         case "mítica":
-            return {
+            textColor = "#333"; // Texto escuro para melhor contraste com amarelo/ouro
+            colors = {
                 primary: "#FFD700", // Amarelo Dourado
-                background: "linear-gradient(145deg, #FFD700 0%, #FFA500 100%)", // Ouro para Laranja
-                boxShadow: "0 0 15px rgba(255, 215, 0, 0.8)"
+                background: "linear-gradient(145deg, #FFD700 0%, #FFA500 100%)",
+                boxShadow: "0 0 15px rgba(255, 215, 0, 0.8)",
             };
+            break;
         case "lendária":
-            return {
+            colors = {
                 primary: "#FF8C00", // Laranja Escuro
-                background: "linear-gradient(145deg, #FF8C00 0%, #FF4500 100%)", // Laranja Forte para Vermelho Alaranjado
-                boxShadow: "0 0 15px rgba(255, 140, 0, 0.7)"
+                background: "linear-gradient(145deg, #FF8C00 0%, #FF4500 100%)",
+                boxShadow: "0 0 15px rgba(255, 140, 0, 0.7)",
             };
+            break;
         case "épica":
-            return {
+            colors = {
                 primary: "#9932CC", // Roxo Escuro
-                background: "linear-gradient(145deg, #9932CC 0%, #8A2BE2 100%)", // Roxo Forte para Violeta
-                boxShadow: "0 0 15px rgba(153, 50, 204, 0.7)"
+                background: "linear-gradient(145deg, #9932CC 0%, #8A2BE2 100%)",
+                boxShadow: "0 0 15px rgba(153, 50, 204, 0.7)",
             };
+            break;
         case "rara":
-            return {
+            colors = {
                 primary: "#1E90FF", // Azul Forte
-                background: "linear-gradient(145deg, #1E90FF 0%, #4169E1 100%)", // Azul para Azul Real
-                boxShadow: "0 0 15px rgba(30, 144, 255, 0.7)"
+                background: "linear-gradient(145deg, #1E90FF 0%, #4169E1 100%)",
+                boxShadow: "0 0 15px rgba(30, 144, 255, 0.7)",
             };
+            break;
         default:
-            return {
+            colors = {
                 primary: "#A9A9A9", // Cinza Escuro
-                background: "linear-gradient(145deg, #A9A9A9 0%, #808080 100%)", // Cinza Claro para Escuro
-                boxShadow: "0 0 10px rgba(169, 169, 169, 0.5)"
+                background: "linear-gradient(145deg, #A9A9A9 0%, #808080 100%)",
+                boxShadow: "0 0 10px rgba(169, 169, 169, 0.5)",
             };
+            break;
     }
+
+    return { ...colors, textColor: textColor }; // Retorna as cores + a cor do texto
 }
 
 // Preview da carta
@@ -92,7 +103,6 @@ function previewCard() {
     const div = document.createElement("div");
     div.className = "card-preview";
 
-    // 1. CHAMA A NOVA FUNÇÃO QUE RETORNA O OBJETO
     const rarityStyles = getRarityColors(rarity);
 
     if (file) div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
@@ -100,8 +110,8 @@ function previewCard() {
     div.innerHTML = `
         <div class="rarity-badge" 
             style="background: ${rarityStyles.background}; 
-                   box-shadow: ${rarityStyles.boxShadow}">
-            ${rarity}
+                   box-shadow: ${rarityStyles.boxShadow};
+                   color: ${rarityStyles.textColor};"> ${rarity}
         </div>
         
         <div class="card-element-badge">${getElementIcon(element)}</div>
@@ -110,10 +120,15 @@ function previewCard() {
             style="background-color: ${rarityStyles.primary}">
             ${name}
         </div>
-        <div class="card-force-circle">${power}</div>
+        
+        <div class="card-force-circle"
+            style="background-color: ${rarityStyles.primary};
+                   color: white; /* Número da Força sempre branco */
+                   border-color: white;"> ${power}
+        </div>
     `;
 
-  container.appendChild(div);
+    container.appendChild(div);
 }
 
 // Upload da carta
