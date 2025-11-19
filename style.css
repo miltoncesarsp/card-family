@@ -52,3 +52,77 @@ button:hover {
   margin-top: 5px;
   border: 1px solid #ccc;
 }
+
+.card-preview {
+  width: 200px;
+  height: 300px;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  font-family: 'Arial', sans-serif;
+  margin: 10px;
+}
+
+/* Banner de Raridade no topo */
+.card-preview .rarity-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+  color: white;
+  padding: 5px 0;
+  font-size: 14px;
+}
+
+/* Ícone de elemento no canto superior direito */
+.card-preview .card-element-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 30px;
+  height: 30px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* Barra de nome do personagem no rodapé */
+.card-preview .card-name-footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  font-weight: bold;
+  padding: 5px 0;
+  font-size: 14px;
+}
+
+/* Pílula de força no canto inferior direito */
+.card-preview .card-force-circle {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 16px;
+  border: 2px solid #333;
+}
