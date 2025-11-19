@@ -216,6 +216,107 @@ async function uploadCard() {
   document.getElementById("cardPreviewContainer").innerHTML = "";
 }
 
+/**
+ * Agrupa um array de objetos por uma chave específica.
+ * @param {Array<Object>} list O array de cartas.
+ * @param {string} key A chave para agrupar (neste caso, 'origem').
+ * @returns {Object<string, Array>} Um objeto onde as chaves são as origens.
+ */
+function groupBy(list, key) {
+    return list.reduce((acc, item) => {
+        (acc[item[key]] = acc[item[key]] || []).push(item);
+        return acc;
+    }, {});
+}
+
+/**
+ * Busca e exibe as cartas agrupadas por Origem.
+ */
+async function loadCards() {
+    const listContainer = document.getElementById("cardListContainer");
+    listContainer.innerHTML = "Carregando cartas...";
+
+    // 1. Busca todas as cartas da tabela 'cards'
+    const { data: cards, error: cardsError } = await supabase
+        .from("cards")
+        .select("*");
+
+    if (cardsError) {
+        console.error("Erro ao buscar cartas:", cardsError);
+        listContainer.innerHTML = "Erro ao carregar as cartas.";
+        return;
+    }
+
+    if (!cards || cards.length === 0) {
+        listContainer.innerHTML = "Nenhuma carta cadastrada.";
+        return;
+    }
+
+    let allCardsWithOrigin = [];
+    
+    // 2. Itera sobre cada carta para buscar sua origem na tabela 'personagens_base'
+    // OBS: Isso pode ser lento para muitas cartas, mas é a solução mais simples por agora.
+    for (const card of cards) {
+        const { data: baseData, error: baseError } = await supabase
+            .from("personagens_base")
+            .select("origem")
+            .eq("personagem", card.name)
+            .single();
+
+        if (baseData) {
+            allCardsWithOrigin.push({ ...card, origem: baseData.origem });
+        } else {
+            // Caso não encontre a origem, agrupa como 'Desconhecida'
+            allCardsWithOrigin.push({ ...card, origem: "Desconhecida" });
+        }
+    }
+
+    // 3. Agrupa as cartas por origem
+    const groupedCards = groupBy(allCardsWithOrigin, 'origem');
+    
+    // 4. Renderiza na tela
+    listContainer.innerHTML = ""; // Limpa "Carregando..."
+    
+    for (const [origem, cardArray] of Object.entries(groupedCards)) {
+        let groupHtml = `<h3>${origem} (${cardArray.length} Cartas)</h3>`;
+        groupHtml += `<div class="card-group-container">`; // Novo container para o layout
+
+        cardArray.forEach(card => {
+            // Usa a estrutura de preview (pode ser simplificada, mas é funcional)
+            const rarityStyles = getRarityColors(card.rarity);
+            const elementStyles = getElementStyles(card.element);
+            const rarityTextColor = "white"; // Sempre branco
+
+            groupHtml += `
+                <div class="card-preview card-small" 
+                     style="background-image: url(${card.image_url});">
+                    <div class="rarity-badge" 
+                        style="background-color: ${rarityStyles.primary}; 
+                               color: ${rarityTextColor};">
+                        ${card.rarity}
+                    </div>
+                    <div class="card-element-badge"
+                         style="background: ${elementStyles.background};">
+                        ${getElementIcon(card.element)}
+                    </div>
+                    <div class="card-name-footer" 
+                        style="background-color: ${rarityStyles.primary}">
+                        ${card.name}
+                    </div>
+                    <div class="card-force-circle"
+                        style="background-color: ${rarityStyles.primary};
+                               color: white; 
+                               border-color: white;"> 
+                        ${card.power}
+                    </div>
+                </div>
+            `;
+        });
+        groupHtml += `</div>`;
+        listContainer.innerHTML += groupHtml;
+    }
+}
+
 // Listeners
 document.getElementById("fileInput").addEventListener("change", previewCard);
 document.getElementById("cardName").addEventListener("input", previewCard);
@@ -223,3 +324,8 @@ document.getElementById("cardPower").addEventListener("input", previewCard);
 document.getElementById("cardRarity").addEventListener("change", previewCard);
 document.getElementById("cardElement").addEventListener("change", previewCard);
 document.getElementById("saveCardBtn").addEventListener("click", uploadCard);
+document.addEventListener("DOMContentLoaded", loadCards); // Carrega ao abrir a página
+document.getElementById("saveCardBtn").addEventListener("click", async () => {
+    await uploadCard();
+    await loadCards(); // Recarrega a lista após salvar
+});
