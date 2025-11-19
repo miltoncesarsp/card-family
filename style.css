@@ -1,8 +1,8 @@
-/* Importando fontes de fantasia para um visual de Card Game (ex: Google Fonts) */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Orbitron:wght@500&display=swap');
+/* Importando fontes Estilo Nintendo/Pixel */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'VT323', monospace; /* Fonte geral de terminal */
     margin: 20px;
     background: #f7f7f7;
     color: #333;
@@ -61,7 +61,7 @@ button:hover {
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-    font-family: 'Cinzel', serif; /* Fonte Cinzel para o look fantasia */
+    font-family: 'VT323', monospace; /* Fonte base da carta */
     margin: 10px;
     border: 4px solid #fff;
 }
@@ -73,7 +73,6 @@ button:hover {
     left: 5px;
     padding: 3px 8px; /* Diminuindo um pouco o padding */
     font-weight: 800;
-    font-size: 11px; /* Diminuindo a font-size da raridade */
     color: #fff; 
     border-radius: 8px;
     text-transform: uppercase;
@@ -82,7 +81,8 @@ button:hover {
     text-shadow: 1px 1px 2px #000;
     line-height: 1;
     z-index: 10;
-    font-family: 'Orbitron', sans-serif; /* Outra fonte para o badge */
+font-size: 10px; /* Reduzindo mais um pouco para a fonte pixel */
+    font-family: 'Press Start 2P', cursive; /* Fonte Pixel */
 }
 
 /* Ícone de elemento no canto superior direito */
@@ -113,19 +113,18 @@ button:hover {
     text-align: center;
     color: white;
     font-weight: bold;
-    padding: 7px 0;
-    font-size: 15px;
     box-shadow: 0 -5px 10px rgba(0,0,0,0.5);
     text-shadow: 1px 1px 2px #000;
     z-index: 10;
-    font-family: 'Cinzel', serif; /* Mantendo a fonte */
+font-size: 16px; 
+    font-family: 'Press Start 2P', cursive; /* Fonte Pixel */
+    padding: 10px 0; /* Aumentando o padding para dar espaço à fonte pixel */
 }
 
 /* Pílula de força no canto inferior direito */
 .card-preview .card-force-circle {
     /* NOVO POSICIONAMENTO: Metade em cima do rodapé */
     position: absolute;
-    bottom: 30px; /* Rodapé tem ~30px de altura, isso coloca o centro do círculo logo acima */
     right: 5px;
     width: 45px;
     height: 45px;
@@ -135,7 +134,9 @@ button:hover {
     justify-content: center;
     align-items: center;
     font-weight: 800;
-    font-size: 18px;
+    font-size: 16px; 
+    font-family: 'Press Start 2P', cursive; /* Fonte Pixel */
+    bottom: 35px; /* Ajustando a posição para a fonte maior no rodapé */
     /* A border-color é definida no JS (será branca) */
     border: 3px solid; 
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
