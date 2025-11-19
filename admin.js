@@ -25,17 +25,6 @@ function compressImage(file) {
   });
 }
 
-function previewImage() {
-  const fileInput = document.getElementById("fileInput");
-  const preview = document.getElementById("cardPreview");
-  const file = fileInput.files[0];
-  if (file) {
-    preview.src = URL.createObjectURL(file);
-  } else {
-    preview.src = "";
-  }
-}
-
 async function uploadCard() {
   const name = document.getElementById("cardName").value.trim();
   const level = parseInt(document.getElementById("cardLevel").value);
@@ -109,4 +98,75 @@ async function uploadCard() {
   alert("Carta salva com sucesso!");
   document.getElementById("cardForm").reset();
   document.getElementById("cardPreview").src = "";
+}
+
+function previewCard() {
+  const name = document.getElementById("cardName").value.trim() || "Desconhecido";
+  const rarity = document.getElementById("cardRarity").value || "Comum";
+  const element = document.getElementById("cardElement").value || "Ar";
+  const power = parseInt(document.getElementById("cardPower").value) || 0;
+  const fileInput = document.getElementById("fileInput");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    alert("Selecione uma imagem para o preview!");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const cardData = {
+      Personagem: name,
+      Raridade: rarity,
+      Elemento: element,
+      Forca: power,
+      imagem: e.target.result // URL da imagem selecionada
+    };
+
+    const previewDiv = createCardElement(cardData);
+    const container = document.getElementById("previewContainer");
+    container.innerHTML = "";
+    container.appendChild(previewDiv);
+  };
+  reader.readAsDataURL(file);
+}
+
+// Função adaptada do seu antigo código para criar o elemento da carta
+function createCardElement(cardData) {
+  const div = document.createElement('div');
+
+  const elemento = cardData.Elemento;
+  const raridade = cardData.Raridade;
+  const personagem = cardData.Personagem;
+  const forca = cardData.Forca;
+
+  let colorCode;
+  switch (raridade.toLowerCase()) {
+    case 'mítica': colorCode = '#ffc300'; break;
+    case 'lendária': colorCode = '#e67e22'; break;
+    case 'épica': colorCode = '#9b59b6'; break;
+    case 'rara': colorCode = '#3498db'; break;
+    default: colorCode = '#95a5a6';
+  }
+
+  div.className = "card rarity-" + raridade.toLowerCase() + " " + elemento.toLowerCase();
+  div.style.backgroundImage = `url('${cardData.imagem}')`;
+  div.style.height = '350px';
+  div.style.width = '250px';
+  div.style.backgroundSize = 'cover';
+  div.style.position = 'relative';
+  div.style.borderRadius = '10px';
+  div.style.overflow = 'hidden';
+
+  div.innerHTML = `
+    <div class="rarity-badge" style="background-color:${colorCode};position:absolute;top:5px;left:5px;padding:2px 6px;border-radius:4px;color:white;font-weight:bold;">
+      ${raridade}
+    </div>
+    <div class="card-name-footer" style="position:absolute;bottom:0;width:100%;background:${colorCode}AA;display:flex;justify-content:space-between;padding:5px;box-sizing:border-box;">
+      <span>${personagem}</span>
+      <span>${forca}</span>
+    </div>
+  `;
+
+  return div;
 }
