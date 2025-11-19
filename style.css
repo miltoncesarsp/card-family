@@ -1,8 +1,8 @@
-/* Importando fontes Estilo Nintendo/Pixel */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+/* Importando fontes divertidas e modernas sans-serif */
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Poppins:wght@400;700&display=swap');
 
 body {
-    font-family: 'VT323', monospace; /* Fonte geral de terminal */
+    font-family: 'Poppins', sans-serif; /* Fonte geral sans-serif */
     margin: 20px;
     background: #f7f7f7;
     color: #333;
@@ -61,7 +61,7 @@ button:hover {
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-    font-family: 'VT323', monospace; /* Fonte base da carta */
+font-family: 'Poppins', sans-serif;
     margin: 10px;
     border: 4px solid #fff;
 }
@@ -81,8 +81,8 @@ button:hover {
     text-shadow: 1px 1px 2px #000;
     line-height: 1;
     z-index: 10;
-font-size: 10px; /* Reduzindo mais um pouco para a fonte pixel */
-    font-family: 'Press Start 2P', cursive; /* Fonte Pixel */
+font-size: 11px; 
+    font-family: 'Poppins', sans-serif; /* Poppins para o badge de raridade */
 }
 
 /* Ícone de elemento no canto superior direito */
@@ -92,17 +92,16 @@ font-size: 10px; /* Reduzindo mais um pouco para a fonte pixel */
     right: 5px;
     width: 35px;
     height: 35px;
-    background: #fff;
-    border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 18px;
-    /* CORREÇÃO DO ÍCONE: A cor padrão aqui é #333 (escura) para que o Font Awesome apareça */
-    color: #333; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    color: white; /* Ícone SEMPRE branco, conforme solicitado */
+    background: transparent; /* O background será definido pelo JS com gradient, então o do CSS será transparente */
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5); /* Sombra para destacar o badge */
+    border: 2px solid white; /* Borda branca para destacar o círculo */
     z-index: 10;
-    /* Se o ícone ainda não aparecer, verifique o seu admin.html (ver abaixo) */
 }
 
 /* Barra de nome do personagem no rodapé */
@@ -117,8 +116,8 @@ font-size: 10px; /* Reduzindo mais um pouco para a fonte pixel */
     text-shadow: 1px 1px 2px #000;
     z-index: 10;
 font-size: 16px; 
-    font-family: 'Press Start 2P', cursive; /* Fonte Pixel */
-    padding: 10px 0; /* Aumentando o padding para dar espaço à fonte pixel */
+    font-family: 'Bungee', cursive; /* Bungee para o nome (mais divertida) */
+    padding: 10px 0;
 }
 
 /* Pílula de força no canto inferior direito */
@@ -134,9 +133,9 @@ font-size: 16px;
     justify-content: center;
     align-items: center;
     font-weight: 800;
-    font-size: 16px; 
-    font-family: 'Press Start 2P', cursive; /* Fonte Pixel */
-    bottom: 35px; /* Ajustando a posição para a fonte maior no rodapé */
+font-size: 18px; 
+    font-family: 'Bungee', cursive; /* Bungee para o número da força */
+    bottom: 35px;
     /* A border-color é definida no JS (será branca) */
     border: 3px solid; 
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
