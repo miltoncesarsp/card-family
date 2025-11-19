@@ -41,49 +41,28 @@ function getElementIcon(element) {
 }
 
 function getRarityColors(rarity) {
-    let colors;
-    let textColor = "#fff"; // Cor padrão do texto (branco)
+    let primaryColor;
+    let textColor = "#fff";
 
     switch (rarity.toLowerCase()) {
         case "mítica":
-            textColor = "#333"; // Texto escuro para melhor contraste com amarelo/ouro
-            colors = {
-                primary: "#FFD700", // Amarelo Dourado
-                background: "linear-gradient(145deg, #FFD700 0%, #FFA500 100%)",
-                boxShadow: "0 0 15px rgba(255, 215, 0, 0.8)",
-            };
+            textColor = "#333"; // Texto escuro para contraste
+            primaryColor = "#FFD700"; // Ouro
             break;
         case "lendária":
-            colors = {
-                primary: "#FF8C00", // Laranja Escuro
-                background: "linear-gradient(145deg, #FF8C00 0%, #FF4500 100%)",
-                boxShadow: "0 0 15px rgba(255, 140, 0, 0.7)",
-            };
+            primaryColor = "#FF8C00"; // Laranja
             break;
         case "épica":
-            colors = {
-                primary: "#9932CC", // Roxo Escuro
-                background: "linear-gradient(145deg, #9932CC 0%, #8A2BE2 100%)",
-                boxShadow: "0 0 15px rgba(153, 50, 204, 0.7)",
-            };
+            primaryColor = "#9932CC"; // Roxo
             break;
         case "rara":
-            colors = {
-                primary: "#1E90FF", // Azul Forte
-                background: "linear-gradient(145deg, #1E90FF 0%, #4169E1 100%)",
-                boxShadow: "0 0 15px rgba(30, 144, 255, 0.7)",
-            };
+            primaryColor = "#1E90FF"; // Azul
             break;
         default:
-            colors = {
-                primary: "#A9A9A9", // Cinza Escuro
-                background: "linear-gradient(145deg, #A9A9A9 0%, #808080 100%)",
-                boxShadow: "0 0 10px rgba(169, 169, 169, 0.5)",
-            };
+            primaryColor = "#A9A9A9"; // Cinza
             break;
     }
-
-    return { ...colors, textColor: textColor }; // Retorna as cores + a cor do texto
+    return { primary: primaryColor, textColor: textColor };
 }
 
 // Preview da carta
@@ -103,19 +82,23 @@ function previewCard() {
     const div = document.createElement("div");
     div.className = "card-preview";
 
-    const rarityStyles = getRarityColors(rarity);
+    const rarityStyles = getRarityColors(rarity); // Cores da Raridade
+    const elementStyles = getElementStyles(element); // Cores do Elemento
 
     if (file) div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
 
-div.innerHTML = `
+    div.innerHTML = `
         <div class="rarity-badge" 
-            style="background: ${rarityStyles.background}; 
-                   box-shadow: ${rarityStyles.boxShadow};
-                   color: ${rarityStyles.textColor};">
+            style="background-color: ${rarityStyles.primary}; 
+                   color: ${rarityStyles.textColor};
+                   box-shadow: 0 2px 5px rgba(0,0,0,0.5)">
             ${rarity}
         </div>
         
-        <div class="card-element-badge">${getElementIcon(element)}</div>
+        <div class="card-element-badge"
+             style="background: ${elementStyles.background};">
+            ${getElementIcon(element)}
+        </div>
         
         <div class="card-name-footer" 
             style="background-color: ${rarityStyles.primary}">
@@ -131,6 +114,48 @@ div.innerHTML = `
     `;
 
     container.appendChild(div);
+}
+
+function getElementStyles(element) {
+    switch (element.toLowerCase()) {
+        case "terra":
+            return {
+                primary: "#8B4513", // Marrom
+                background: "linear-gradient(135deg, #A0522D 0%, #6B8E23 100%)" // Marrom para Verde Oliva
+            };
+        case "fogo":
+            return {
+                primary: "#FF4500", // Laranja Vermelho
+                background: "linear-gradient(135deg, #FF4500 0%, #FFD700 100%)" // Laranja para Ouro
+            };
+        case "água":
+            return {
+                primary: "#1E90FF", // Azul Forte
+                background: "linear-gradient(135deg, #1E90FF 0%, #87CEEB 100%)" // Azul Real para Azul Céu
+            };
+        case "ar":
+            return {
+                primary: "#ADD8E6", // Azul Claro
+                background: "linear-gradient(135deg, #ADD8E6 0%, #FFFFFF 100%)" // Azul Claro para Branco
+            };
+        case "tecnologia":
+            return {
+                primary: "#00CED1", // Turquesa Escuro
+                background: "linear-gradient(135deg, #00CED1 0%, #191970 100%)" // Turquesa para Azul Marinho
+            };
+        case "luz":
+            return {
+                primary: "#FFD700", // Ouro
+                background: "linear-gradient(135deg, #FFD700 0%, #FFFFE0 100%)" // Ouro para Amarelo Claro
+            };
+        case "sombra":
+            return {
+                primary: "#4B0082", // Índigo Escuro
+                background: "linear-gradient(135deg, #4B0082 0%, #000000 100%)" // Índigo para Preto
+            };
+        default:
+            return { primary: "#A9A9A9", background: "#A9A9A9" };
+    }
 }
 
 // Upload da carta
