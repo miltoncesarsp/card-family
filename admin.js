@@ -117,44 +117,45 @@ function getElementStyles(element) {
     switch (element.toLowerCase()) {
         case "terra":
             return {
-                primary: "#8B4513", // Marrom
-                background: "linear-gradient(135deg, #A0522D 0%, #6B8E23 100%)" // Marrom para Verde Oliva
+                primary: "#8B4513", 
+                background: "linear-gradient(135deg, #A0522D 0%, #6B8E23 100%)" 
             };
         case "fogo":
             return {
-                primary: "#FF4500", // Laranja Vermelho
-                background: "linear-gradient(135deg, #FF4500 0%, #FFD700 100%)" // Laranja para Ouro
+                primary: "#FF4500", 
+                background: "linear-gradient(135deg, #FF4500 0%, #FFD700 100%)" 
             };
         case "água":
             return {
-                primary: "#1E90FF", // Azul Forte
-                background: "linear-gradient(135deg, #1E90FF 0%, #87CEEB 100%)" // Azul Real para Azul Céu
+                primary: "#1E90FF", 
+                background: "linear-gradient(135deg, #1E90FF 0%, #87CEEB 100%)" 
             };
         case "ar":
             return {
-                primary: "#ADD8E6", // Azul Claro
-                background: "linear-gradient(135deg, #ADD8E6 0%, #FFFFFF 100%)" // Azul Claro para Branco
+                primary: "#5F9EA0", // Azul Acinzentado (Mais escuro)
+                // NOVO GRADIENTE: Usando tons de cinza/azul para garantir contraste
+                background: "linear-gradient(135deg, #708090 0%, #B0C4DE 100%)" // Cinza Ardósia para Azul Claro
             };
         case "tecnologia":
             return {
-                primary: "#00CED1", // Turquesa Escuro
-                background: "linear-gradient(135deg, #00CED1 0%, #191970 100%)" // Turquesa para Azul Marinho
+                primary: "#00CED1", 
+                background: "linear-gradient(135deg, #00CED1 0%, #191970 100%)" 
             };
         case "luz":
             return {
-                primary: "#FFD700", // Ouro
-                background: "linear-gradient(135deg, #FFD700 0%, #FFFFE0 100%)" // Ouro para Amarelo Claro
+                primary: "#DAA520", // Dourado mais escuro (Goldenrod)
+                // NOVO GRADIENTE: Garantindo que a parte mais escura seja visível
+                background: "linear-gradient(135deg, #FFD700 0%, #DAA520 100%)" // Ouro para Dourado Escuro
             };
         case "sombra":
             return {
-                primary: "#4B0082", // Índigo Escuro
-                background: "linear-gradient(135deg, #4B0082 0%, #000000 100%)" // Índigo para Preto
+                primary: "#4B0082", 
+                background: "linear-gradient(135deg, #4B0082 0%, #000000 100%)" 
             };
         default:
             return { primary: "#A9A9A9", background: "#A9A9A9" };
     }
 }
-
 // Upload da carta
 async function uploadCard() {
   const name = document.getElementById("cardName").value.trim();
