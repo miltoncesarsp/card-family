@@ -45,7 +45,7 @@ async function uploadCard() {
   const fileInput = document.getElementById("fileInput");
   const file = fileInput.files[0];
 
-  if (!name || !raridade || !element || !power || !level || !file) {
+  if (!name || !rarity || !element || !power || !level || !file) {
     alert("Preencha todos os campos!");
     return;
   }
