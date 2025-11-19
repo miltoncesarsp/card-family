@@ -3,50 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <title>Admin - Criar Cartas</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="icon" href="https://icons.iconarchive.com/icons/google/noto-emoji-objects/256/62885-black-nib-icon.png">
 </head>
+
 <body>
-  <h1>Painel Admin - Criar Carta</h1>
+  <h1>Criar Nova Carta</h1>
 
-<form id="cardForm">
-  <label>Nome:</label>
-  <input id="cardName" type="text">
+  <form id="cardForm" class="card-form">
+    <label>Nome:</label>
+    <input id="cardName" type="text">
 
-  <label>Força:</label>
-  <input id="cardPower" type="number" min="0">
+    <label>Força:</label>
+    <input id="cardPower" type="number" min="0">
 
-  <label>Raridade:</label>
-  <select id="cardRarity">
-    <option value="Comum">Comum</option>
-    <option value="Rara">Rara</option>
-    <option value="Épica">Épica</option>
-    <option value="Lendária">Lendária</option>
-    <option value="Mítica">Mítica</option>
-  </select>
+    <label>Raridade:</label>
+    <select id="cardRarity">
+      <option value="Comum">Comum (cinza)</option>
+      <option value="Rara">Rara (azul)</option>
+      <option value="Épica">Épica (roxa)</option>
+      <option value="Lendária">Lendária (laranja)</option>
+      <option value="Divina">Divina (amarela)</option>
+    </select>
 
-  <label>Elemento:</label>
-  <select id="cardElement">
-    <option value="Terra">Terra</option>
-    <option value="Fogo">Fogo</option>
-    <option value="Água">Água</option>
-    <option value="Ar">Ar</option>
-    <option value="Tecnologia">Tecnologia</option>
-    <option value="Luz">Luz</option>
-    <option value="Sombra">Sombra</option>
-  </select>
+    <label>Elemento:</label>
+    <select id="cardElement">
+      <option value="Terra">Terra</option>
+      <option value="Fogo">Fogo</option>
+      <option value="Água">Água</option>
+      <option value="Ar">Ar</option>
+      <option value="Tecnologia">Tecnologia</option>
+      <option value="Luz">Luz</option>
+      <option value="Sombra">Sombra</option>
+    </select>
 
-  <label>Imagem da carta:</label>
-  <input id="fileInput" type="file" accept="image/*">
+    <label>Imagem da carta:</label>
+    <input id="fileInput" type="file" accept="image/*">
 
-  <button type="button" onclick="uploadCard()">Salvar Carta</button>
-</form>
+    <button type="button" onclick="uploadCard()">Salvar Carta</button>
+  </form>
 
-<h2>Preview</h2>
-<div id="cardPreview"></div>
+  <h2>Pré-visualização da Carta</h2>
+  <div id="cardPreviewContainer">
+    <!-- O preview vai aparecer aqui -->
+  </div>
 
+  <!-- Carrega SDK do Supabase -->
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
 
-<script src="supabaseClient-v2.js"></script>
-<script src="admin.js?v=2"></script>
+  <!-- Arquivo com a criação do cliente Supabase -->
+  <script src="supabaseClient-v2.js?v=2"></script>
+
+  <!-- Lógica do painel admin -->
+  <script src="admin.js?v=2"></script>
 </body>
 </html>
