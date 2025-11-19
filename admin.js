@@ -1,6 +1,3 @@
-// NÃO declare supabase aqui, ele já vem do supabaseClient.js
-
-// Função para compactar imagens
 function compressImage(file) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -18,7 +15,18 @@ function compressImage(file) {
   });
 }
 
-// Preview da carta em tempo real
+// Retorna cor do banner baseado na raridade
+function getRarityColor(rarity) {
+  switch (rarity.toLowerCase()) {
+    case "mítica": return "#FFD700";
+    case "lendária": return "#E67E22";
+    case "épica": return "#9B59B6";
+    case "rara": return "#3498DB";
+    default: return "#95A5A6";
+  }
+}
+
+// Preview da carta
 function previewCard() {
   const name = document.getElementById("cardName").value.trim();
   const power = document.getElementById("cardPower").value;
@@ -28,42 +36,28 @@ function previewCard() {
   const file = fileInput.files[0];
 
   const container = document.getElementById("cardPreviewContainer");
-  container.innerHTML = ""; // Limpa o preview
+  container.innerHTML = "";
 
   if (!name && !power && !file) return;
 
   const div = document.createElement("div");
   div.className = "card-preview";
 
-  let colorCode;
-  switch (rarity.toLowerCase()) {
-    case "mítica": colorCode = "#ffc300"; break;
-    case "lendária": colorCode = "#e67e22"; break;
-    case "épica": colorCode = "#9b59b6"; break;
-    case "rara": colorCode = "#3498db"; break;
-    default: colorCode = "#95a5a6";
-  }
+  const colorCode = getRarityColor(rarity);
 
-  if (file) {
-    div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
-  } else {
-    div.style.backgroundImage = "";
-  }
+  if (file) div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
 
-  div.style.height = "350px";
   div.innerHTML = `
     <div class="rarity-badge" style="background-color:${colorCode}">${rarity}</div>
-    <div class="card-element-badge">${element}</div>
-    <div class="card-name-footer" style="background: ${colorCode}DD;">
-      <span class="card-name-text">${name}</span>
-      <span class="card-force-circle" style="background-color:${colorCode}">${power}</span>
-    </div>
+    <div class="card-element-badge">${element.charAt(0)}</div>
+    <div class="card-name-footer">${name}</div>
+    <div class="card-force-circle">${power}</div>
   `;
 
   container.appendChild(div);
 }
 
-// Função para salvar carta no Supabase
+// Upload da carta
 async function uploadCard() {
   const name = document.getElementById("cardName").value.trim();
   const rarity = document.getElementById("cardRarity").value;
@@ -77,7 +71,6 @@ async function uploadCard() {
     return;
   }
 
-  // Buscar origem do personagem
   const { data: baseData, error: baseError } = await supabase
     .from("personagens_base")
     .select("origem")
@@ -91,12 +84,9 @@ async function uploadCard() {
   }
 
   const origem = baseData.origem;
-
-  // Compressão da imagem
   const compressed = await compressImage(file);
-
-  // Upload no bucket cards / subpasta por origem
   const filePath = `cards/${origem}/${Date.now()}_${file.name}`;
+
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from("cards")
     .upload(filePath, compressed);
@@ -107,16 +97,10 @@ async function uploadCard() {
     return;
   }
 
-  // URL pública
-  const { data: publicUrl } = supabase.storage
-    .from("cards")
-    .getPublicUrl(filePath);
-
+  const { data: publicUrl } = supabase.storage.from("cards").getPublicUrl(filePath);
   const imageUrl = publicUrl.publicUrl;
 
-  // Salvar no banco
-  const { error: dbError } = await supabase
-    .from("cards")
+  const { error: dbError } = await supabase.from("cards")
     .insert([{ name, rarity, element, power, image_url: imageUrl }]);
 
   if (dbError) {
