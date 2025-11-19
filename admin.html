@@ -3,47 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <title>Admin - Criar Cartas</title>
-  <link rel="stylesheet" href="style.css?v=2">
-  <link rel="icon" href="https://icons.iconarchive.com/icons/google/noto-emoji-objects/256/62885-black-nib-icon.png">
-</head>
-<body>
-  <h1>Criar Nova Carta</h1>
+<link rel="stylesheet" href="style.css">
+<!-- Font Awesome -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
-  <div class="card-form" id="cardForm">
-    <label>Nome:</label>
-    <input id="cardName" type="text">
+<div class="card-form" id="cardForm">
+  <label>Nome:</label>
+  <input id="cardName" type="text">
 
-    <label>Força:</label>
-    <input id="cardPower" type="number" min="0">
+  <label>Força:</label>
+  <input id="cardPower" type="number" min="0">
 
-    <label>Raridade:</label>
-    <select id="cardRarity">
-      <option value="Comum">Comum (cinza)</option>
-      <option value="Rara">Rara (azul)</option>
-      <option value="Épica">Épica (roxa)</option>
-      <option value="Lendária">Lendária (laranja)</option>
-      <option value="Mítica">Mítica (amarela)</option>
-    </select>
+  <label>Raridade:</label>
+  <select id="cardRarity">
+    <option value="Comum">Comum (cinza)</option>
+    <option value="Rara">Rara (azul)</option>
+    <option value="Épica">Épica (roxa)</option>
+    <option value="Lendária">Lendária (laranja)</option>
+    <option value="Mítica">Mítica (amarela)</option>
+  </select>
 
-    <label>Elemento:</label>
-    <select id="cardElement">
-      <option value="Terra">Terra</option>
-      <option value="Fogo">Fogo</option>
-      <option value="Água">Água</option>
-      <option value="Ar">Ar</option>
-      <option value="Tecnologia">Tecnologia</option>
-      <option value="Luz">Luz</option>
-      <option value="Sombra">Sombra</option>
-    </select>
+  <label>Elemento:</label>
+  <select id="cardElement">
+    <option value="Terra">Terra</option>
+    <option value="Fogo">Fogo</option>
+    <option value="Água">Água</option>
+    <option value="Ar">Ar</option>
+    <option value="Tecnologia">Tecnologia</option>
+    <option value="Luz">Luz</option>
+    <option value="Sombra">Sombra</option>
+  </select>
 
-    <label>Imagem da carta:</label>
-    <input id="fileInput" type="file" accept="image/*">
+  <label>Imagem da carta:</label>
+  <input id="fileInput" type="file" accept="image/*">
 
-    <button type="button" id="saveCardBtn">Salvar Carta</button>
-  </div>
+  <button type="button" id="saveCardBtn">Salvar Carta</button>
+</div>
 
-  <h2>Preview da Carta</h2>
-  <div id="cardPreviewContainer"></div>
+<div id="cardPreviewContainer"></div>
 
   <!-- SDK do Supabase -->
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
