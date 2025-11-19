@@ -10,7 +10,8 @@
 <body>
   <h1>Criar Nova Carta</h1>
 
-  <form id="cardForm" class="card-form">
+  <div class="card-form" id="cardForm">
+    
     <label>Nome:</label>
     <input id="cardName" type="text">
 
@@ -23,7 +24,7 @@
       <option value="Rara">Rara (azul)</option>
       <option value="Épica">Épica (roxa)</option>
       <option value="Lendária">Lendária (laranja)</option>
-      <option value="Divina">Divina (amarela)</option>
+      <option value="Mítica">Mítica (amarela)</option>
     </select>
 
     <label>Elemento:</label>
@@ -40,21 +41,15 @@
     <label>Imagem da carta:</label>
     <input id="fileInput" type="file" accept="image/*">
 
-    <button type="button" onclick="uploadCard()">Salvar Carta</button>
-  </form>
-
-  <h2>Pré-visualização da Carta</h2>
-  <div id="cardPreviewContainer">
-    <!-- O preview vai aparecer aqui -->
+    <button id="saveButton">Salvar Carta</button>
   </div>
+
+  <h2>Preview da Carta</h2>
+  <div id="cardPreviewContainer"></div>
 
   <!-- Carrega SDK do Supabase -->
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
-
-  <!-- Arquivo com a criação do cliente Supabase -->
   <script src="supabaseClient-v2.js?v=2"></script>
-
-  <!-- Lógica do painel admin -->
   <script src="admin.js?v=2"></script>
 </body>
 </html>
