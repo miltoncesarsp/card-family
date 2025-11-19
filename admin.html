@@ -3,28 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <title>Admin - Criar Cartas</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="https://icons.iconarchive.com/icons/google/noto-emoji-objects/256/62885-black-nib-icon.png">
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <h1>Criar Nova Carta</h1>
+  <h1>Painel Admin - Criar Carta</h1>
 
-  <form id="cardForm" class="card-form">
-    
-    <label>Nome:</label>
+  <form id="cardForm">
+    <label>Nome do Personagem:</label>
     <input id="cardName" type="text" required>
+
+    <label>Nível:</label>
+    <input id="cardLevel" type="number" min="1" required>
 
     <label>Força:</label>
     <input id="cardPower" type="number" min="0" required>
 
     <label>Raridade:</label>
     <select id="cardRarity" required>
-      <option value="comum">Comum (cinza)</option>
-      <option value="rara">Rara (azul)</option>
-      <option value="epica">Épica (roxa)</option>
-      <option value="lendaria">Lendária (laranja)</option>
-      <option value="divina">Divina (amarela)</option>
+      <option value="comum">Comum</option>
+      <option value="rara">Rara</option>
+      <option value="epica">Épica</option>
+      <option value="lendaria">Lendária</option>
+      <option value="mitica">Mítica</option>
     </select>
 
     <label>Elemento:</label>
@@ -38,15 +38,19 @@
       <option value="sombra">Sombra</option>
     </select>
 
-    <label>Imagem da carta:</label>
-    <input id="fileInput" type="file" accept="image/*" required>
+    <label>Imagem da Carta:</label>
+    <input id="fileInput" type="file" accept="image/*" required onchange="previewImage()">
+
+    <div id="previewContainer">
+      <p>Preview:</p>
+      <img id="cardPreview" src="" alt="Preview da carta">
+    </div>
 
     <button type="button" onclick="uploadCard()">Salvar Carta</button>
   </form>
 
-  <!-- SDK Supabase -->
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
-  <script src="supabaseClient-v2.js?v=2"></script>
+  <script src="supabaseClient-v2.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>
