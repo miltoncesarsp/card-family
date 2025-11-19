@@ -1,3 +1,6 @@
+/* Importando fontes de fantasia para um visual de Card Game (ex: Google Fonts) */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Orbitron:wght@500&display=swap');
+
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
@@ -57,28 +60,29 @@ button:hover {
     background-position: center;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5); /* Sombra mais forte */
-    font-family: 'Arial', sans-serif;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    font-family: 'Cinzel', serif; /* Fonte Cinzel para o look fantasia */
     margin: 10px;
-    border: 4px solid #fff; /* Borda branca para destacar */
+    border: 4px solid #fff;
 }
 
-/* Banner de Raridade no topo (Com Gradient e Brilho) */
+/* Banner de Raridade no topo */
 .card-preview .rarity-badge {
     position: absolute;
     top: 5px;
     left: 5px;
-    padding: 4px 10px;
-    font-weight: 800; /* Mais negrito */
-    font-size: 13px;
-    color: #fff; /* Cor do texto padrão */
+    padding: 3px 8px; /* Diminuindo um pouco o padding */
+    font-weight: 800;
+    font-size: 11px; /* Diminuindo a font-size da raridade */
+    color: #fff; 
     border-radius: 8px;
     text-transform: uppercase;
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    border: 1px solid rgba(255, 255, 255, 0.5); /* Borda sutil */
+    border: 1px solid rgba(255, 255, 255, 0.5);
     text-shadow: 1px 1px 2px #000;
-    line-height: 1; /* Para evitar que o padding atrapalhe o texto */
+    line-height: 1;
     z-index: 10;
+    font-family: 'Orbitron', sans-serif; /* Outra fonte para o badge */
 }
 
 /* Ícone de elemento no canto superior direito */
@@ -86,17 +90,19 @@ button:hover {
     position: absolute;
     top: 5px;
     right: 5px;
-    width: 35px; /* Ligeiramente maior */
+    width: 35px;
     height: 35px;
-    background: #fff; /* Fundo branco */
+    background: #fff;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 18px; /* Ícone maior */
-    color: #333;
+    font-size: 18px;
+    /* CORREÇÃO DO ÍCONE: A cor padrão aqui é #333 (escura) para que o Font Awesome apareça */
+    color: #333; 
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     z-index: 10;
+    /* Se o ícone ainda não aparecer, verifique o seu admin.html (ver abaixo) */
 }
 
 /* Barra de nome do personagem no rodapé */
@@ -105,34 +111,35 @@ button:hover {
     bottom: 0;
     width: 100%;
     text-align: center;
-    /* O background será definido pelo JS com a cor da raridade */
     color: white;
     font-weight: bold;
-    padding: 7px 0; /* Um pouco mais de padding */
+    padding: 7px 0;
     font-size: 15px;
     box-shadow: 0 -5px 10px rgba(0,0,0,0.5);
     text-shadow: 1px 1px 2px #000;
     z-index: 10;
+    font-family: 'Cinzel', serif; /* Mantendo a fonte */
 }
 
 /* Pílula de força no canto inferior direito */
 .card-preview .card-force-circle {
+    /* NOVO POSICIONAMENTO: Metade em cima do rodapé */
     position: absolute;
-    bottom: 50px; /* Subindo um pouco para não cobrir o rodapé */
+    bottom: 30px; /* Rodapé tem ~30px de altura, isso coloca o centro do círculo logo acima */
     right: 5px;
-    width: 45px; /* Maior */
+    width: 45px;
     height: 45px;
     border-radius: 50%;
-    background: #fff;
-    color: #333;
+    /* O background-color e color são definidos no JS (para serem dinâmicos) */
     display: flex;
     justify-content: center;
     align-items: center;
     font-weight: 800;
     font-size: 18px;
-    border: 3px solid #333;
+    /* A border-color é definida no JS (será branca) */
+    border: 3px solid; 
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    z-index: 10;
+    z-index: 15; /* Maior z-index para garantir que fique sobre o rodapé */
 }
 
 #previewContainer {
