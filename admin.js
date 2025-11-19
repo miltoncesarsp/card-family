@@ -80,16 +80,19 @@ function previewCard() {
     const div = document.createElement("div");
     div.className = "card-preview";
 
-    const rarityStyles = getRarityColors(rarity); // Cores da Raridade
-    const elementStyles = getElementStyles(element); // Cores do Elemento
-  const rarityTextColor = rarity.toLowerCase() === "mítica" ? "#333" : "white";
+    const rarityStyles = getRarityColors(rarity);
+    const elementStyles = getElementStyles(element); 
+    
+    // NOVO: A cor do texto da raridade é SEMPRE branca, conforme solicitado.
+    const rarityTextColor = "white"; // <-- Ajustado para ser sempre branco
 
     if (file) div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
 
- div.innerHTML = `
+    div.innerHTML = `
         <div class="rarity-badge" 
             style="background-color: ${rarityStyles.primary}; 
-                   color: ${rarityTextColor};"> ${rarity}
+                   color: ${rarityTextColor};">
+            ${rarity}
         </div>
         
         <div class="card-element-badge"
