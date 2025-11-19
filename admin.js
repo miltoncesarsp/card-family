@@ -107,11 +107,12 @@ function previewCard() {
 
     if (file) div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
 
-    div.innerHTML = `
+div.innerHTML = `
         <div class="rarity-badge" 
             style="background: ${rarityStyles.background}; 
                    box-shadow: ${rarityStyles.boxShadow};
-                   color: ${rarityStyles.textColor};"> ${rarity}
+                   color: ${rarityStyles.textColor};">
+            ${rarity}
         </div>
         
         <div class="card-element-badge">${getElementIcon(element)}</div>
@@ -123,8 +124,9 @@ function previewCard() {
         
         <div class="card-force-circle"
             style="background-color: ${rarityStyles.primary};
-                   color: white; /* Número da Força sempre branco */
-                   border-color: white;"> ${power}
+                   color: white; 
+                   border-color: white;"> 
+            ${power}
         </div>
     `;
 
