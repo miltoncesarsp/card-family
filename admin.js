@@ -15,7 +15,7 @@ function compressImage(file) {
   });
 }
 
-// Retorna cor do banner baseado na raridade
+// Cores do badge de raridade
 function getRarityColor(rarity) {
   switch (rarity.toLowerCase()) {
     case "mítica": return "#FFD700";
@@ -23,6 +23,20 @@ function getRarityColor(rarity) {
     case "épica": return "#9B59B6";
     case "rara": return "#3498DB";
     default: return "#95A5A6";
+  }
+}
+
+// Ícone Font Awesome do elemento
+function getElementIcon(element) {
+  switch (element.toLowerCase()) {
+    case "terra": return '<i class="fas fa-leaf"></i>';
+    case "fogo": return '<i class="fas fa-fire"></i>';
+    case "água": return '<i class="fas fa-tint"></i>';
+    case "ar": return '<i class="fas fa-wind"></i>';
+    case "tecnologia": return '<i class="fas fa-microchip"></i>';
+    case "luz": return '<i class="fas fa-sun"></i>';
+    case "sombra": return '<i class="fas fa-moon"></i>';
+    default: return '<i class="fas fa-question"></i>';
   }
 }
 
@@ -44,12 +58,11 @@ function previewCard() {
   div.className = "card-preview";
 
   const colorCode = getRarityColor(rarity);
-
   if (file) div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
 
   div.innerHTML = `
     <div class="rarity-badge" style="background-color:${colorCode}">${rarity}</div>
-    <div class="card-element-badge">${element.charAt(0)}</div>
+    <div class="card-element-badge">${getElementIcon(element)}</div>
     <div class="card-name-footer">${name}</div>
     <div class="card-force-circle">${power}</div>
   `;
