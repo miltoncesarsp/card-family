@@ -1,5 +1,6 @@
 // NÃO declare supabase aqui, ele já vem do supabaseClient.js
 
+// Função para compressão de imagem
 function compressImage(file) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -25,41 +26,103 @@ function compressImage(file) {
   });
 }
 
-async function uploadCard() {
-  const name = document.getElementById("cardName").value.trim();
-  const level = parseInt(document.getElementById("cardLevel").value);
-  const rarity = document.getElementById("cardRarity").value;
-  const element = document.getElementById("cardElement").value;
-  const power = parseInt(document.getElementById("cardPower").value);
+// Função para criar o preview do card
+function previewCard() {
+  const name = document.getElementById("cardName").value.trim() || "Desconhecido";
+  const power = parseInt(document.getElementById("cardPower").value) || 0;
+  const rarity = document.getElementById("cardRarity").value || "Comum";
+  const element = document.getElementById("cardElement").value || "Ar";
   const fileInput = document.getElementById("fileInput");
   const file = fileInput.files[0];
 
-  if (!name || !rarity || !element || !power || !level || !file) {
-    alert("Preencha todos os campos!");
+  const previewDiv = document.getElementById("cardPreview");
+  previewDiv.innerHTML = ""; // Limpa preview
+
+  const cardData = {
+    Personagem: name,
+    Forca: power,
+    Raridade: rarity,
+    Elemento: element,
+    imagem: file ? URL.createObjectURL(file) : ""
+  };
+
+  const cardElement = createCardElement(cardData);
+  previewDiv.appendChild(cardElement);
+}
+
+// Função para criar o card visual
+function createCardElement(cardData) {
+  const div = document.createElement("div");
+
+  const elemento = cardData.Elemento || "Ar";
+  const raridade = cardData.Raridade || "Comum";
+  const personagem = cardData.Personagem || "Desconhecido";
+  const forca = cardData.Forca || 0;
+
+  // Definição de cores por raridade
+  let colorCode;
+  switch (raridade.toLowerCase()) {
+    case "mítica": colorCode = "#ffc300"; break;
+    case "lendária": colorCode = "#e67e22"; break;
+    case "épica": colorCode = "#9b59b6"; break;
+    case "rara": colorCode = "#3498db"; break;
+    default: colorCode = "#95a5a6"; // Comum
+  }
+
+  const raridadeClass = "rarity-" + raridade.toLowerCase()
+    .replace(/é/g, "e").replace(/á/g, "a").replace(/í/g, "i");
+
+  const elementoClass = elemento.toLowerCase().replace("á", "a");
+
+  div.className = "card " + raridadeClass + " " + elementoClass;
+  div.style.backgroundImage = cardData.imagem ? "url('" + cardData.imagem + "')" : "";
+  div.style.height = "350px";
+
+  div.innerHTML = `
+    <div class="rarity-badge" style="background-color:${colorCode};">${raridade}</div>
+    <div class="card-name-footer" style="background:${colorCode}DD;">
+      <span class="card-name-text">${personagem}</span>
+      <span class="card-force-circle" style="background-color:${colorCode};">${forca}</span>
+    </div>
+  `;
+
+  return div;
+}
+
+// Upload da carta para o Supabase
+async function uploadCard() {
+  const name = document.getElementById("cardName").value.trim();
+  const power = parseInt(document.getElementById("cardPower").value);
+  const rarity = document.getElementById("cardRarity").value;
+  const element = document.getElementById("cardElement").value;
+  const fileInput = document.getElementById("fileInput");
+  const file = fileInput.files[0];
+
+  if (!name || !rarity || !element || !power || !file) {
+    alert("Preencha todos os campos e selecione uma imagem!");
     return;
   }
 
-  // 1️⃣ Buscar origem do personagem
+  // Buscar origem do personagem (case-insensitive)
   const { data: baseData, error: baseError } = await supabase
-    .from("personagens_base")
-    .select("origem, id_base")
-    .eq("personagem", name)
-    .single();
+    .from("Personagens_Base")
+    .select("Origem")
+    .ilike("Personagem", name)
+    .limit(1);
 
-  if (baseError || !baseData) {
+  if (baseError || !baseData || baseData.length === 0) {
     console.error("Erro ao buscar origem:", baseError);
     alert("Não foi possível encontrar a origem do personagem!");
     return;
   }
 
-  const origem = baseData.origem;
-  const id_base = baseData.id_base;
+  const origem = baseData[0].Origem;
 
-  // 2️⃣ Compressão da imagem
+  // Compressão da imagem
   const compressed = await compressImage(file);
 
-  // 3️⃣ Upload no bucket cards, subpasta por origem
-  const filePath = `cards/${origem}/${id_base}_${level}_${Date.now()}.jpeg`;
+  // Upload no bucket cards / subpasta da origem
+  const filePath = `cards/${origem}/${Date.now()}_${file.name}`;
   const { error: uploadError } = await supabase.storage
     .from("cards")
     .upload(filePath, compressed);
@@ -70,24 +133,17 @@ async function uploadCard() {
     return;
   }
 
-  // 4️⃣ Pegar URL pública
+  // Pegar URL pública
   const { data: publicUrl } = supabase.storage
     .from("cards")
     .getPublicUrl(filePath);
 
   const imageUrl = publicUrl.publicUrl;
 
-  // 5️⃣ Inserir na tabela cartas_nivel
+  // Salvar no banco
   const { error: dbError } = await supabase
-    .from("cartas_nivel")
-    .insert([{
-      id_base,
-      nivel: level,
-      raridade: rarity,
-      forca: power,
-      element: element,
-      imagem_url: imageUrl
-    }]);
+    .from("cards")
+    .insert([{ name, rarity, element, power, image_url: imageUrl }]);
 
   if (dbError) {
     console.error("Erro ao salvar no banco:", dbError);
@@ -97,76 +153,12 @@ async function uploadCard() {
 
   alert("Carta salva com sucesso!");
   document.getElementById("cardForm").reset();
-  document.getElementById("cardPreview").src = "";
+  previewCard(); // Limpa preview
 }
 
-function previewCard() {
-  const name = document.getElementById("cardName").value.trim() || "Desconhecido";
-  const rarity = document.getElementById("cardRarity").value || "Comum";
-  const element = document.getElementById("cardElement").value || "Ar";
-  const power = parseInt(document.getElementById("cardPower").value) || 0;
-  const fileInput = document.getElementById("fileInput");
-  const file = fileInput.files[0];
-
-  if (!file) {
-    alert("Selecione uma imagem para o preview!");
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const cardData = {
-      Personagem: name,
-      Raridade: rarity,
-      Elemento: element,
-      Forca: power,
-      imagem: e.target.result // URL da imagem selecionada
-    };
-
-    const previewDiv = createCardElement(cardData);
-    const container = document.getElementById("previewContainer");
-    container.innerHTML = "";
-    container.appendChild(previewDiv);
-  };
-  reader.readAsDataURL(file);
-}
-
-// Função adaptada do seu antigo código para criar o elemento da carta
-function createCardElement(cardData) {
-  const div = document.createElement('div');
-
-  const elemento = cardData.Elemento;
-  const raridade = cardData.Raridade;
-  const personagem = cardData.Personagem;
-  const forca = cardData.Forca;
-
-  let colorCode;
-  switch (raridade.toLowerCase()) {
-    case 'mítica': colorCode = '#ffc300'; break;
-    case 'lendária': colorCode = '#e67e22'; break;
-    case 'épica': colorCode = '#9b59b6'; break;
-    case 'rara': colorCode = '#3498db'; break;
-    default: colorCode = '#95a5a6';
-  }
-
-  div.className = "card rarity-" + raridade.toLowerCase() + " " + elemento.toLowerCase();
-  div.style.backgroundImage = `url('${cardData.imagem}')`;
-  div.style.height = '350px';
-  div.style.width = '250px';
-  div.style.backgroundSize = 'cover';
-  div.style.position = 'relative';
-  div.style.borderRadius = '10px';
-  div.style.overflow = 'hidden';
-
-  div.innerHTML = `
-    <div class="rarity-badge" style="background-color:${colorCode};position:absolute;top:5px;left:5px;padding:2px 6px;border-radius:4px;color:white;font-weight:bold;">
-      ${raridade}
-    </div>
-    <div class="card-name-footer" style="position:absolute;bottom:0;width:100%;background:${colorCode}AA;display:flex;justify-content:space-between;padding:5px;box-sizing:border-box;">
-      <span>${personagem}</span>
-      <span>${forca}</span>
-    </div>
-  `;
-
-  return div;
-}
+// --- Eventos para preview em tempo real ---
+document.getElementById("cardName").addEventListener("input", previewCard);
+document.getElementById("cardPower").addEventListener("input", previewCard);
+document.getElementById("cardRarity").addEventListener("change", previewCard);
+document.getElementById("cardElement").addEventListener("change", previewCard);
+document.getElementById("fileInput").addEventListener("change", previewCard);
