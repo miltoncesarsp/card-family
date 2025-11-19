@@ -8,46 +8,41 @@
 <body>
   <h1>Painel Admin - Criar Carta</h1>
 
-  <form id="cardForm">
-    <label>Nome do Personagem:</label>
-    <input id="cardName" type="text" required>
+<form id="cardForm">
+  <label>Nome:</label>
+  <input id="cardName" type="text">
 
-    <label>Nível:</label>
-    <input id="cardLevel" type="number" min="1" required>
+  <label>Força:</label>
+  <input id="cardPower" type="number" min="0">
 
-    <label>Força:</label>
-    <input id="cardPower" type="number" min="0" required>
+  <label>Raridade:</label>
+  <select id="cardRarity">
+    <option value="Comum">Comum</option>
+    <option value="Rara">Rara</option>
+    <option value="Épica">Épica</option>
+    <option value="Lendária">Lendária</option>
+    <option value="Mítica">Mítica</option>
+  </select>
 
-    <label>Raridade:</label>
-    <select id="cardRarity" required>
-      <option value="comum">Comum</option>
-      <option value="rara">Rara</option>
-      <option value="epica">Épica</option>
-      <option value="lendaria">Lendária</option>
-      <option value="mitica">Mítica</option>
-    </select>
+  <label>Elemento:</label>
+  <select id="cardElement">
+    <option value="Terra">Terra</option>
+    <option value="Fogo">Fogo</option>
+    <option value="Água">Água</option>
+    <option value="Ar">Ar</option>
+    <option value="Tecnologia">Tecnologia</option>
+    <option value="Luz">Luz</option>
+    <option value="Sombra">Sombra</option>
+  </select>
 
-    <label>Elemento:</label>
-    <select id="cardElement" required>
-      <option value="terra">Terra</option>
-      <option value="fogo">Fogo</option>
-      <option value="agua">Água</option>
-      <option value="ar">Ar</option>
-      <option value="tecnologia">Tecnologia</option>
-      <option value="luz">Luz</option>
-      <option value="sombra">Sombra</option>
-    </select>
+  <label>Imagem da carta:</label>
+  <input id="fileInput" type="file" accept="image/*">
 
-    <label>Imagem da Carta:</label>
-    <input id="fileInput" type="file" accept="image/*" required onchange="previewImage()">
+  <button type="button" onclick="uploadCard()">Salvar Carta</button>
+</form>
 
-    <div id="previewContainer">
-      <p>Preview:</p>
-      <img id="cardPreview" src="" alt="Preview da carta">
-    </div>
-
-    <button type="button" onclick="uploadCard()">Salvar Carta</button>
-  </form>
+<h2>Preview</h2>
+<div id="cardPreview"></div>
 
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
 
