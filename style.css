@@ -78,29 +78,30 @@ font-family: 'Poppins', sans-serif;
     text-transform: uppercase;
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     border: 1px solid rgba(255, 255, 255, 0.5);
-    text-shadow: 1px 1px 2px #000;
-    line-height: 1;
-    z-index: 10;
 font-size: 11px; 
-    font-family: 'Poppins', sans-serif; /* Poppins para o badge de raridade */
+    text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; /* Sombra branca sólida */
+    line-height: 1; 
+    z-index: 10;
+    font-family: 'Poppins', sans-serif;
 }
 
-/* Ícone de elemento no canto superior direito */
 .card-preview .card-element-badge {
     position: absolute;
     top: 5px;
     right: 5px;
     width: 35px;
     height: 35px;
+    /* BACKGROUND DEVE SER REMOVIDO OU PADRÃO, POIS O JS APLICA O GRADIENT */
+    /* Garante que o gradiente aplicado pelo JS será visível */
+    border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 18px;
-    color: white; /* Ícone SEMPRE branco, conforme solicitado */
-    background: transparent; /* O background será definido pelo JS com gradient, então o do CSS será transparente */
-    border-radius: 50%;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.5); /* Sombra para destacar o badge */
-    border: 2px solid white; /* Borda branca para destacar o círculo */
+    color: white; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
+    border: 2px solid white; 
+    overflow: hidden; /* Garante que o background fique dentro do círculo */
     z-index: 10;
 }
 
@@ -132,11 +133,12 @@ font-size: 16px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-weight: 800;
-font-size: 18px; 
+font-weight: 800;
+    font-size: 18px;
     font-family: 'Bungee', cursive; /* Bungee para o número da força */
     bottom: 35px;
     /* A border-color é definida no JS (será branca) */
+    text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
     border: 3px solid; 
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     z-index: 15; /* Maior z-index para garantir que fique sobre o rodapé */
