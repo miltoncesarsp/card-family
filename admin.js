@@ -42,11 +42,9 @@ function getElementIcon(element) {
 
 function getRarityColors(rarity) {
     let primaryColor;
-    let textColor = "#fff";
 
     switch (rarity.toLowerCase()) {
         case "mítica":
-            textColor = "#333"; // Texto escuro para contraste
             primaryColor = "#FFD700"; // Ouro
             break;
         case "lendária":
@@ -62,7 +60,7 @@ function getRarityColors(rarity) {
             primaryColor = "#A9A9A9"; // Cinza
             break;
     }
-    return { primary: primaryColor, textColor: textColor };
+    return { primary: primaryColor};
 }
 
 // Preview da carta
@@ -84,15 +82,14 @@ function previewCard() {
 
     const rarityStyles = getRarityColors(rarity); // Cores da Raridade
     const elementStyles = getElementStyles(element); // Cores do Elemento
+  const rarityTextColor = rarity.toLowerCase() === "mítica" ? "#333" : "white";
 
     if (file) div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
 
-    div.innerHTML = `
+ div.innerHTML = `
         <div class="rarity-badge" 
             style="background-color: ${rarityStyles.primary}; 
-                   color: ${rarityStyles.textColor};
-                   box-shadow: 0 2px 5px rgba(0,0,0,0.5)">
-            ${rarity}
+                   color: ${rarityTextColor};"> ${rarity}
         </div>
         
         <div class="card-element-badge"
