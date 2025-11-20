@@ -133,9 +133,14 @@ const imageUrl = publicUrl.publicUrl;
     
     // 3. Inserção na tabela 'cards'
 const { error: dbError } = await supabase.from("cards")
-        .insert([{ 
-            name, rarity, element, power, image_url: imageUrl, id_base: id_base 
-        }]);
+    .insert([{ 
+        name, 
+        rarity, 
+        element: elemento, // <-- CORRIGIDO: Mapeia o valor 'elemento' para a coluna 'element'
+        power, 
+        image_url: imageUrl, 
+        id_base: id_base 
+    }]);
 
     if (dbError) {
         console.error("Erro ao salvar no banco:", dbError);
