@@ -63,8 +63,9 @@ button:hover {
     box-shadow: 0 8px 20px rgba(0,0,0,0.5);
     font-family: 'Poppins', sans-serif;
     margin: 10px;
-    border: 4px solid #fff;
-    border: 0;
+    
+    /* RESTAURADO: Borda branca de 4px para o preview */
+    border: 4px solid #fff; 
 }
 
 /* Banner de Raridade no topo */
