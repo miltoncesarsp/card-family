@@ -111,16 +111,18 @@ text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
 .card-preview .card-name-footer {
     position: absolute;
     bottom: 0;
-    width: 100%;
+    width: 100%; /* Isso deveria funcionar, mas pode ser afetado pelo padding do pai */
+    left: 0; /* Adicionar para forçar a extensão total */
+    right: 0; /* Adicionar para forçar a extensão total */
     text-align: center;
     color: white;
     font-weight: bold;
     box-shadow: 0 -5px 10px rgba(0,0,0,0.5);
-    text-shadow: 1px 1px 2px #000; /* Mantendo a sombra preta que você gostou */
+    text-shadow: 1px 1px 2px #000;
     z-index: 10;
-font-size: 16px; 
-    font-family: 'Bungee', cursive; /* Bungee para o nome (mais divertida) */
-    padding: 10px 0;
+    font-size: 16px;
+    font-family: 'Bungee', cursive;
+    padding: 10px 0; /* Vertical padding para o texto */
 }
 
 /* Pílula de força no canto inferior direito */
