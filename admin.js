@@ -246,14 +246,16 @@ const listContainer = document.getElementById("cardListContainer");
     listContainer.innerHTML = "Carregando cartas...";
 
 // Busca das cartas fazendo JOIN implícito com personagens_base para pegar a origem
-  const { data: cards, error: cardsError } = await supabase
+const { data: cards, error: cardsError } = await supabase
         .from("cards")
         .select(`
             *,
             personagens_base (
-                origem
+                origem,
+                personagem,
+                elemento
             )
-        `); 
+        `);
 
     if (cardsError) {
         console.error("Erro ao buscar cartas:", cardsError);
@@ -266,56 +268,71 @@ const listContainer = document.getElementById("cardListContainer");
         return;
     }
 
-const groupedCards = cards.reduce((acc, card) => {
-        // A origem agora está aninhada em card.personagens_base.origem
+const groupedByOriginAndPersonagem = cards.reduce((acc, card) => {
         const origem = card.personagens_base ? card.personagens_base.origem : "Desconhecida";
-        (acc[origem] = acc[origem] || []).push(card);
+        const personagem = card.personagens_base ? card.personagens_base.personagem : "Desconhecido";
+
+        acc[origem] = acc[origem] || {};
+        acc[origem][personagem] = acc[origem][personagem] || [];
+        acc[origem][personagem].push(card);
         return acc;
     }, {});
 
-    // 4. Renderiza na tela
+
+    // 3. Renderiza na tela
     listContainer.innerHTML = "";
     
-    // Converte em um array e ordena pelas chaves (Origem)
-    const sortedGroups = Object.entries(groupedCards).sort(([a], [b]) => a.localeCompare(b));
+    // Iteração Nível 1: Origem (Marvel, DC, etc.)
+    for (const [origem, personagens] of Object.entries(groupedByOriginAndPersonagem).sort(([a], [b]) => a.localeCompare(b))) {
+        listContainer.innerHTML += `<h3 class="group-title">${origem}</h3>`;
+        
+        // Iteração Nível 2: Personagem (Hulk, Homem Aranha, etc.)
+        for (const [personagem, cardArray] of Object.entries(personajes).sort(([a], [b]) => a.localeCompare(b))) {
+            
+            // Renderiza o título do personagem e uma linha para as cartas
+            listContainer.innerHTML += `<h4 class="sub-title">${personagem}</h4>`;
+            listContainer.innerHTML += `<div class="card-group-container card-evolution-line">`; 
 
-    for (const [origem, cardArray] of sortedGroups) {
-        let groupHtml = `<h3>${origem} (${cardArray.length} Cartas)</h3>`;
-        groupHtml += `<div class="card-group-container">`;
+            // O seu array 'cardArray' agora contém todas as raridades (Comum, Rara, Épica, etc.) para aquele personagem.
+            
+            // Iteração Nível 3: Cartas do Personagem (Ordem de Raridade)
+            // É melhor ordenar aqui para que a linha de evolução faça sentido
+            const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
+            cardArray.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
 
-        cardArray.forEach(card => {
-            const rarityStyles = getRarityColors(card.rarity);
-            const elementStyles = getElementStyles(card.element);
-            const rarityTextColor = "white";
-
-            groupHtml += `
-                <div class="card-preview card-small" 
-                     style="background-image: url(${card.image_url});">
-                    <div class="rarity-badge" 
-                        style="background-color: ${rarityStyles.primary}; 
-                               color: ${rarityTextColor};">
-                        ${card.rarity}
-                    </div>
-                    <div class="card-element-badge"
-                         style="background: ${elementStyles.background};">
-                        ${getElementIcon(card.element)}
-                    </div>
-                    <div class="card-name-footer" 
-                        style="background-color: ${rarityStyles.primary}">
-                        ${card.name}
-                    </div>
-                    <div class="card-force-circle"
-                        style="background-color: ${rarityStyles.primary};
-                               color: white; 
-                               border-color: white;"> 
-                        ${card.power}
-                    </div>
-                </div>
-            `;
-        });
-        groupHtml += `</div>`;
-        listContainer.innerHTML += groupHtml;
+            cardArray.forEach(card => {
+                // ... (O código de renderização do card-preview.card-small aqui) ...
+                // Use o HTML de renderização que já está no seu loadCards
+            });
+            
+            listContainer.innerHTML += `</div>`; // Fecha card-group-container
+        }
     }
+}
+
+async function saveBasePersonagem() {
+    const id_base = document.getElementById("baseId").value.trim();
+    const personagem = document.getElementById("basePersonagem").value.trim();
+    const origem = document.getElementById("baseOrigem").value.trim();
+    const elemento = document.getElementById("baseElemento").value;
+
+    if (!id_base || !personagem || !origem || !elemento) {
+        alert("Preencha todos os campos do formulário Base!");
+        return;
+    }
+
+    const { error: dbError } = await supabase.from("personagens_base")
+        .insert([{ id_base, personagem, origem, elemento }]);
+
+    if (dbError) {
+        // Erro 23505 (Unique violation) é comum se o ID Base já existir.
+        console.error("Erro ao salvar Base:", dbError);
+        alert(`Erro ao salvar no banco (Base). Possivelmente ID Base já existe: ${dbError.message}`);
+        return;
+    }
+
+    alert(`Personagem Base "${personagem}" (ID: ${id_base}) salvo com sucesso!`);
+    document.getElementById("baseForm").reset();
 }
 
 // Listeners
