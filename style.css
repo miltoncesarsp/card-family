@@ -324,3 +324,29 @@ font-weight: 800;
     border: 3px solid #FFD700; /* Borda amarela para indicar Edição */
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
 }
+
+.base-management-buttons {
+    display: inline-block; /* Ou flex, dependendo do layout desejado */
+    margin-left: 10px;
+}
+
+.base-management-buttons button {
+    background-color: #28a745; /* Cor para edição */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 8px;
+    cursor: pointer;
+    font-size: 0.8em;
+    margin-left: 5px;
+}
+
+.base-management-buttons .delete-base-btn {
+    background-color: #dc3545; /* Cor para deleção */
+}
+
+/* Estilo para indicar que o formulário de base está em modo de edição */
+#baseFormContainer.editing-mode {
+    border: 2px solid #007bff; /* Ou qualquer cor que indique edição */
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+}
