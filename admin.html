@@ -2,76 +2,100 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - Criar Cartas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Admin - Gerenciador Unificado</title>
     <link rel="stylesheet" href="style.css">
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" xintegrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
-<body> 
+<body>
     
-    <h2>✨ Criar/Editar Personagem Base</h2>
-    <form class="card-form base-form" id="baseForm">
+    <div class="main-forms-container">
         
-        <label>Nome do Personagem (Ex: Hulk):</label>
-        <input id="basePersonagem" type="text" required>
-        
-        <label>Origem (Ex: Marvel):</label>
-        <input id="baseOrigem" type="text" required>
-        
-        <label>Elemento Padrão:</label>
-        <select id="baseElemento" required>
-            <option value="Terra">Terra</option>
-            <option value="Fogo">Fogo</option>
-            <option value="Água">Água</option>
-            <option value="Ar">Ar</option>
-            <option value="Tecnologia">Tecnologia</option>
-            <option value="Luz">Luz</option>
-            <option value="Sombra">Sombra</option>
-        </select>
-        
-        <button type="button" id="saveBaseBtn">Salvar Personagem Base</button>
-    </form>
-
-    <hr>
-    
-    <h2>🃏 Criar/Editar Carta</h2>
-    <form class="card-form" id="cardForm">
-        <label>Nome do Personagem:</label>
-        <input id="cardName" type="text" list="personagem-nomes">
-        <datalist id="personagem-nomes"></datalist>
-
-        <label>Força:</label>
-        <input id="cardPower" type="number" min="0">
-        
-        <label>Raridade:</label>
-        <select id="cardRarity">
-            <option value="Comum">Comum (cinza)</option>
-            <option value="Rara">Rara (azul)</option>
-            <option value="Épica">Épica (roxa)</option>
-            <option value="Lendária">Lendária (laranja)</option>
-            <option value="Mítica">Mítica (amarela)</option>
-        </select>
-        
-        <label>Imagem da carta:</label>
-        <input id="fileInput" type="file" accept="image/*">
-        <!-- CAMPO OCULTO PARA MANTER O URL DA IMAGEM NA EDIÇÃO -->
-        <input id="currentImageUrl" type="hidden">
-
-        <div class="button-group">
-            <button type="button" id="saveCardBtn">Salvar Carta</button>
-            <button type="button" id="cancelEditBtn" style="display:none;">Cancelar Edição</button>
+        <div class="form-section" id="baseFormContainer">
+            <h2>✨ Criar/Editar Personagem Base</h2>
+            <form class="card-form base-form" id="baseForm">
+                <label>Nome do Personagem (Ex: Hulk):</label>
+                <input id="basePersonagem" type="text" required>
+                
+                <label>Origem (Ex: Marvel):</label>
+                <input id="baseOrigem" type="text" required>
+                
+                <label>Elemento Padrão:</label>
+                <select id="baseElemento" required>
+                    <option value="Terra">Terra</option>
+                    <option value="Fogo">Fogo</option>
+                    <option value="Água">Água</option>
+                    <option value="Ar">Ar</option>
+                    <option value="Tecnologia">Tecnologia</option>
+                    <option value="Luz">Luz</option>
+                    <option value="Sombra">Sombra</option>
+                </select>
+                
+                <button type="button" id="saveBaseBtn">Salvar Personagem Base</button>
+            </form>
         </div>
-    </form>
 
-    <div id="cardPreviewContainer"></div>
+        <div class="form-section">
+            <h2>🃏 Criar/Editar Carta</h2>
+            <form class="card-form" id="cardForm">
+                <label>Nome do Personagem:</label>
+                <input id="cardName" type="text" list="personagem-nomes">
+                <datalist id="personagem-nomes"></datalist>
+
+                <label>Força:</label>
+                <input id="cardPower" type="number" min="0">
+                
+                <label>Raridade:</label>
+                <select id="cardRarity">
+                    <option value="Comum">Comum (cinza)</option>
+                    <option value="Rara">Rara (azul)</option>
+                    <option value="Épica">Épica (roxa)</option>
+                    <option value="Lendária">Lendária (laranja)</option>
+                    <option value="Mítica">Mítica (amarela)</option>
+                </select>
+                
+                <label>Imagem da carta:</label>
+                <input id="fileInput" type="file" accept="image/*">
+                <input id="currentImageUrl" type="hidden">
+
+                <div class="button-group">
+                    <button type="button" id="saveCardBtn">Salvar Carta</button>
+                    <button type="button" id="cancelEditBtn" style="display:none;">Cancelar Edição</button>
+                </div>
+            </form>
+            <div id="cardPreviewContainer"></div>
+        </div>
+    </div>
+    
+    <hr>
+    
+    <section class="management-section">
+        <h2>📊 Linha de Evolução e Gestão de Cartas</h2>
+        <div id="unifiedListContainer"></div>
+    </section>
 
     <hr>
+    
+    <section class="management-section">
+        <h2>📜 Gerenciar Regras de Raridade</h2>
+        <div id="rarityRulesContainer"></div>
+        </section>
 
-    <h2>📊 Linha de Evolução e Gestão</h2>
-    <div id="unifiedListContainer"></div>
+    <hr>
+    
+    <section class="management-section">
+        <h2>📦 Gerenciar Pacotes (Preço e Chances)</h2>
+        <div id="packsContainer"></div>
+        </section>
+
+    <hr>
+    
+    <section class="management-section">
+        <h2>👤 Gerenciar Jogadores</h2>
+        <div id="playersContainer"></div>
+        </section>
     
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <script src="supabaseClient-v2.js?v=2"></script>
-    <script src="admin.js?v=2"></script>
-</body>
+    <script src="admin.js?v=3"></script> </body>
 </html>
