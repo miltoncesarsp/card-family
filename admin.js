@@ -332,8 +332,14 @@ async function saveBasePersonagem() {
         return;
     }
 
-    alert(`Personagem Base "${personagem}" salvo com sucesso!`);
-    document.getElementById("baseForm").reset();
+alert(`Personagem Base "${personagem}" salvo com sucesso!`);
+    
+    // LIMPEZA MANUAL
+    document.getElementById("basePersonagem").value = "";
+    document.getElementById("baseOrigem").value = "";
+    document.getElementById("baseElemento").selectedIndex = 0; // Volta para o primeiro
+    
+    // REMOVA: document.getElementById("baseForm").reset(); // <--- Linha original que causava o erro
 }
 
 // Listeners
