@@ -1,9 +1,18 @@
 /* Importando fontes divertidas e modernas sans-serif */
 @import url('https://fonts.googleapis.com/css2?family=Bungee&family=Poppins:wght@400;700&display=swap');
 
+:root {
+    /* Mantendo as cores principais do seu admin para consistência */
+    --primary-color: #007bff; /* Azul do seu botão principal */
+    --secondary-color: #4CAF50; /* Verde para sucesso/moedas */
+    --header-bg: #34495e; /* Cinza/Azul escuro para cabeçalho */
+    --coin-color: #FFD700;
+    --box-bg: #fff;
+}
+
 body {
     font-family: 'Poppins', sans-serif; /* Fonte geral sans-serif */
-    margin: 20px;
+    margin: 0;
     background: #f7f7f7;
     color: #333;
 }
@@ -456,4 +465,239 @@ table button {
 .notification.hide {
     opacity: 0;
     transform: translateY(-20px);
+}
+
+.game-header {
+    background-color: var(--header-bg);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.game-title {
+    margin: 0;
+    font-size: 1.8em;
+    font-family: 'Bungee', cursive; /* Fonte do jogo */
+}
+
+.user-info {
+    font-size: 1.1em;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.user-info .fa-coins {
+    color: var(--coin-color);
+}
+
+.user-info .fa-star {
+    color: #FFA500;
+}
+
+.auth-buttons button {
+    background-color: var(--secondary-color); /* Usando o verde para login/ação positiva */
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.auth-buttons button:hover {
+    background-color: #43a047;
+}
+
+
+/* === NAVEGAÇÃO PRINCIPAL (ABAS) === */
+
+.main-navigation {
+    display: flex;
+    justify-content: center;
+    background-color: #ecf0f1;
+    border-bottom: 2px solid #bdc3c7;
+    padding: 5px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 50; /* Abaixo do modal/notificações, acima do conteúdo */
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 1em;
+    color: #34495e;
+    transition: background-color 0.2s, color 0.2s;
+    font-weight: 700;
+}
+
+.nav-btn:hover:not(:disabled) {
+    background-color: #dfe6e9;
+}
+
+.nav-btn.active {
+    color: var(--primary-color); /* Azul do tema */
+    border-bottom: 3px solid var(--primary-color);
+}
+
+.nav-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* === SEÇÕES DE CONTEÚDO (ÁLBUM, LOJA, ETC.) === */
+
+#main-content {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.game-section h2 {
+    color: var(--primary-color);
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-family: 'Bungee', cursive;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* === ESTILOS DO ÁLBUM === */
+
+.album-group {
+    width: 100%;
+    margin-bottom: 30px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    background-color: var(--box-bg);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.album-group h3 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    padding-left: 10px;
+    border-left: 5px solid; /* A cor será definida pelo elemento no JS (baseElementStyles.primary) */
+    margin-top: 0;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-evolution-line {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto; /* Permite rolar se houver muitas cartas */
+    padding-bottom: 10px;
+}
+
+/* Card no Álbum (Herdando de .card-preview.card-small) */
+.card-preview.card-collected {
+    border: 3px solid; /* Cor da raridade injetada pelo JS */
+    /* Garante que o tamanho pequeno seja mantido, mas com a borda de raridade */
+    width: 150px;
+    height: 225px;
+}
+
+.card-quantity {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    z-index: 10;
+    font-weight: bold;
+}
+
+.card-action-btn {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--primary-color); /* Botão de ação azul */
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.8em;
+    cursor: pointer;
+    z-index: 20;
+    white-space: nowrap; /* Evita quebras de linha */
+}
+
+/* === ESTILOS DA LOJA (SHOP) === */
+
+.pack-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    padding: 20px 0;
+}
+
+.pack-item {
+    background-color: var(--box-bg);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    border-top: 5px solid var(--primary-color);
+    transition: transform 0.2s;
+}
+
+.pack-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.pack-item h4 {
+    color: var(--primary-color);
+    margin-top: 0;
+    font-size: 1.5em;
+    font-family: 'Bungee', cursive;
+}
+
+.pack-item p {
+    font-size: 0.95em;
+    line-height: 1.6;
+}
+
+.pack-item .buy-pack-btn {
+    width: auto; /* Sobrescreve a largura 100% dos inputs/buttons do CSS Admin */
+    background-color: var(--secondary-color); /* Verde para comprar */
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-top: 15px;
+    transition: background-color 0.2s, transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pack-item .buy-pack-btn:hover {
+    background-color: #43a047;
+    transform: translateY(-2px);
 }
