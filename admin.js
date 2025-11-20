@@ -118,20 +118,27 @@ const { id_base, origem, elemento } = baseDataArray[0];
     
     // 2. Upload da imagem
     const compressed = await compressImage(file);
-    const filePath = `cards/${origem}/${Date.now()}_${file.name}`;
+ const fileName = `${id_base}_${cardRarity.value}_${Date.now()}`;
+const filePath = `${bucketName}/${fileName}`; // Ex: 'cards/HULK_Comum_123456789'
 
-    const { error: uploadError } = await supabase.storage
-        .from("cards")
-        .upload(filePath, compressed);
+// 1. Upload para o Supabase Storage
+const { error: uploadError } = await supabase.storage
+    .from('seu_bucket_de_cards') // Substitua 'seu_bucket_de_cards' pelo nome real do seu bucket
+    .upload(filePath, fileInput.files[0]);
 
-    if (uploadError) {
-        console.error("Erro no upload:", uploadError);
-        alert("Erro ao enviar imagem!");
-        return;
-    }
+if (uploadError) {
+    console.error("Erro no upload da imagem:", uploadError);
+    alert("Erro ao enviar a imagem. Tente novamente.");
+    return;
+}
 
-    const { data: publicUrl } = supabase.storage.from("cards").getPublicUrl(filePath);
-const imageUrl = publicUrl.publicUrl;
+// 2. OBRIGATÓRIO: Obter o URL público para salvar no DB
+const { data: publicUrlData } = supabase.storage
+    .from('seu_bucket_de_cards') // Substitua pelo nome real do seu bucket
+    .getPublicUrl(filePath);
+
+// Verifique se o URL foi retornado corretamente
+const imageUrl = publicUrlData.publicUrl;
     
     // 3. Inserção na tabela 'cards'
 const { error: dbError } = await supabase.from("cards")
