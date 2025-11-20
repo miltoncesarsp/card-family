@@ -88,22 +88,22 @@ function getElementStyles(element) {
 }
 // Upload da carta
 async function uploadCard() {
-    const name = document.getElementById("cardName").value.trim();
+const name = document.getElementById("cardName").value.trim();
     const rarity = document.getElementById("cardRarity").value;
     const power = parseInt(document.getElementById("cardPower").value);
     const fileInput = document.getElementById("fileInput");
     const file = fileInput.files[0];
 
-    if (!name || !rarity || !power || !file) {
+if (!name || !rarity || !power || !file) {
         alert("Preencha Nome, Raridade, Força e selecione uma imagem!");
         return;
     }
 
-    // 1. Busca o ID_BASE, origem e elemento
+    // 1. Busca o ID_BASE, origem e elemento (CORRETO)
     const { data: baseDataArray, error: baseError } = await supabase
         .from("personagens_base")
-        .select("id_base, origem, elemento") 
-        .ilike("personagem", name) // Usa ILIKE para evitar erro de Case
+        .select("id_base, origem, elemento")
+        .ilike("personagem", name) // Correção para Case-Insensitive
         .limit(1);
 
     if (baseError || !baseDataArray || baseDataArray.length === 0) {
@@ -112,7 +112,7 @@ async function uploadCard() {
         return;
     }
 
-    const { id_base, origem, elemento } = baseDataArray[0];
+const { id_base, origem, elemento } = baseDataArray[0];
     
     // 2. Upload da imagem
     const compressed = await compressImage(file);
@@ -129,10 +129,10 @@ async function uploadCard() {
     }
 
     const { data: publicUrl } = supabase.storage.from("cards").getPublicUrl(filePath);
-    const imageUrl = publicUrl.publicUrl;
-
+const imageUrl = publicUrl.publicUrl;
+    
     // 3. Inserção na tabela 'cards'
-    const { error: dbError } = await supabase.from("cards")
+const { error: dbError } = await supabase.from("cards")
         .insert([{ 
             name, rarity, element, power, image_url: imageUrl, id_base: id_base 
         }]);
