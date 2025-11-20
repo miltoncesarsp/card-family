@@ -1,4 +1,5 @@
 let EVOLUTION_COSTS = {}; // Será preenchido com dados do DB
+const BUCKET_NAME = 'cards'; // Assumindo que seu bucket se chama 'cards'
 
 function compressImage(file) {
     return new Promise((resolve) => {
@@ -90,22 +91,22 @@ function getElementStyles(element) {
 }
 // Upload da carta
 async function uploadCard() {
-const name = document.getElementById("cardName").value.trim();
+    const name = document.getElementById("cardName").value.trim();
     const rarity = document.getElementById("cardRarity").value;
     const power = parseInt(document.getElementById("cardPower").value);
     const fileInput = document.getElementById("fileInput");
     const file = fileInput.files[0];
 
-if (!name || !rarity || !power || !file) {
+    if (!name || !rarity || !power || !file) {
         alert("Preencha Nome, Raridade, Força e selecione uma imagem!");
         return;
     }
 
-    // 1. Busca o ID_BASE, origem e elemento (CORRETO)
+    // 1. Busca o ID_BASE
     const { data: baseDataArray, error: baseError } = await supabase
         .from("personagens_base")
         .select("id_base, origem, elemento")
-        .ilike("personagem", name) // Correção para Case-Insensitive
+        .ilike("personagem", name)
         .limit(1);
 
     if (baseError || !baseDataArray || baseDataArray.length === 0) {
@@ -114,44 +115,51 @@ if (!name || !rarity || !power || !file) {
         return;
     }
 
-const { id_base, origem, elemento } = baseDataArray[0];
+    const { id_base, elemento } = baseDataArray[0];
     
-    // 2. Upload da imagem
+    // 2. Upload da imagem (CORRIGIDO)
     const compressed = await compressImage(file);
-const bucketName = 'cards'; // ASSUMINDO que o nome do seu bucket é 'cards'
-const filePath = `${origem}/${Date.now()}_${file.name}`; // Melhor usar origem/nome_do_arquivo
+    
+    // Cria um nome de arquivo único e usa o id_base para organização
+    const uniqueFileName = `${id_base}_${rarity}_${Date.now()}.jpeg`; // Usamos jpeg, pois é o formato de compressão
+    const filePath = `${BUCKET_NAME}/${id_base}/${uniqueFileName}`; // Ex: cards/123/HULK_Comum_123456789.jpeg
 
-const { error: uploadError } = await supabase.storage
-    .from(bucketName) // Usar o nome da variável bucket
-    .upload(filePath, file); // Usar a variável 'file' (blob comprimido)
+    // Realiza o upload do BLOB COMPRIMIDO
+    const { error: uploadError } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(filePath, compressed, { // <-- CORREÇÃO AQUI: USANDO O 'compressed' BLOB!
+            cacheControl: '3600',
+            upsert: false // Não substitui arquivos existentes
+        });
 
-if (uploadError) {
-    console.error("Erro no upload da imagem:", uploadError);
-    alert("Erro ao enviar a imagem. Verifique o nome do bucket e as permissões de Storage.");
-    return;
-}
+    if (uploadError) {
+        console.error("Erro no upload da imagem:", uploadError);
+        alert(`Erro ao enviar a imagem: ${uploadError.message}`);
+        return;
+    }
 
-// 3. Obter o URL público (Corrigindo o nome do bucket)
-const { data: publicUrlData } = supabase.storage
-    .from(bucketName) // Usar o nome da variável bucket
-    .getPublicUrl(filePath);
+    // OBRIGATÓRIO: Obter o URL público
+    const { data: publicUrlData } = supabase.storage
+        .from(BUCKET_NAME)
+        .getPublicUrl(filePath);
 
-const imageUrl = publicUrlData.publicUrl; // ESTE É O URL COMPLETO SALVO NO DB
+    // Salva o URL COMPLETO (Correto)
+    const imageUrl = publicUrlData.publicUrl;
     
     // 3. Inserção na tabela 'cards'
-const { error: dbError } = await supabase.from("cards")
-    .insert([{ 
-        name, 
-        rarity, 
-        element: elemento, // <-- CORRIGIDO: Mapeia o valor 'elemento' para a coluna 'element'
-        power, 
-        image_url: imageUrl, 
-        id_base: id_base 
-    }]);
+    const { error: dbError } = await supabase.from("cards")
+        .insert([{ 
+            name, 
+            rarity, 
+            element: elemento, 
+            power, 
+            image_url: imageUrl, // <-- URL COMPLETO SALVO AQUI
+            id_base: id_base 
+        }]);
 
     if (dbError) {
         console.error("Erro ao salvar no banco:", dbError);
-        alert("Erro ao salvar no banco!");
+        alert("Erro ao salvar no banco! (Verifique RLS e colunas)");
         return;
     }
 
@@ -161,7 +169,7 @@ const { error: dbError } = await supabase.from("cards")
     document.getElementById("fileInput").value = "";
     document.getElementById("cardPreviewContainer").innerHTML = "";
 
-    await loadUnifiedView(); // Recarrega a lista de cartas
+    await loadUnifiedView(); // Recarrega a visualização unificada
 }
 
 /**
