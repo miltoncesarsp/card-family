@@ -1,5 +1,6 @@
 let EVOLUTION_COSTS = {}; // Será preenchido com dados do DB
 const BUCKET_NAME = 'cards'; // Assumindo que seu bucket se chama 'cards'
+let currentEditCardId = null; // Variável para armazenar o ID da carta que está sendo editada
 
 function compressImage(file) {
     return new Promise((resolve) => {
@@ -44,8 +45,41 @@ function getRarityColors(rarity) {
     return { primary: primaryColor };
 }
 
+async function handleEdit(event) {
+    const cardId = event.currentTarget.dataset.id;
+    currentEditCardId = cardId; // Define o ID para a edição
+
+    // 1. Buscar dados da carta
+    const { data: cardData, error } = await supabase
+        .from('cards')
+        .select('*') // Seleciona todos os campos
+        .eq('id', cardId)
+        .single();
+
+    if (error || !cardData) {
+        console.error("Erro ao buscar carta para edição:", error);
+        alert("Erro ao carregar dados da carta para edição.");
+        return;
+    }
+
+    // 2. Preencher o formulário
+    document.getElementById("cardName").value = cardData.name;
+    document.getElementById("cardPower").value = cardData.power;
+    document.getElementById("cardRarity").value = cardData.rarity;
+    
+    // O Elemento é derivado do Personagem Base, então não precisamos preenchê-lo
+    
+    // 3. Atualizar botões e visual
+    document.getElementById("saveCardBtn").textContent = "Atualizar Carta";
+    document.getElementById("cardForm").classList.add("editing-mode"); // Adiciona classe para estilizar
+    
+    // O fileInput não pode ser preenchido por questões de segurança, mas disparamos o preview
+    // Se a carta tem uma imagem_url, a gente pré-visualiza usando um método temporário.
+    previewCard(cardData.image_url); 
+}
+
 // Preview da carta
-function previewCard() {
+function previewCard(imageUrl = null) {
     const name = document.getElementById("cardName").value.trim();
     const power = document.getElementById("cardPower").value;
     const rarity = document.getElementById("cardRarity").value;
@@ -57,7 +91,7 @@ function previewCard() {
     const container = document.getElementById("cardPreviewContainer");
     container.innerHTML = "";
 
-    if (!name && !power && !file) return;
+    if (!name && !power && !file && !imageUrl) return;
 
     const div = document.createElement("div");
     div.className = "card-preview";
@@ -66,7 +100,12 @@ function previewCard() {
     const elementStyles = getElementStyles(element);
     const rarityTextColor = "white";
 
-    if (file) div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+    // NOVIDADE: Verifica se há um URL para pré-visualização (caso de edição)
+    if (file) {
+        div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+    } else if (imageUrl) {
+        div.style.backgroundImage = `url(${imageUrl})`;
+    }
 
     div.innerHTML = `
         <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: ${rarityTextColor};">${rarity}</div>
@@ -77,6 +116,7 @@ function previewCard() {
 
     container.appendChild(div);
 }
+
 function getElementStyles(element) {
     switch (element.toLowerCase()) {
         case "terra": return { primary: "#8B4513", background: "linear-gradient(135deg, #A0522D 0%, #6B8E23 100%)" };
@@ -90,19 +130,28 @@ function getElementStyles(element) {
     }
 }
 // Upload da carta
-async function uploadCard() {
+async function saveOrUpdateCard() { // NOVO NOME
     const name = document.getElementById("cardName").value.trim();
     const rarity = document.getElementById("cardRarity").value;
     const power = parseInt(document.getElementById("cardPower").value);
     const fileInput = document.getElementById("fileInput");
     const file = fileInput.files[0];
+    
+    // Define se é uma edição ou um novo card
+    const isEditing = currentEditCardId !== null;
 
-    if (!name || !rarity || !power || !file) {
-        alert("Preencha Nome, Raridade, Força e selecione uma imagem!");
+    if (!name || !rarity || !power) {
+        alert("Preencha Nome, Raridade e Força!");
+        return;
+    }
+    
+    // Se for um novo card, a imagem é obrigatória
+    if (!isEditing && !file) {
+        alert("Selecione uma imagem para a nova carta!");
         return;
     }
 
-    // 1. Busca o ID_BASE
+    // 1. Busca ID_BASE (Necessário para a inserção/update, e para o elemento)
     const { data: baseDataArray, error: baseError } = await supabase
         .from("personagens_base")
         .select("id_base, origem, elemento")
@@ -116,64 +165,72 @@ async function uploadCard() {
     }
 
     const { id_base, elemento } = baseDataArray[0];
+    let imageUrl = null;
     
-    // 2. Upload da imagem (CORRIGIDO)
-    const compressed = await compressImage(file);
+    // 2. Lógica de Upload da imagem (SÓ SE UMA NOVA IMAGEM FOR SELECIONADA)
+    if (file) {
+        const compressed = await compressImage(file);
+        const uniqueFileName = `${id_base}_${rarity}_${Date.now()}.jpeg`;
+        const filePath = `${id_base}/${uniqueFileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from(BUCKET_NAME)
+            .upload(filePath, compressed, { cacheControl: '3600', upsert: false });
+
+        if (uploadError) {
+            console.error("Erro no upload da imagem:", uploadError);
+            alert(`Erro ao enviar a imagem: ${uploadError.message}`);
+            return;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+            .from(BUCKET_NAME)
+            .getPublicUrl(filePath);
+
+        imageUrl = publicUrlData.publicUrl;
+    }
     
-// Cria um nome de arquivo único e usa o id_base para organização
-const uniqueFileName = `${id_base}_${rarity}_${Date.now()}.jpeg`; 
-
-// CORREÇÃO: O filePath deve ser apenas o caminho DENTRO do bucket, sem o nome do bucket.
-const filePath = `${id_base}/${uniqueFileName}`; // Ex: 123/Hulk_Comum_123456789.jpeg
-
-    // Realiza o upload do BLOB COMPRIMIDO
-const { error: uploadError } = await supabase.storage
-    .from(BUCKET_NAME)
-    .upload(filePath, compressed, {
-            cacheControl: '3600',
-            upsert: false // Não substitui arquivos existentes
-        });
-
-    if (uploadError) {
-        console.error("Erro no upload da imagem:", uploadError);
-        alert(`Erro ao enviar a imagem: ${uploadError.message}`);
-        return;
+    // 3. Monta o objeto de dados
+    const cardData = {
+        name,
+        rarity,
+        element: elemento,
+        power,
+        id_base: id_base
+    };
+    
+    // Adiciona o URL da imagem SE houver um novo upload
+    if (imageUrl) {
+        cardData.image_url = imageUrl;
     }
 
-    // OBRIGATÓRIO: Obter o URL público
-    const { data: publicUrlData } = supabase.storage
-        .from(BUCKET_NAME)
-        .getPublicUrl(filePath);
+    let dbError;
 
-    // Salva o URL COMPLETO (Correto)
-    const imageUrl = publicUrlData.publicUrl;
-    
-    // 3. Inserção na tabela 'cards'
-    const { error: dbError } = await supabase.from("cards")
-        .insert([{ 
-            name, 
-            rarity, 
-            element: elemento, 
-            power, 
-            image_url: imageUrl, // <-- URL COMPLETO SALVO AQUI
-            id_base: id_base 
-        }]);
+    if (isEditing) {
+        // AÇÃO: UPDATE
+        const { error: updateError } = await supabase.from("cards")
+            .update(cardData)
+            .eq('id', currentEditCardId);
+        dbError = updateError;
+    } else {
+        // AÇÃO: INSERT (NOVO CARD)
+        const { error: insertError } = await supabase.from("cards")
+            .insert([cardData]);
+        dbError = insertError;
+    }
 
     if (dbError) {
-        console.error("Erro ao salvar no banco:", dbError);
-        alert("Erro ao salvar no banco! (Verifique RLS e colunas)");
+        console.error("Erro ao salvar/atualizar no banco:", dbError);
+        alert("Erro ao salvar/atualizar no banco! (Verifique RLS e colunas)");
         return;
     }
 
-    alert("Carta salva com sucesso!");
-    document.getElementById("cardName").value = "";
-    document.getElementById("cardPower").value = "";
-    document.getElementById("fileInput").value = "";
-    document.getElementById("cardPreviewContainer").innerHTML = "";
-
-    await loadUnifiedView(); // Recarrega a visualização unificada
+    alert(`Carta ${isEditing ? 'atualizada' : 'salva'} com sucesso!`);
+    
+    // 4. Limpar e recarregar
+    resetFormState(); // Novo método de limpeza
+    await loadUnifiedView();
 }
-
 /**
  * Busca e exibe as cartas agrupadas por Origem.
  */
@@ -440,11 +497,11 @@ async function loadUnifiedView() {
             
             // Título do Personagem Base (Inclui Elemento e ID)
             outputHTML += `<h4 class="sub-title" style="border-left-color: ${baseElementStyles.primary};">
-                ${base.personagem} 
-                <span class="base-details">
-                    (ID: ${base.id_base} | Elemento: ${base.elemento})
-                </span>
-            </h4>`;
+        ${base.personagem} 
+        <span class="base-details">
+            (ID: ${base.id_base} | Elemento: ${base.elemento})
+        </span>
+    </h4>`;
             
             outputHTML += `<div class="card-group-container card-evolution-line">`;
             
@@ -533,18 +590,34 @@ async function loadEvolutionCosts() {
     }, {});
 }
 
+function resetFormState() {
+    currentEditCardId = null;
+    document.getElementById("cardForm").reset(); // Limpa os campos
+    document.getElementById("saveCardBtn").textContent = "Salvar Carta";
+    document.getElementById("cardForm").classList.remove("editing-mode");
+    document.getElementById("cardPreviewContainer").innerHTML = ""; // Limpa o preview
+}
+
 // Listeners
 document.getElementById("fileInput").addEventListener("change", previewCard);
 document.getElementById("cardName").addEventListener("input", previewCard);
 document.getElementById("cardPower").addEventListener("input", previewCard);
 document.getElementById("cardRarity").addEventListener("change", previewCard);
+// 4. Adiciona Listeners para botões de Deleção/Edição
+document.querySelectorAll('.delete-btn').forEach(button => {
+    button.addEventListener('click', handleDelete);
+});
+
+// NOVIDADE: Adiciona listener para o botão de Edição
+document.querySelectorAll('.edit-btn').forEach(button => {
+    button.addEventListener('click', handleEdit); 
+});
 
 // Listener para salvar base e recarregar a lista de base
 document.getElementById("saveBaseBtn").addEventListener("click", saveBasePersonagem);
 
 document.getElementById("saveCardBtn").addEventListener("click", async () => {
-    await uploadCard();
-    await loadUnifiedView(); // Chama a função unificada
+await saveOrUpdateCard(); // USE A NOVA FUNÇÃO
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
