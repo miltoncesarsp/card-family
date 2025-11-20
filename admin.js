@@ -266,12 +266,6 @@ const listContainer = document.getElementById("cardListContainer");
         return;
     }
 
-    // 3. Adiciona a origem e agrupa as cartas em JavaScript (Mais rápido que fazer 50+ chamadas)
-    let allCardsWithOrigin = cards.map(card => ({
-        ...card,
-        origem: originMap[card.name] || "Desconhecida" // Usa o mapa
-    }));
-
 const groupedCards = cards.reduce((acc, card) => {
         // A origem agora está aninhada em card.personagens_base.origem
         const origem = card.personagens_base ? card.personagens_base.origem : "Desconhecida";
