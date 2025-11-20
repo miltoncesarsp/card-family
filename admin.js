@@ -118,27 +118,25 @@ const { id_base, origem, elemento } = baseDataArray[0];
     
     // 2. Upload da imagem
     const compressed = await compressImage(file);
- const fileName = `${id_base}_${cardRarity.value}_${Date.now()}`;
-const filePath = `${bucketName}/${fileName}`; // Ex: 'cards/HULK_Comum_123456789'
+const bucketName = 'cards'; // ASSUMINDO que o nome do seu bucket é 'cards'
+const filePath = `${origem}/${Date.now()}_${file.name}`; // Melhor usar origem/nome_do_arquivo
 
-// 1. Upload para o Supabase Storage
 const { error: uploadError } = await supabase.storage
-    .from('seu_bucket_de_cards') // Substitua 'seu_bucket_de_cards' pelo nome real do seu bucket
-    .upload(filePath, fileInput.files[0]);
+    .from(bucketName) // Usar o nome da variável bucket
+    .upload(filePath, file); // Usar a variável 'file' (blob comprimido)
 
 if (uploadError) {
     console.error("Erro no upload da imagem:", uploadError);
-    alert("Erro ao enviar a imagem. Tente novamente.");
+    alert("Erro ao enviar a imagem. Verifique o nome do bucket e as permissões de Storage.");
     return;
 }
 
-// 2. OBRIGATÓRIO: Obter o URL público para salvar no DB
+// 3. Obter o URL público (Corrigindo o nome do bucket)
 const { data: publicUrlData } = supabase.storage
-    .from('seu_bucket_de_cards') // Substitua pelo nome real do seu bucket
+    .from(bucketName) // Usar o nome da variável bucket
     .getPublicUrl(filePath);
 
-// Verifique se o URL foi retornado corretamente
-const imageUrl = publicUrlData.publicUrl;
+const imageUrl = publicUrlData.publicUrl; // ESTE É O URL COMPLETO SALVO NO DB
     
     // 3. Inserção na tabela 'cards'
 const { error: dbError } = await supabase.from("cards")
@@ -163,7 +161,7 @@ const { error: dbError } = await supabase.from("cards")
     document.getElementById("fileInput").value = "";
     document.getElementById("cardPreviewContainer").innerHTML = "";
 
-    await loadCards(); // Recarrega a lista de cartas
+    await loadUnifiedView(); // Recarrega a lista de cartas
 }
 
 /**
