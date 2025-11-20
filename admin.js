@@ -345,7 +345,7 @@ async function saveBasePersonagem() {
     document.getElementById("baseOrigem").value = "";
     document.getElementById("baseElemento").selectedIndex = 0;
 
-    await loadBaseCharacters(); // Recarrega a lista de personagens base
+   await loadUnifiedView(); // <--- CHAMA A FUNÇÃO DE VISUALIZAÇÃO PRINCIPAL
 }
 
 async function loadBaseCharacters() {
