@@ -120,14 +120,16 @@ async function uploadCard() {
     // 2. Upload da imagem (CORRIGIDO)
     const compressed = await compressImage(file);
     
-    // Cria um nome de arquivo único e usa o id_base para organização
-    const uniqueFileName = `${id_base}_${rarity}_${Date.now()}.jpeg`; // Usamos jpeg, pois é o formato de compressão
-    const filePath = `${BUCKET_NAME}/${id_base}/${uniqueFileName}`; // Ex: cards/123/HULK_Comum_123456789.jpeg
+// Cria um nome de arquivo único e usa o id_base para organização
+const uniqueFileName = `${id_base}_${rarity}_${Date.now()}.jpeg`; 
+
+// CORREÇÃO: O filePath deve ser apenas o caminho DENTRO do bucket, sem o nome do bucket.
+const filePath = `${id_base}/${uniqueFileName}`; // Ex: 123/Hulk_Comum_123456789.jpeg
 
     // Realiza o upload do BLOB COMPRIMIDO
-    const { error: uploadError } = await supabase.storage
-        .from(BUCKET_NAME)
-        .upload(filePath, compressed, { // <-- CORREÇÃO AQUI: USANDO O 'compressed' BLOB!
+const { error: uploadError } = await supabase.storage
+    .from(BUCKET_NAME)
+    .upload(filePath, compressed, {
             cacheControl: '3600',
             upsert: false // Não substitui arquivos existentes
         });
