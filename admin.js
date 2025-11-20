@@ -188,7 +188,7 @@ async function saveOrUpdateCard() {
     let imageUrlToSave = null; // Variável que conterá o URL final da imagem
 
     // Se estiver editando, busca a URL da imagem atual da carta
-    if (isEditing) {
+    if (!file && isEditing) {
         const { data: existingCard, error: existingCardError } = await supabase
             .from('cards')
             .select('image_url')
@@ -200,7 +200,7 @@ async function saveOrUpdateCard() {
             alert("Erro ao verificar imagem existente da carta.");
             return;
         }
-        existingImageUrl = existingCard ? existingCard.image_url : null;
+        imageUrlToSave = document.getElementById("currentImageUrl").value;
     }
 
     // 2. Lógica de Upload da imagem (SÓ SE UMA NOVA IMAGEM FOR SELECIONADA)
