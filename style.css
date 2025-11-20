@@ -304,18 +304,18 @@ font-weight: 800;
 
 .evolution-cost {
     position: absolute;
-    bottom: 55px; /* Ajustado para ficar acima do card-name-footer e force-circle */
-    left: 5px; /* Mantém na esquerda */
+    bottom: 55px; /* ALTERE PARA ISSO */
+    left: 5px; 
     background: rgba(0, 0, 0, 0.7);
     color: white;
     padding: 2px 5px;
     border-radius: 5px;
     font-size: 0.7em;
     z-index: 10;
-    line-height: 1.2; /* Para garantir que o texto não fique espremido */
+    line-height: 1.2; /* ADICIONE ESTA LINHA */
 }
 
 .card-preview.card-small .evolution-cost {
-    bottom: 45px; /* Ajuste para a versão pequena */
-    font-size: 0.6em; /* Pode reduzir um pouco a fonte */
+    bottom: 45px; /* ALTERE PARA ISSO */
+    font-size: 0.6em; /* ADICIONE ESTA LINHA (opcional, para reduzir um pouco o texto) */
 }
