@@ -66,7 +66,7 @@ function getElementStyles(element) {
 }
 
 // Preview da carta (Suporta URL de edição para manter a imagem)
-function previewCard(urlFromEdit = null) {
+function previewCard(imageUrl = null) {
     const name = document.getElementById("cardName").value.trim();
     const power = document.getElementById("cardPower").value;
     const rarity = document.getElementById("cardRarity").value;
@@ -80,7 +80,8 @@ function previewCard(urlFromEdit = null) {
     container.innerHTML = "";
 
     // O URL final é o URL passado (na chamada handleEdit) OU o URL oculto (se não houver novo arquivo)
-    const finalImageUrl = urlFromEdit || (currentImageUrl && !file) ? currentImageUrl : null;
+    // Usamos o parâmetro 'imageUrl' que recebe o valor de cardData.image_url.
+    const finalImageUrl = imageUrl || (currentImageUrl && !file) ? currentImageUrl : null;
 
     if (!name && !power && !file && !finalImageUrl) return;
 
@@ -317,6 +318,7 @@ async function saveOrUpdateCard() {
         imageUrlToSave = publicUrlData.publicUrl;
     } else if (isEditing) {
         // Se não houve novo arquivo, e estamos editando, mantém o URL existente
+        // O URL foi carregado no campo oculto (currentImageUrl) pelo handleEdit
         imageUrlToSave = document.getElementById("currentImageUrl").value;
     } 
     
@@ -327,7 +329,7 @@ async function saveOrUpdateCard() {
         element: elemento,
         power,
         id_base: id_base,
-        image_url: imageUrlToSave 
+        image_url: imageUrlToSave // <-- CORRIGIDO: Usa a variável final
     };
     
     let dbError;
@@ -484,107 +486,3 @@ async function loadUnifiedView() {
         button.addEventListener('click', handleDeleteBaseCharacter);
     });
 }
-
-// ... (Resto das funções OK) ...
-
-// Listeners
-document.getElementById("fileInput").addEventListener("change", previewCard);
-document.getElementById("cardName").addEventListener("input", previewCard);
-document.getElementById("cardPower").addEventListener("input", previewCard);
-document.getElementById("cardRarity").addEventListener("change", previewCard);
-
-document.getElementById("cancelEditBtn").addEventListener("click", cancelEditing); // NOVO LISTENER
-
-document.getElementById("saveBaseBtn").addEventListener("click", saveBasePersonagem);
-
-document.getElementById("saveCardBtn").addEventListener("click", async () => {
-await saveOrUpdateCard(); // USE A NOVA FUNÇÃO
-});
-
-document.addEventListener("DOMContentLoaded", async () => {
-    // É mais seguro chamar loadEvolutionCosts aqui para que ele esteja disponível
-    await loadEvolutionCosts(); 
-    loadUnifiedView(); // loadUnifiedView agora depende dos custos
-});
-```
-Você identificou exatamente o problema: o erro `ReferenceError` e a lógica de edição de imagem estavam quebradas.
-
-Vamos aplicar as correções críticas, garantindo que a edição funcione sem perder a imagem e que o `previewCard` pare de falhar.
-
-### 1. 🐛 Correção Crítica na Variável `previewCard`
-
-O erro `ReferenceError: urlFromEdit is not defined` acontece porque a função `previewCard` tem um nome de parâmetro diferente do nome usado no seu corpo.
-
-**Ação:** Corrija o uso da variável `imageUrl` no `previewCard`.
-
-```javascript
-// admin.js (Função previewCard)
-
-// CÓDIGO CORRIGIDO:
-function previewCard(imageUrl = null) { // <-- Parâmetro é 'imageUrl'
-    // ...
-    const currentImageUrl = document.getElementById("currentImageUrl").value;
-    const fileInput = document.getElementById("fileInput");
-    const file = fileInput.files[0];
-
-    // CORREÇÃO AQUI: Usa o parâmetro 'imageUrl' recebido, e não 'urlFromEdit'
-    const finalImageUrl = imageUrl || (currentImageUrl && !file) ? currentImageUrl : null;
-
-    // ... (Dentro do if/else)
-    if (file) {
-        div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
-    } else if (finalImageUrl) { // Usa finalImageUrl corrigido
-        div.style.backgroundImage = `url(${finalImageUrl})`;
-    }
-    // ...
-}
-```
-
-### 2. 🐛 Correção Crítica na Variável `saveOrUpdateCard`
-
-O erro `ReferenceError: imageUrl is not defined` na linha 156 acontece porque `imageUrl` não existe, e a lógica de imagem estava bagunçada.
-
-**Ação:** Simplificar e corrigir a lógica de imagem no `saveOrUpdateCard`.
-
-```javascript
-// admin.js (Função saveOrUpdateCard)
-
-// ...
-// Trecho de código que falha, pois a variável 'imageUrl' não existe.
-// if (imageUrl) { cardData.image_url = imageUrl; } // REMOVA ESTE BLOCO!
-// ...
-
-// A variável 'imageUrlToSave' é definida pelo upload ou pelo campo oculto. 
-// A lógica é mais simples do que o código que estava em volta do 'if (imageUrl)'.
-
-// REMOVA O BLOCO QUE EU MENCIONEI E GARANTA QUE O TRECHO ABAIXO ESTEJA LIMPO:
-// ... (após a lógica de upload, onde imageUrlToSave é definido)
-
-// 3. Monta o objeto de dados (FINAL DA CORREÇÃO DE LÓGICA)
-const cardData = {
-    name,
-    rarity,
-    element: elemento, 
-    power,
-    id_base: id_base,
-    image_url: imageUrlToSave // <-- USA A VARIÁVEL CORRETA!
-};
-// ...
-```
-
-### 3. 🖱️ Implementar Cancelar Edição
-
-Você já tem a função `cancelEditing()` no `admin.js` e o botão no HTML.
-
-**Ação:** Garanta que a função `cancelEditing` exista e esteja anexada ao listener.
-
-```javascript
-// admin.js (Criação da função cancelEditing)
-
-function cancelEditing() {
-    resetFormState();
-}
-
-// admin.js (Bloco Listeners)
-
-document.getElementById("cancelEditBtn").addEventListener("click", cancelEditing);
