@@ -287,8 +287,8 @@ const groupedByOriginAndPersonagem = cards.reduce((acc, card) => {
         listContainer.innerHTML += `<h3 class="group-title">${origem}</h3>`;
         
         // Iteração Nível 2: Personagem (Hulk, Homem Aranha, etc.)
-        for (const [personagem, cardArray] of Object.entries(personajes).sort(([a], [b]) => a.localeCompare(b))) {
-            
+for (const [personagem, cardArray] of Object.entries(personagens).sort(([a], [b]) => a.localeCompare(b))) {
+  
             // Renderiza o título do personagem e uma linha para as cartas
             listContainer.innerHTML += `<h4 class="sub-title">${personagem}</h4>`;
             listContainer.innerHTML += `<div class="card-group-container card-evolution-line">`; 
