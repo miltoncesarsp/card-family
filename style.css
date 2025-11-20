@@ -428,3 +428,32 @@ table button {
     margin: 2px;
     font-size: 0.8em;
 }
+
+/* Adicione este bloco no seu style.css */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform: translateY(0);
+}
+
+.notification.success {
+    background-color: #4CAF50; /* Verde */
+}
+
+.notification.error {
+    background-color: #f44336; /* Vermelho */
+}
+
+.notification.hide {
+    opacity: 0;
+    transform: translateY(-20px);
+}
