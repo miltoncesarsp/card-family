@@ -555,8 +555,10 @@ document.getElementById("saveCardBtn").addEventListener("click", async () => {
     await loadUnifiedView(); // Chama a função unificada
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-    loadUnifiedView(); // Chama a função unificada
+document.addEventListener("DOMContentLoaded", async () => {
+    // É mais seguro chamar loadEvolutionCosts aqui para que ele esteja disponível
+    await loadEvolutionCosts(); 
+    loadUnifiedView(); // loadUnifiedView agora depende dos custos
 });
 
 
