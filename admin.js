@@ -79,8 +79,7 @@ function previewCard(imageUrl = null) {
     const container = document.getElementById("cardPreviewContainer");
     container.innerHTML = "";
 
-    // O URL final é o URL passado (na chamada handleEdit) OU o URL oculto (se não houver novo arquivo)
-    // Usamos o parâmetro 'imageUrl' que recebe o valor de cardData.image_url.
+    // 🛑 CORREÇÃO: Usar o parâmetro 'imageUrl' recebido
     const finalImageUrl = imageUrl || (currentImageUrl && !file) ? currentImageUrl : null;
 
     if (!name && !power && !file && !finalImageUrl) return;
@@ -318,7 +317,6 @@ async function saveOrUpdateCard() {
         imageUrlToSave = publicUrlData.publicUrl;
     } else if (isEditing) {
         // Se não houve novo arquivo, e estamos editando, mantém o URL existente
-        // O URL foi carregado no campo oculto (currentImageUrl) pelo handleEdit
         imageUrlToSave = document.getElementById("currentImageUrl").value;
     } 
     
@@ -329,7 +327,7 @@ async function saveOrUpdateCard() {
         element: elemento,
         power,
         id_base: id_base,
-        image_url: imageUrlToSave // <-- CORRIGIDO: Usa a variável final
+        image_url: imageUrlToSave
     };
     
     let dbError;
@@ -425,7 +423,7 @@ async function loadUnifiedView() {
                     (ID: ${base.id_base} | Elemento: ${base.elemento})
                 </span>
                 <div class="base-management-buttons">
-                    <button class="edit-base-btn" data-id="${base.id_base}"><i class="fas fa-edit"></i></button>
+                    <button class="edit-base-btn" data-id="${base.id_base}" data-name="${base.personagem}"><i class="fas fa-edit"></i></button>
                     <button class="delete-base-btn" data-id="${base.id_base}" data-name="${base.personagem}"><i class="fas fa-trash-alt"></i></button>
                 </div>
             </h4>`;
