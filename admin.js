@@ -191,17 +191,19 @@ async function saveOrUpdateCard() {
     }
 
     // 2. Lógica de Upload da imagem (SÓ SE UMA NOVA IMAGEM FOR SELECIONADA)
-    if (file) {
-        const compressed = await compressImage(file);
-        const uniqueFileName = `${id_base}_${rarity}_${Date.now()}.jpeg`;
-        
-        // CORREÇÃO AQUI: Usa a Origem normalizada como pasta
-        const folderName = slugify(origem); // Ex: 'Marvel' -> 'marvel'
-        const filePath = `${folderName}/${uniqueFileName}`; // Ex: 'marvel/32_Comum_16788888.jpeg'
+if (file) {
+        const compressed = await compressImage(file);
+        
+        // CORREÇÃO: Aplica slugify na raridade antes de usar no nome do arquivo
+        const safeRarity = slugify(rarity);
+        
+        const uniqueFileName = `${id_base}_${safeRarity}_${Date.now()}.jpeg`;
+        const folderName = slugify(origem); // Ex: 'Marvel' -> 'marvel'
+        const filePath = `${folderName}/${uniqueFileName}`; // Ex: 'marvel/13_epica_16788888.jpeg'
 
         const { error: uploadError } = await supabase.storage
-            .from(BUCKET_NAME)
-            .upload(filePath, compressed, { cacheControl: '3600', upsert: false });
+            .from(BUCKET_NAME)
+            .upload(filePath, compressed, { cacheControl: '3600', upsert: false });
 
         if (uploadError) {
             console.error("Erro no upload da imagem:", uploadError);
