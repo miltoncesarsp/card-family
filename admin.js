@@ -436,7 +436,7 @@ async function loadRarityRules() {
     });
     
     // CORRIGIDO O ID do elemento que deve ser ocultado inicialmente
-    const formSection = document.getElementById('rarityFormSection');
+    const formSection = document.getElementById('rarityRulesFormSection');
     if (formSection) {
         formSection.style.display = 'none';
     }
@@ -461,7 +461,7 @@ async function handleEditRarity(event) {
     document.getElementById('saveRarityBtn').textContent = `Atualizar ${name}`;
     
     // CORRIGIDO O ID do elemento que deve ser exibido
-    const formSection = document.getElementById('rarityFormSection');
+    const formSection = document.getElementById('rarityRulesFormSection');
     if (formSection) {
         formSection.style.display = 'block'; 
         formSection.scrollIntoView({ behavior: 'smooth' });
@@ -496,7 +496,7 @@ async function saveRarityRule() {
     document.getElementById('saveRarityBtn').textContent = `Salvar Regra (Apenas Edição)`;
     
     // Esconde o formulário após salvar
-    const formSection = document.getElementById('rarityFormSection');
+    const formSection = document.getElementById('rarityRulesFormSection');
     if (formSection) {
         formSection.style.display = 'none'; 
     }
@@ -552,7 +552,7 @@ async function loadPacks() {
     document.getElementById('newPackBtn').addEventListener('click', resetPackForm); 
     
     // CORRIGIDO O ID do elemento que deve ser ocultado inicialmente
-    const formSection = document.getElementById('packFormSection');
+    const formSection = document.getElementById('packFormContainer');
     if (formSection) {
         formSection.style.display = 'none';
     }
@@ -565,7 +565,7 @@ function resetPackForm() {
     document.getElementById('packIdInput').value = ''; 
     
     // CORRIGIDO: Exibe o formulário
-    const formSection = document.getElementById('packFormSection');
+    const formSection = document.getElementById('packFormContainer');
     if (formSection) {
         formSection.style.display = 'block'; 
         formSection.scrollIntoView({ behavior: 'smooth' });
@@ -593,7 +593,7 @@ async function handleEditPack(event) {
     document.getElementById('savePackBtn').textContent = `Atualizar Pacote ${pack.nome}`;
     
     // CORRIGIDO: Exibe o formulário
-    const formSection = document.getElementById('packFormSection');
+    const formSection = document.getElementById('packFormContainer');
     if (formSection) {
         formSection.style.display = 'block'; 
         formSection.scrollIntoView({ behavior: 'smooth' });
@@ -645,7 +645,7 @@ async function saveOrUpdatePack() {
     alert(`Pacote "${nome}" ${isEditing ? 'atualizado' : 'criado'} com sucesso!`);
     
     // Esconde o formulário após salvar
-    const formSection = document.getElementById('packFormSection');
+    const formSection = document.getElementById('packFormContainer');
     if (formSection) {
         formSection.style.display = 'none';
     }
