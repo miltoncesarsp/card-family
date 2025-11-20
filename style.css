@@ -319,3 +319,8 @@ font-weight: 800;
     bottom: 45px; /* ALTERE PARA ISSO */
     font-size: 0.6em; /* ADICIONE ESTA LINHA (opcional, para reduzir um pouco o texto) */
 }
+/* Feedback visual para o Modo de Edição */
+.card-form.editing-mode {
+    border: 3px solid #FFD700; /* Borda amarela para indicar Edição */
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
