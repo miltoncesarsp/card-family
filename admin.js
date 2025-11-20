@@ -1,9 +1,10 @@
 let EVOLUTION_COSTS = {}; 
 const BUCKET_NAME = 'cards'; 
-let currentEditCardId = null; 
+let currentEditCardId = null; 
 let currentEditBaseCharacterId = null; 
-let currentEditRarityName = null; // NOVO: Para edição de Raridade
-let currentEditPackId = null; // NOVO: Para edição de Pacotes
+let currentEditRarityName = null; 
+let currentEditPackId = null; 
+let currentEditPlayerId = null;
 
 // FUNÇÕES AUXILIARES
 function slugify(text) {
@@ -70,6 +71,20 @@ function getElementStyles(element) {
     }
 }
 
+/**
+ * NOVO: Preenche a datalist de autocompletar com nomes de personagens base.
+ * @param {Array<Object>} baseCharacters Lista de personagens_base.
+ */
+function updateNameDatalist(baseCharacters) {
+    const datalist = document.getElementById('personagem-nomes');
+    if (!datalist) return;
+    
+    datalist.innerHTML = baseCharacters.map(base => 
+        `<option value="${base.personagem}">`
+    ).join('');
+}
+
+
 /* === FUNÇÕES DE CARTAS E PERSONAGEM BASE === */
 
 async function handleEdit(event) {
@@ -82,8 +97,15 @@ async function handleEdit(event) {
     document.getElementById("cardRarity").value = cardData.rarity;
     document.getElementById("saveCardBtn").textContent = "Atualizar Carta";
     document.getElementById("cardForm").classList.add("editing-mode", "card-form-fixed");
+    document.getElementById("cancelEditBtn").style.display = 'inline-block'; // MOSTRA BOTÃO CANCELAR
     previewCard(cardData.image_url);
 }
+
+function cancelEditCard() { // Adicionado o Cancelar Edição
+    resetFormState();
+    document.getElementById("cancelEditBtn").style.display = 'none';
+}
+
 
 function previewCard(imageUrl = null) {
     const name = document.getElementById("cardName").value.trim();
@@ -116,7 +138,7 @@ function previewCard(imageUrl = null) {
     container.appendChild(div);
 }
 
-// CORREÇÃO APLICADA AQUI
+
 async function saveOrUpdateCard() {
     const name = document.getElementById("cardName").value.trim();
     const rarity = document.getElementById("cardRarity").value;
@@ -154,7 +176,6 @@ async function saveOrUpdateCard() {
     if (file) {
         const compressed = await compressImage(file);
         
-        // APLICA SLUGIFY NA RARIDADE para remover acentos e caracteres inválidos
         const safeRarity = slugify(rarity); 
         
         const uniqueFileName = `${id_base}_${safeRarity}_${Date.now()}.jpeg`;
@@ -193,6 +214,7 @@ async function saveOrUpdateCard() {
 
     alert(`Carta ${isEditing ? 'atualizada' : 'salva'} com sucesso!`);
     resetFormState();
+    document.getElementById("cancelEditBtn").style.display = 'none'; // Esconde após salvar
     await loadUnifiedView();
 }
 
@@ -222,7 +244,6 @@ async function saveBasePersonagem() {
     await loadUnifiedView();
 }
 
-// ... (loadUnifiedView e outras funções de Cartas/Base/Auxiliares permanecem iguais)
 async function loadUnifiedView() {
     const listContainer = document.getElementById("unifiedListContainer");
     listContainer.innerHTML = "Carregando dados unificados...";
@@ -238,7 +259,9 @@ async function loadUnifiedView() {
     if (error) { console.error("Erro ao carregar dados unificados:", error); listContainer.innerHTML = "Erro ao carregar os dados de evolução."; return; }
     if (!baseData || baseData.length === 0) { listContainer.innerHTML = "Nenhum Personagem Base cadastrado."; return; }
 
-    updateNameDatalist(baseData);
+    // CORRIGIDO: A função existe agora.
+    updateNameDatalist(baseData); 
+    
     const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
     let outputHTML = '';
     const groupedByOrigin = baseData.reduce((acc, base) => { (acc[base.origem] = acc[base.origem] || []).push(base); return acc; }, {});
@@ -296,6 +319,8 @@ async function loadUnifiedView() {
     }
 
     listContainer.innerHTML = outputHTML;
+    
+    // Listeners anexados corretamente após o DOM ser injetado
     document.querySelectorAll('.delete-btn').forEach(button => { button.addEventListener('click', handleDelete); });
     document.querySelectorAll('.edit-btn').forEach(button => { button.addEventListener('click', handleEdit); });
     document.querySelectorAll('.edit-base-btn').forEach(button => { button.addEventListener('click', handleEditBaseCharacter); });
@@ -305,7 +330,6 @@ async function loadUnifiedView() {
 async function handleDelete(event) {
     const cardId = event.currentTarget.dataset.id;
     const cardName = event.currentTarget.dataset.name;
-
     if (confirm(`Tem certeza que deseja DELETAR a carta ${cardName}? Isso é irreversível.`)) {
         const { error } = await supabase.from('cards').delete().eq('id', cardId);
         if (error) { console.error("Erro ao deletar carta:", error); alert("Erro ao deletar carta. Verifique as permissões de RLS."); } 
@@ -341,6 +365,7 @@ async function handleEditBaseCharacter(event) {
     document.getElementById("baseElemento").value = baseData.elemento;
     document.getElementById("saveBaseBtn").textContent = "Atualizar Personagem Base";
     document.getElementById("baseFormContainer").classList.add("editing-mode");
+    document.getElementById('baseFormContainer').scrollIntoView({ behavior: 'smooth' }); // Faz scroll
 }
 
 function resetFormState() {
@@ -349,6 +374,7 @@ function resetFormState() {
     document.getElementById("saveCardBtn").textContent = "Salvar Carta";
     document.getElementById("cardForm").classList.remove("editing-mode", "card-form-fixed");
     document.getElementById("cardPreviewContainer").innerHTML = "";
+    document.getElementById("cancelEditBtn").style.display = 'none'; // Esconde Cancelar
 }
 
 async function handleDeleteBaseCharacter(event) {
@@ -409,6 +435,8 @@ async function loadRarityRules() {
     document.querySelectorAll('.edit-rarity-btn').forEach(button => {
         button.addEventListener('click', handleEditRarity); 
     });
+    
+    document.getElementById('rarityFormSection').style.display = 'none';
 }
 
 async function handleEditRarity(event) {
@@ -423,13 +451,13 @@ async function handleEditRarity(event) {
         
     if (error || !rule) { alert("Erro ao carregar regra de raridade."); return; }
     
-    // Preenche o formulário
     document.getElementById('rarityNameInput').value = rule.raridade_nome;
     document.getElementById('evolutionCostInput').value = rule.repetidas_para_evoluir;
     document.getElementById('orderInput').value = rule.ordem_evolucao;
     document.getElementById('rarityNameInput').disabled = true; 
     document.getElementById('saveRarityBtn').textContent = `Atualizar ${name}`;
-    document.getElementById('rarityRulesFormSection').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('rarityFormSection').style.display = 'block'; 
+    document.getElementById('rarityFormSection').scrollIntoView({ behavior: 'smooth' });
 }
 
 async function saveRarityRule() {
@@ -439,14 +467,10 @@ async function saveRarityRule() {
 
     if (!nome || isNaN(custo) || isNaN(ordem)) { alert("Preencha todos os campos corretamente!"); return; }
 
-    const dataToSave = {
-        repetidas_para_evoluir: custo,
-        ordem_evolucao: ordem
-    };
+    const dataToSave = { repetidas_para_evoluir: custo, ordem_evolucao: ordem };
 
     let dbError;
     
-    // Apenas Update é suportado para regras existentes
     if (currentEditRarityName) {
         const { error } = await supabase.from("regras_raridade").update(dataToSave).eq('raridade_nome', currentEditRarityName);
         dbError = error;
@@ -462,6 +486,7 @@ async function saveRarityRule() {
     document.getElementById('rarityForm').reset();
     document.getElementById('rarityNameInput').disabled = false;
     document.getElementById('saveRarityBtn').textContent = `Salvar Regra (Apenas Edição)`;
+    document.getElementById('rarityFormSection').style.display = 'none'; 
     
     await loadEvolutionCosts();
     await loadRarityRules();
@@ -510,7 +535,8 @@ async function loadPacks() {
     document.querySelectorAll('.edit-pack-btn').forEach(button => { button.addEventListener('click', handleEditPack); });
     document.querySelectorAll('.delete-pack-btn').forEach(button => { button.addEventListener('click', handleDeletePack); });
     
-    document.getElementById('newPackBtn').addEventListener('click', resetPackForm); // Adiciona listener para Novo Pacote
+    document.getElementById('newPackBtn').addEventListener('click', resetPackForm); 
+    document.getElementById('packFormSection').style.display = 'none';
 }
 
 function resetPackForm() {
@@ -518,7 +544,8 @@ function resetPackForm() {
     document.getElementById('packForm').reset();
     document.getElementById('savePackBtn').textContent = 'Salvar Novo Pacote';
     document.getElementById('packIdInput').value = ''; 
-    document.getElementById('packFormContainer').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('packFormSection').style.display = 'block'; 
+    document.getElementById('packFormSection').scrollIntoView({ behavior: 'smooth' });
 }
 
 async function handleEditPack(event) {
@@ -533,7 +560,6 @@ async function handleEditPack(event) {
     document.getElementById('packPriceInput').value = pack.preco_moedas;
     document.getElementById('packTotalCardsInput').value = pack.cartas_total;
     
-    // Chances (Multiplica por 100 para exibir em porcentagem)
     document.getElementById('chanceComumInput').value = (pack.chance_comum * 100).toFixed(1);
     document.getElementById('chanceRaraInput').value = (pack.chance_rara * 100).toFixed(1);
     document.getElementById('chanceEpicaInput').value = (pack.chance_epica * 100).toFixed(1);
@@ -541,7 +567,8 @@ async function handleEditPack(event) {
     document.getElementById('chanceMiticaInput').value = (pack.chance_mitica * 100).toFixed(1);
 
     document.getElementById('savePackBtn').textContent = `Atualizar Pacote ${pack.nome}`;
-    document.getElementById('packFormContainer').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('packFormSection').style.display = 'block'; 
+    document.getElementById('packFormSection').scrollIntoView({ behavior: 'smooth' });
 }
 
 async function saveOrUpdatePack() {
@@ -562,20 +589,15 @@ async function saveOrUpdatePack() {
     }
     
     const totalChance = chanceComum + chanceRara + chanceEpica + chanceLendaria + chanceMitica;
-    if (totalChance.toFixed(2) != 1.00) { 
+    if (Math.abs(totalChance - 1.00) > 0.001) { 
         alert(`A soma das chances deve ser 100%! Sua soma atual é ${(totalChance * 100).toFixed(2)}%. Ajuste os valores.`);
         return;
     }
 
     const packData = {
-        nome,
-        preco_moedas: preco,
-        cartas_total: totalCartas,
-        chance_comum: chanceComum,
-        chance_rara: chanceRara,
-        chance_epica: chanceEpica,
-        chance_lendaria: chanceLendaria,
-        chance_mitica: chanceMitica
+        nome, preco_moedas: preco, cartas_total: totalCartas,
+        chance_comum: chanceComum, chance_rara: chanceRara, chance_epica: chanceEpica,
+        chance_lendaria: chanceLendaria, chance_mitica: chanceMitica
     };
 
     let dbError;
@@ -592,6 +614,7 @@ async function saveOrUpdatePack() {
     if (dbError) { console.error("Erro ao salvar Pacote:", dbError); alert(`Erro ao salvar no banco: ${dbError.message}`); return; }
 
     alert(`Pacote "${nome}" ${isEditing ? 'atualizado' : 'criado'} com sucesso!`);
+    document.getElementById('packFormSection').style.display = 'none'; 
     resetPackForm();
     await loadPacks();
 }
@@ -619,7 +642,18 @@ async function loadPlayers() {
         .select('id, nome, email, nivel, moedas, total_cartas, data_criacao')
         .order("data_criacao", { ascending: false });
 
-    if (error) { console.error("Erro ao carregar jogadores:", error); listContainer.innerHTML = "Erro ao carregar jogadores."; return; }
+    if (error) { 
+        console.error("Erro ao carregar jogadores:", error); 
+        listContainer.innerHTML = "Erro ao carregar jogadores. Verifique RLS ou conexão."; 
+        return; 
+    }
+
+    if (players.length === 0) {
+        listContainer.innerHTML = "Nenhum jogador cadastrado.";
+        return;
+    }
+    
+    document.getElementById('playerEditFormSection').style.display = 'none';
 
     let html = '<table><thead><tr><th>Nome</th><th>Email</th><th>Nível</th><th>Moedas</th><th>Cartas</th><th>Registro</th><th>Ações</th></tr></thead><tbody>';
     
@@ -634,7 +668,7 @@ async function loadPlayers() {
                 <td>${player.total_cartas}</td>
                 <td>${formattedDate}</td>
                 <td>
-                    <button class="edit-player-btn" data-id="${player.id}" data-name="${player.nome}" data-email="${player.email}" data-moedas="${player.moedas}" data-nivel="${player.nivel}"><i class="fas fa-edit"></i></button>
+                    <button class="edit-player-btn" data-id="${player.id}"><i class="fas fa-edit"></i></button>
                     <button class="delete-player-btn" data-id="${player.id}" data-name="${player.nome}"><i class="fas fa-trash-alt"></i></button>
                 </td>
             </tr>
@@ -648,27 +682,22 @@ async function loadPlayers() {
     document.querySelectorAll('.delete-player-btn').forEach(button => { button.addEventListener('click', handleDeletePlayer); });
 }
 
-// NOVO: Função para preencher o modal de edição de jogador
 async function handleEditPlayer(event) {
     const id = event.currentTarget.dataset.id;
-    const name = event.currentTarget.dataset.name;
-    const email = event.currentTarget.dataset.email;
-    const moedas = event.currentTarget.dataset.moedas;
-    const nivel = event.currentTarget.dataset.nivel;
+    
+    const { data: player, error } = await supabase.from('jogadores').select('*').eq('id', id).single();
+    if (error || !player) { alert("Erro ao carregar dados do jogador."); return; }
 
-    // Ações para preencher o formulário no HTML (que você precisará adicionar)
-    document.getElementById('playerEditId').value = id;
-    document.getElementById('playerEditName').value = name;
-    document.getElementById('playerEditEmail').value = email;
-    document.getElementById('playerEditMoedas').value = moedas;
-    document.getElementById('playerEditNivel').value = nivel;
+    document.getElementById('playerEditId').value = player.id;
+    document.getElementById('playerEditName').value = player.nome;
+    document.getElementById('playerEditEmail').value = player.email;
+    document.getElementById('playerEditMoedas').value = player.moedas;
+    document.getElementById('playerEditNivel').value = player.nivel;
 
-    // Mostra o formulário de edição (você precisará criar a div #playerEditFormSection no HTML)
     document.getElementById('playerEditFormSection').style.display = 'block';
     document.getElementById('playerEditFormSection').scrollIntoView({ behavior: 'smooth' });
 }
 
-// NOVO: Função para salvar a edição do jogador
 async function savePlayerEdit() {
     const id = document.getElementById('playerEditId').value;
     const moedas = parseInt(document.getElementById('playerEditMoedas').value);
@@ -688,21 +717,18 @@ async function savePlayerEdit() {
         console.error("Erro ao atualizar jogador:", error);
         alert(`Erro ao atualizar jogador "${nome}": ${error.message}`);
     } else {
-        alert(`Jogador "${nome}" atualizado com sucesso (Moedas: ${moedas}, Nível: ${nivel})!`);
+        alert(`Jogador "${nome}" atualizado com sucesso!`);
         document.getElementById('playerEditFormSection').style.display = 'none';
         await loadPlayers();
     }
 }
 
-// NOVO: Função para deletar jogador
 async function handleDeletePlayer(event) {
     const id = event.currentTarget.dataset.id;
     const name = event.currentTarget.dataset.name;
 
-    if (!confirm(`ATENÇÃO! Tem certeza que deseja DELETAR o jogador "${name}"? Isso é irreversível e pode violar restrições de chaves estrangeiras se o jogador tiver cartas ou trocas ativas. RECOMENDA-SE USAR EXCLUSÃO LÓGICA NO DB.`)) return;
+    if (!confirm(`ATENÇÃO! Tem certeza que deseja DELETAR o jogador "${name}"? Isso é irreversível. Certifique-se de que a exclusão em cascata (CASCADE DELETE) está ativada nas tabelas 'cartas_do_jogador' e 'trocas'.`)) return;
 
-    // Requer exclusão de todas as referências (cartas_do_jogador, trocas) antes de deletar o jogador.
-    // Para fins de ADMIN, vamos tentar deletar o jogador (assumindo RLS e Cascade Delete estão configurados).
     const { error } = await supabase.from('jogadores').delete().eq('id', id);
 
     if (error) {
@@ -724,12 +750,15 @@ document.getElementById("cardRarity").addEventListener("change", previewCard);
 
 document.getElementById("saveCardBtn").addEventListener("click", saveOrUpdateCard);
 document.getElementById("saveBaseBtn").addEventListener("click", saveBasePersonagem);
+document.getElementById("cancelEditBtn").addEventListener("click", cancelEditCard); // Listener de Cancelar
 
 document.getElementById("saveRarityBtn").addEventListener("click", saveRarityRule);
-document.getElementById("savePackBtn").addEventListener("click", saveOrUpdatePack);
-document.getElementById("savePlayerEditBtn").addEventListener("click", savePlayerEdit); // Listener do novo form de jogador
 
-// Listener Unificado (Executado uma vez)
+document.getElementById("savePackBtn").addEventListener("click", saveOrUpdatePack);
+document.getElementById("newPackBtn").addEventListener("click", resetPackForm); 
+
+document.getElementById("savePlayerEditBtn").addEventListener("click", savePlayerEdit); 
+
 document.addEventListener("DOMContentLoaded", async () => {
     await loadEvolutionCosts(); 
     loadUnifiedView(); 
