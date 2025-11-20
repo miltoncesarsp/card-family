@@ -1,3 +1,5 @@
+let EVOLUTION_COSTS = {}; // Será preenchido com dados do DB
+
 function compressImage(file) {
     return new Promise((resolve) => {
         const img = new Image();
@@ -374,8 +376,13 @@ function updateNameDatalist(baseCharacters) {
 }
 
 async function loadUnifiedView() {
-   const listContainer = document.getElementById("unifiedListContainer"); // AGORA BUSCA O ID CORRETO
+    const listContainer = document.getElementById("unifiedListContainer");
     listContainer.innerHTML = "Carregando dados unificados...";
+
+    // NOVO: GARANTE QUE OS CUSTOS ESTÃO CARREGADOS
+    if (Object.keys(EVOLUTION_COSTS).length === 0) {
+        await loadEvolutionCosts();
+    }
 
     // 1. Busca todos os personagens base e faz o JOIN com todas as cartas ligadas
     const { data: baseData, error } = await supabase
@@ -441,8 +448,18 @@ async function loadUnifiedView() {
             base.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
 
             base.cards.forEach(card => {
-                const rarityStyles = getRarityColors(card.rarity);
-                const custo = EVOLUTION_COSTS[card.rarity] || "-";
+        const rarityStyles = getRarityColors(card.rarity);
+        const custo = EVOLUTION_COSTS[card.rarity];
+        
+        // Define o texto do custo
+        let custoTexto;
+        if (card.rarity === 'Mítica' || custo === 0) {
+             custoTexto = "Máximo";
+        } else if (custo) {
+             custoTexto = `${custo}x`;
+        } else {
+             custoTexto = "N/A";
+        }
                 
                 // Renderização da Carta (com botões de Gestão e Custo)
                 outputHTML += `
@@ -468,7 +485,13 @@ async function loadUnifiedView() {
                 `;
             });
             
-            outputHTML += `</div></div>`; // Fecha card-group-container e personagem-base-container
+            outputHTML += `
+            <div class="card-preview card-small card-editable" data-card-id="${card.id}" data-card-name="${card.name}">
+                <div class="evolution-cost">
+                    Próxima Evolução: ${custoTexto}
+                </div>
+            </div>
+        `;
         });
     }
 
@@ -499,6 +522,23 @@ async function handleDelete(event) {
             await loadUnifiedView(); // Recarrega a visualização unificada
         }
     }
+}
+
+async function loadEvolutionCosts() {
+    const { data, error } = await supabase
+        .from('regras_raridade')
+        .select('raridade_nome, repetidas_para_evoluir');
+
+    if (error) {
+        console.error("Erro ao carregar custos de evolução:", error);
+        return;
+    }
+
+    // Transforma o array em um objeto de acesso rápido: { "Comum": 2, "Rara": 3, ... }
+    EVOLUTION_COSTS = data.reduce((acc, rule) => {
+        acc[rule.raridade_nome] = rule.repetidas_para_evoluir;
+        return acc;
+    }, {});
 }
 
 // Listeners
