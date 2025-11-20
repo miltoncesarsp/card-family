@@ -74,10 +74,13 @@ async function handleEdit(event) {
     document.getElementById("saveCardBtn").textContent = "Atualizar Carta";
     document.getElementById("cardForm").classList.add("editing-mode"); // Adiciona classe para estilizar
     document.getElementById("cardForm").classList.add("card-form-fixed"); // <--- ADICIONA FIXO
+
+    document.getElementById("currentImageUrl").value = cardData.image_url;
     
     // O fileInput não pode ser preenchido por questões de segurança, mas disparamos o preview
     // Se a carta tem uma imagem_url, a gente pré-visualiza usando um método temporário.
     previewCard(cardData.image_url); 
+    
 }
 
 // Preview da carta
@@ -86,6 +89,7 @@ function previewCard(imageUrl = null) {
     const power = document.getElementById("cardPower").value;
     const rarity = document.getElementById("cardRarity").value;
     const element = "Terra"; // Valor padrão para preview
+    const currentImageUrl = document.getElementById("currentImageUrl").value; // NOVIDADE: Lê o URL oculto
     
     const fileInput = document.getElementById("fileInput");
     const file = fileInput.files[0];
@@ -102,11 +106,13 @@ function previewCard(imageUrl = null) {
     const elementStyles = getElementStyles(element);
     const rarityTextColor = "white";
 
+    const finalImageUrl = urlFromEdit || (currentImageUrl && !file) ? currentImageUrl : null;
+
     // NOVIDADE: Verifica se há um URL para pré-visualização (caso de edição)
     if (file) {
         div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
     } else if (imageUrl) {
-        div.style.backgroundImage = `url(${imageUrl})`;
+        div.style.backgroundImage = `url(${finalImageUrl})`;
     }
 
     div.innerHTML = `
@@ -145,6 +151,13 @@ async function saveOrUpdateCard() {
     if (!name || !rarity || !power) {
         alert("Preencha Nome, Raridade e Força!");
         return;
+    }
+
+    if (imageUrl) {
+        cardData.image_url = imageUrl;
+    } else if (isEditing) {
+        // Se estiver editando e NÃO houve novo upload, mantém o URL existente no campo oculto
+        cardData.image_url = document.getElementById("currentImageUrl").value;
     }
     
     // Se for um novo card, a imagem é obrigatória
