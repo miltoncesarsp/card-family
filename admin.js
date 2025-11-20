@@ -1,7 +1,19 @@
-let EVOLUTION_COSTS = {}; // Será preenchido com dados do DB
-const BUCKET_NAME = 'cards'; // Assumindo que seu bucket se chama 'cards'
-let currentEditCardId = null; 
-let currentEditBaseCharacterId = null; // NOVO: Para edição de Personagem Base
+let EVOLUTION_COSTS = {}; 
+const BUCKET_NAME = 'cards'; 
+let currentEditCardId = null; 
+let currentEditBaseCharacterId = null; 
+let currentEditRarityName = null; // NOVO: Para edição de Raridade
+let currentEditPackId = null; // NOVO: Para edição de Pacotes
+
+// FUNÇÕES AUXILIARES
+function slugify(text) {
+    return text
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
 
 function compressImage(file) {
     return new Promise((resolve) => {
@@ -20,9 +32,8 @@ function compressImage(file) {
     });
 }
 
-// Ícone Font Awesome do elemento
 function getElementIcon(element) {
-switch (element.toLowerCase()) {
+    switch (element.toLowerCase()) {
         case "terra": return '<i class="fas fa-leaf"></i>';
         case "fogo": return '<i class="fas fa-fire"></i>';
         case "água": return '<i class="fas fa-tint"></i>';
@@ -46,79 +57,6 @@ function getRarityColors(rarity) {
     return { primary: primaryColor };
 }
 
-async function handleEdit(event) {
-    const cardId = event.currentTarget.dataset.id;
-    currentEditCardId = cardId; // Define o ID para a edição
-
-    // 1. Buscar dados da carta
-    const { data: cardData, error } = await supabase
-        .from('cards')
-        .select('*') // Seleciona todos os campos
-        .eq('id', cardId)
-        .single();
-
-    if (error || !cardData) {
-        console.error("Erro ao buscar carta para edição:", error);
-        alert("Erro ao carregar dados da carta para edição.");
-        return;
-    }
-
-    // 2. Preencher o formulário
-    document.getElementById("cardName").value = cardData.name;
-    document.getElementById("cardPower").value = cardData.power;
-    document.getElementById("cardRarity").value = cardData.rarity;
-    
-    // O Elemento é derivado do Personagem Base, então não precisamos preenchê-lo
-    
-    // 3. Atualizar botões e visual
-    document.getElementById("saveCardBtn").textContent = "Atualizar Carta";
-    document.getElementById("cardForm").classList.add("editing-mode"); // Adiciona classe para estilizar
-    document.getElementById("cardForm").classList.add("card-form-fixed"); // <--- ADICIONA FIXO
-    
-    // O fileInput não pode ser preenchido por questões de segurança, mas disparamos o preview
-    // Se a carta tem uma imagem_url, a gente pré-visualiza usando um método temporário.
-    previewCard(cardData.image_url); 
-}
-
-// Preview da carta
-function previewCard(imageUrl = null) {
-    const name = document.getElementById("cardName").value.trim();
-    const power = document.getElementById("cardPower").value;
-    const rarity = document.getElementById("cardRarity").value;
-    const element = "Terra"; // Valor padrão para preview
-    
-    const fileInput = document.getElementById("fileInput");
-    const file = fileInput.files[0];
-
-    const container = document.getElementById("cardPreviewContainer");
-    container.innerHTML = "";
-
-    if (!name && !power && !file && !imageUrl) return;
-
-    const div = document.createElement("div");
-    div.className = "card-preview";
-
-    const rarityStyles = getRarityColors(rarity);
-    const elementStyles = getElementStyles(element);
-    const rarityTextColor = "white";
-
-    // NOVIDADE: Verifica se há um URL para pré-visualização (caso de edição)
-    if (file) {
-        div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
-    } else if (imageUrl) {
-        div.style.backgroundImage = `url(${imageUrl})`;
-    }
-
-    div.innerHTML = `
-        <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: ${rarityTextColor};">${rarity}</div>
-        <div class="card-element-badge" style="background: ${elementStyles.background};">${getElementIcon(element)}</div>
-        <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${name}</div>
-        <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${power}</div>
-    `;
-
-    container.appendChild(div);
-}
-
 function getElementStyles(element) {
     switch (element.toLowerCase()) {
         case "terra": return { primary: "#8B4513", background: "linear-gradient(135deg, #A0522D 0%, #6B8E23 100%)" };
@@ -131,425 +69,190 @@ function getElementStyles(element) {
         default: return { primary: "#A9A9A9", background: "#A9A9A9" };
     }
 }
-// Upload da carta
+
+/* === FUNÇÕES DE CARTAS E PERSONAGEM BASE === */
+
+async function handleEdit(event) {
+    const cardId = event.currentTarget.dataset.id;
+    currentEditCardId = cardId;
+    const { data: cardData, error } = await supabase.from('cards').select('*').eq('id', cardId).single();
+    if (error || !cardData) { console.error("Erro ao buscar carta para edição:", error); alert("Erro ao carregar dados da carta."); return; }
+    document.getElementById("cardName").value = cardData.name;
+    document.getElementById("cardPower").value = cardData.power;
+    document.getElementById("cardRarity").value = cardData.rarity;
+    document.getElementById("saveCardBtn").textContent = "Atualizar Carta";
+    document.getElementById("cardForm").classList.add("editing-mode", "card-form-fixed");
+    previewCard(cardData.image_url);
+}
+
+function previewCard(imageUrl = null) {
+    const name = document.getElementById("cardName").value.trim();
+    const power = document.getElementById("cardPower").value;
+    const rarity = document.getElementById("cardRarity").value;
+    const element = "Terra";
+    const fileInput = document.getElementById("fileInput");
+    const file = fileInput.files[0];
+    const container = document.getElementById("cardPreviewContainer");
+    container.innerHTML = "";
+    if (!name && !power && !file && !imageUrl) return;
+    const div = document.createElement("div");
+    div.className = "card-preview";
+    const rarityStyles = getRarityColors(rarity);
+    const elementStyles = getElementStyles(element);
+    const rarityTextColor = "white";
+
+    if (file) {
+        div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+    } else if (imageUrl) {
+        div.style.backgroundImage = `url(${imageUrl})`;
+    }
+
+    div.innerHTML = `
+        <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: ${rarityTextColor};">${rarity}</div>
+        <div class="card-element-badge" style="background: ${elementStyles.background};">${getElementIcon(element)}</div>
+        <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${name}</div>
+        <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${power}</div>
+    `;
+    container.appendChild(div);
+}
+
+// CORREÇÃO APLICADA AQUI
 async function saveOrUpdateCard() {
     const name = document.getElementById("cardName").value.trim();
     const rarity = document.getElementById("cardRarity").value;
     const power = parseInt(document.getElementById("cardPower").value);
     const fileInput = document.getElementById("fileInput");
     const file = fileInput.files[0];
-    
     const isEditing = currentEditCardId !== null;
-    let existingImageUrl = null; // Para armazenar a URL da imagem existente ao editar
+    let existingImageUrl = null;
 
-    if (!name || !rarity || !power) {
-        alert("Preencha Nome, Raridade e Força!");
-        return;
-    }
-    
-    // Se for um novo card, a imagem é obrigatória
-    // Se for edição E não há novo arquivo, a imagem NÃO é obrigatória, usaremos a existente
-    if (!isEditing && !file) {
-        alert("Selecione uma imagem para a nova carta!");
-        return;
-    }
+    if (!name || !rarity || !power) { alert("Preencha Nome, Raridade e Força!"); return; }
+    if (!isEditing && !file) { alert("Selecione uma imagem para a nova carta!"); return; }
 
-    // 1. Busca ID_BASE (Necessário para a inserção/update, e para o elemento)
     const { data: baseDataArray, error: baseError } = await supabase
         .from("personagens_base")
         .select("id_base, origem, elemento")
-        // No modo de edição, podemos buscar a carta pelo ID para obter o nome original
-        // Ou, para simplificar, continuamos buscando pelo nome atual do input
-        // Se o nome do personagem for mudado durante a edição da carta, isso pode ser um problema.
-        // Por ora, vamos assumir que o "name" no formulário de carta se refere ao "personagem" base.
-        .ilike("personagem", name) // Continua usando o nome do input
+        .ilike("personagem", name)
         .limit(1);
 
-    if (baseError || !baseDataArray || baseDataArray.length === 0) {
+    if (baseError || baseDataArray.length === 0) {
         console.error("Erro ao buscar base:", baseError || "Personagem não encontrado.");
         alert("Não foi possível encontrar o Personagem Base! Crie-o primeiro.");
         return;
     }
 
-    const { id_base, elemento, origem } = baseDataArray[0]; // <<< ADICIONE 'origem' AQUI
-    let imageUrlToSave = null; // Variável que conterá o URL final da imagem
+    const { id_base, elemento, origem } = baseDataArray[0];
+    let imageUrlToSave = null;
 
-    // Se estiver editando, busca a URL da imagem atual da carta
     if (isEditing) {
-        const { data: existingCard, error: existingCardError } = await supabase
-            .from('cards')
-            .select('image_url')
-            .eq('id', currentEditCardId)
-            .single();
-
-        if (existingCardError) {
-            console.error("Erro ao buscar URL da imagem existente:", existingCardError);
-            alert("Erro ao verificar imagem existente da carta.");
-            return;
-        }
+        const { data: existingCard, error: existingCardError } = await supabase.from('cards').select('image_url').eq('id', currentEditCardId).single();
+        if (existingCardError) { console.error("Erro ao buscar URL da imagem existente:", existingCardError); alert("Erro ao verificar imagem existente da carta."); return; }
         existingImageUrl = existingCard ? existingCard.image_url : null;
     }
 
-    // 2. Lógica de Upload da imagem (SÓ SE UMA NOVA IMAGEM FOR SELECIONADA)
-if (file) {
+    // 2. Lógica de Upload da imagem (CORRIGIDA)
+    if (file) {
         const compressed = await compressImage(file);
         
-        // CORREÇÃO: Aplica slugify na raridade antes de usar no nome do arquivo
-        const safeRarity = slugify(rarity);
+        // APLICA SLUGIFY NA RARIDADE para remover acentos e caracteres inválidos
+        const safeRarity = slugify(rarity); 
         
         const uniqueFileName = `${id_base}_${safeRarity}_${Date.now()}.jpeg`;
-        const folderName = slugify(origem); // Ex: 'Marvel' -> 'marvel'
-        const filePath = `${folderName}/${uniqueFileName}`; // Ex: 'marvel/13_epica_16788888.jpeg'
+        const folderName = slugify(origem);
+        const filePath = `${folderName}/${uniqueFileName}`;
 
         const { error: uploadError } = await supabase.storage
             .from(BUCKET_NAME)
             .upload(filePath, compressed, { cacheControl: '3600', upsert: false });
 
-        if (uploadError) {
-            console.error("Erro no upload da imagem:", uploadError);
-            alert(`Erro ao enviar a imagem: ${uploadError.message}`);
-            return;
+        if (uploadError) { 
+            console.error("Erro no upload da imagem:", uploadError); 
+            alert(`Erro ao enviar a imagem: ${uploadError.message}. Verifique o nome da raridade e a origem!`); 
+            return; 
         }
 
-        const { data: publicUrlData } = supabase.storage
-            .from(BUCKET_NAME)
-            .getPublicUrl(filePath);
-
+        const { data: publicUrlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filePath);
         imageUrlToSave = publicUrlData.publicUrl;
     } else {
-        // Se não houver novo arquivo, e estiver editando, mantém a imagem existente
         imageUrlToSave = existingImageUrl;
     }
     
-    // 3. Monta o objeto de dados
-    const cardData = {
-        name,
-        rarity,
-        element: elemento, // O elemento é do Personagem Base
-        power,
-        id_base: id_base,
-        image_url: imageUrlToSave // Usa o URL final da imagem
-    };
-    
+    // 3. Monta e Salva
+    const cardData = { name, rarity, element: elemento, power, id_base: id_base, image_url: imageUrlToSave };
     let dbError;
 
     if (isEditing) {
-        // AÇÃO: UPDATE
-        const { error: updateError } = await supabase.from("cards")
-            .update(cardData)
-            .eq('id', currentEditCardId);
+        const { error: updateError } = await supabase.from("cards").update(cardData).eq('id', currentEditCardId);
         dbError = updateError;
     } else {
-        // AÇÃO: INSERT (NOVO CARD)
-        const { error: insertError } = await supabase.from("cards")
-            .insert([cardData]);
+        const { error: insertError } = await supabase.from("cards").insert([cardData]);
         dbError = insertError;
     }
 
-    if (dbError) {
-        console.error("Erro ao salvar/atualizar no banco:", dbError);
-        alert("Erro ao salvar/atualizar no banco! (Verifique RLS e colunas)");
-        return;
-    }
+    if (dbError) { console.error("Erro ao salvar/atualizar no banco:", dbError); alert("Erro ao salvar/atualizar no banco! (Verifique RLS e colunas)"); return; }
 
     alert(`Carta ${isEditing ? 'atualizada' : 'salva'} com sucesso!`);
-    
-    // 4. Limpar e recarregar
-    resetFormState(); 
+    resetFormState();
     await loadUnifiedView();
-}
-
-function slugify(text) {
-    return text
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, '') // Remove caracteres especiais, mas mantém espaços e hífens
-        .replace(/[\s_-]+/g, '-') // Substitui espaços e múltiplos hífens/underscores por um único hífen
-        .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
-}
-
-/**
- * Busca e exibe as cartas agrupadas por Origem.
- */
-async function loadCards() {
-    const listContainer = document.getElementById("cardListContainer");
-    listContainer.innerHTML = "Carregando cartas...";
-
-    const { data: cards, error: cardsError } = await supabase
-        .from("cards")
-        .select(`
-            *,
-            personagens_base (
-                origem,
-                personagem,
-                elemento
-            )
-        `);
-
-    if (cardsError) {
-        console.error("Erro ao buscar cartas:", cardsError);
-        listContainer.innerHTML = "Erro ao carregar as cartas.";
-        return;
-    }
-    if (!cards || cards.length === 0) {
-        listContainer.innerHTML = "Nenhuma carta cadastrada.";
-        return;
-    }
-
-    // Agrupamento em Níveis: Origem -> Personagem -> Cartas
-    const groupedByOriginAndPersonagem = cards.reduce((acc, card) => {
-        const origem = card.personagens_base ? card.personagens_base.origem : "Desconhecida";
-        const personagem = card.personagens_base ? card.personagens_base.personagem : "Desconhecido";
-
-        acc[origem] = acc[origem] || {};
-        acc[origem][personagem] = acc[origem][personagem] || [];
-        acc[origem][personagem].push(card);
-        return acc;
-    }, {});
-
-
-    // Renderiza na tela
-    listContainer.innerHTML = "";
-    
-    // Iteração Nível 1: Origem
-    for (const [origem, personagens] of Object.entries(groupedByOriginAndPersonagem).sort(([a], [b]) => a.localeCompare(b))) {
-        listContainer.innerHTML += `<h3 class="group-title">${origem}</h3>`;
-        
-        // Iteração Nível 2: Personagem
-        for (const [personagem, cardArray] of Object.entries(personagens).sort(([a], [b]) => a.localeCompare(b))) {
-            
-            listContainer.innerHTML += `<h4 class="sub-title">${personagem}</h4>`;
-            listContainer.innerHTML += `<div class="card-group-container card-evolution-line">`; 
-
-            // Ordena por Raridade
-            const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
-            cardArray.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
-
-            // Iteração Nível 3: Renderização do Card
-cardArray.forEach(card => { // <-- AQUI O OBJETO 'card' É CRIADO
-    const rarityStyles = getRarityColors(card.rarity);
-    const elemento = card.personagens_base ? card.personagens_base.elemento : "Desconhecido";
-    const elementStyles = getElementStyles(elemento);
-    const custo = EVOLUTION_COSTS[card.rarity];
-    const custoTexto = (card.rarity === 'Mítica' || custo === 0) ? "Máximo" : (custo ? `${custo}x` : "N/A");
-
-    // O BLOCO DE HTML DA CARTA DEVE ESTAR AQUI:
-    listContainer.innerHTML += `
-        <div class="card-preview card-small card-editable" data-card-id="${card.id}" data-card-name="${card.name}">
-            <div class="card-management-buttons">
-                <button class="edit-btn" data-id="${card.id}"><i class="fas fa-edit"></i></button>
-                <button class="delete-btn" data-id="${card.id}" data-name="${card.name}"><i class="fas fa-trash-alt"></i></button>
-            </div>
-            <div class="card-content-wrapper">
-                <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity}</div>
-                <div class="card-element-badge" style="background: ${elementStyles.background};">${getElementIcon(elemento)}</div>
-                <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
-                <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
-            </div>
-            <div class="evolution-cost">Próxima Evolução: ${custoTexto}</div>
-        </div>
-    `; // <-- TUDO DEVE ESTAR ENCAPSULADO AQUI
-            });
-            
-            listContainer.innerHTML += `</div>`; // Fecha card-group-container
-        }
-    }
 }
 
 async function saveBasePersonagem() {
     const personagem = document.getElementById("basePersonagem").value.trim();
     const origem = document.getElementById("baseOrigem").value.trim();
     const elemento = document.getElementById("baseElemento").value;
-
     const isEditingBase = currentEditBaseCharacterId !== null;
 
-    if (!personagem || !origem || !elemento) {
-        alert("Preencha todos os campos do formulário Base!");
-        return;
-    }
+    if (!personagem || !origem || !elemento) { alert("Preencha todos os campos do formulário Base!"); return; }
 
     let dbError;
+    const dataToSave = { personagem, origem, elemento };
 
     if (isEditingBase) {
-        // AÇÃO: UPDATE
-        const { error: updateError } = await supabase.from("personagens_base")
-            .update({ personagem, origem, elemento })
-            .eq('id_base', currentEditBaseCharacterId);
+        const { error: updateError } = await supabase.from("personagens_base").update(dataToSave).eq('id_base', currentEditBaseCharacterId);
         dbError = updateError;
     } else {
-        // AÇÃO: INSERT
-        const { error: insertError } = await supabase.from("personagens_base")
-            .insert([{ personagem, origem, elemento }]);
+        const { error: insertError } = await supabase.from("personagens_base").insert([dataToSave]);
         dbError = insertError;
     }
 
-    if (dbError) {
-        console.error("Erro ao salvar Base:", dbError);
-        alert(`Erro ao salvar no banco (Base): ${dbError.message}`);
-        return;
-    }
+    if (dbError) { console.error("Erro ao salvar Base:", dbError); alert(`Erro ao salvar no banco (Base): ${dbError.message}`); return; }
 
     alert(`Personagem Base "${personagem}" ${isEditingBase ? 'atualizado' : 'salvo'} com sucesso!`);
-    
-    // Limpeza e redefinição do estado
-    resetBaseFormState(); // Criaremos essa função
-    await loadUnifiedView(); 
+    resetBaseFormState();
+    await loadUnifiedView();
 }
 
-async function loadBaseCharacters() {
-    const listContainer = document.getElementById("baseListContainer");
-    if (!listContainer) return;
-
-    listContainer.innerHTML = "Carregando personagens base e suas cartas...";
-
-    const { data: baseData, error } = await supabase
-        .from("personagens_base")
-        .select(`
-            id_base,
-            personagem,
-            origem,
-            elemento,
-            cards (
-                id,
-                name,
-                rarity,
-                power,
-                image_url
-            )
-        `)
-        .order("origem", { ascending: true })
-        .order("personagem", { ascending: true }); 
-
-    if (error) {
-        console.error("Erro ao carregar personagens base:", error);
-        listContainer.innerHTML = "Erro ao carregar a lista de personagens base.";
-        return;
-    }
-
-    if (!baseData || baseData.length === 0) {
-        listContainer.innerHTML = "Nenhum personagem base cadastrado.";
-        return;
-    }
-
-    // Renderiza os dados
-    listContainer.innerHTML = baseData.map(base => {
-        const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
-        base.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
-
-        const cardListHTML = base.cards.length > 0 ?
-            base.cards.map(card => {
-                const rarityStyles = getRarityColors(card.rarity);
-                const elementStyles = getElementStyles(base.elemento);
-                
-                return `
-                    <div class="card-base-small" style="background-color: #f7f7f7; border: 1px solid ${rarityStyles.primary};">
-                        <span class="base-small-name">
-                            ${card.name} 
-                            <span class="base-small-element" style="background: ${elementStyles.background};">
-                                ${getElementIcon(base.elemento)}
-                            </span>
-                        </span>
-                        <span class="base-small-rarity" style="background-color: ${rarityStyles.primary};">
-                            ${card.rarity} (${card.power} POW)
-                        </span>
-                    </div>
-                `;
-            }).join('') :
-            '<p class="no-cards">Nenhuma carta ligada a este personagem.</p>';
-
-        return `
-            <div class="base-character-item">
-                <h4 class="base-character-header">
-                    ${base.personagem} (${base.origem}) - Elemento: ${base.elemento} (ID: ${base.id_base})
-                </h4>
-                <div class="linked-cards-container">
-                    ${cardListHTML}
-                </div>
-            </div>
-            <hr class="base-hr">
-        `;
-    }).join('');
-}
-
-/**
- * Preenche a datalist de autocompletar com nomes de personagens base.
- * @param {Array<Object>} baseCharacters Lista de personagens_base.
- */
-function updateNameDatalist(baseCharacters) {
-    const datalist = document.getElementById('personagem-nomes');
-    if (!datalist) return;
-    
-    datalist.innerHTML = baseCharacters.map(base => 
-        `<option value="${base.personagem}">`
-    ).join('');
-}
-
+// ... (loadUnifiedView e outras funções de Cartas/Base/Auxiliares permanecem iguais)
 async function loadUnifiedView() {
     const listContainer = document.getElementById("unifiedListContainer");
     listContainer.innerHTML = "Carregando dados unificados...";
 
-    // 1. Garante que os custos de evolução estejam carregados
-    // (A função loadEvolutionCosts deve ser chamada no DOMContentLoaded e salva em EVOLUTION_COSTS)
-    if (Object.keys(EVOLUTION_COSTS).length === 0) {
-        await loadEvolutionCosts();
-    }
+    if (Object.keys(EVOLUTION_COSTS).length === 0) { await loadEvolutionCosts(); }
 
-    // 2. Busca de dados (Personagem Base + Cartas Ligadas)
     const { data: baseData, error } = await supabase
         .from("personagens_base")
-        .select(`
-            id_base,
-            personagem,
-            origem,
-            elemento,
-            cards (
-                id,
-                name,
-                rarity,
-                power,
-                image_url
-            )
-        `)
+        .select(`id_base, personagem, origem, elemento, cards (id, name, rarity, power, image_url)`)
         .order("origem", { ascending: true })
-        .order("personagem", { ascending: true }); 
+        .order("personagem", { ascending: true });
 
-    if (error) {
-        console.error("Erro ao carregar dados unificados:", error);
-        listContainer.innerHTML = "Erro ao carregar os dados de evolução. (Verifique RLS e conexão)";
-        return;
-    }
-    
-    // 3. Verifica se há dados e preenche o Datalist (Autocompletar)
-    if (!baseData || baseData.length === 0) {
-        listContainer.innerHTML = "Nenhum Personagem Base cadastrado.";
-        return;
-    }
-    updateNameDatalist(baseData); // Função que preenche o datalist para o autocompletar
+    if (error) { console.error("Erro ao carregar dados unificados:", error); listContainer.innerHTML = "Erro ao carregar os dados de evolução."; return; }
+    if (!baseData || baseData.length === 0) { listContainer.innerHTML = "Nenhum Personagem Base cadastrado."; return; }
 
-    // 4. Agrupamento Hierárquico (Origem -> Personagem)
+    updateNameDatalist(baseData);
     const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
     let outputHTML = '';
+    const groupedByOrigin = baseData.reduce((acc, base) => { (acc[base.origem] = acc[base.origem] || []).push(base); return acc; }, {});
 
-    const groupedByOrigin = baseData.reduce((acc, base) => {
-        (acc[base.origem] = acc[base.origem] || []).push(base);
-        return acc;
-    }, {});
-
-    // 5. Renderização (Hierarquia + Cartões)
     for (const [origem, personagensArray] of Object.entries(groupedByOrigin)) {
-        outputHTML += `<h3 class="group-title">${origem}</h3>`; // Nível 1: Origem
+        outputHTML += `<h3 class="group-title">${origem}</h3>`;
         
         personagensArray.forEach(base => {
             const baseElementStyles = getElementStyles(base.elemento);
-            
             outputHTML += `<div class="personagem-base-container">`;
             
-            // Título do Personagem Base
             outputHTML += `<h4 class="sub-title" style="border-left-color: ${baseElementStyles.primary};">
-                ${base.personagem} 
-                <span class="base-details">
-                    (ID: ${base.id_base} | Elemento: ${base.elemento})
-                </span>
+                ${base.personagem}
+                <span class="base-details">(ID: ${base.id_base} | Elemento: ${base.elemento})</span>
                 <div class="base-management-buttons">
                     <button class="edit-base-btn" data-id="${base.id_base}"><i class="fas fa-edit"></i></button>
                     <button class="delete-base-btn" data-id="${base.id_base}" data-name="${base.personagem}"><i class="fas fa-trash-alt"></i></button>
@@ -557,11 +260,8 @@ async function loadUnifiedView() {
             </h4>`;
             
             outputHTML += `<div class="card-group-container card-evolution-line">`;
-            
-            // Ordena as cartas pela linha de evolução
             base.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
 
-            // Renderização das Cartas (Nível 3)
             if (base.cards.length === 0) {
                 outputHTML += `<p class="base-details" style="margin-left: 10px;">Nenhuma carta criada para este personagem.</p>`;
             } else {
@@ -570,12 +270,11 @@ async function loadUnifiedView() {
                     const custo = EVOLUTION_COSTS[card.rarity];
                     const custoTexto = (card.rarity === 'Mítica' || custo === 0) ? "Máximo" : (custo ? `${custo}x` : "N/A");
                     
-                    // Injeção do Card HTML com Botões de Gerenciamento
                     outputHTML += `
                         <div class="card-preview card-small card-editable" 
-                             data-card-id="${card.id}" 
-                             data-card-name="${card.name}"
-                             style="background-image: url('${card.image_url}');" 
+                            data-card-id="${card.id}" 
+                            data-card-name="${card.name}"
+                            style="background-image: url('${card.image_url}');" 
                         >
                             <div class="card-management-buttons">
                                 <button class="edit-btn" data-id="${card.id}"><i class="fas fa-edit"></i></button>
@@ -587,27 +286,20 @@ async function loadUnifiedView() {
                                 <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
                                 <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
                             </div>
-                            <div class="evolution-cost">
-                                Próxima Evolução: ${custoTexto}
-                            </div>
+                            <div class="evolution-cost">Próxima Evolução: ${custoTexto}</div>
                         </div>
                     `;
                 });
-            } // Fim do if/else de cartas
-            
-            outputHTML += `</div></div>`; // Fecha card-group-container e personagem-base-container
+            }
+            outputHTML += `</div></div>`;
         });
     }
 
     listContainer.innerHTML = outputHTML;
-    
-    // 6. Adiciona Listeners para Deleção e Edição (Funções que você implementou)
-    document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', handleDelete);
-    });
-    document.querySelectorAll('.edit-btn').forEach(button => {
-        button.addEventListener('click', handleEdit); 
-    });
+    document.querySelectorAll('.delete-btn').forEach(button => { button.addEventListener('click', handleDelete); });
+    document.querySelectorAll('.edit-btn').forEach(button => { button.addEventListener('click', handleEdit); });
+    document.querySelectorAll('.edit-base-btn').forEach(button => { button.addEventListener('click', handleEditBaseCharacter); });
+    document.querySelectorAll('.delete-base-btn').forEach(button => { button.addEventListener('click', handleDeleteBaseCharacter); });
 }
 
 async function handleDelete(event) {
@@ -615,31 +307,15 @@ async function handleDelete(event) {
     const cardName = event.currentTarget.dataset.name;
 
     if (confirm(`Tem certeza que deseja DELETAR a carta ${cardName}? Isso é irreversível.`)) {
-        const { error } = await supabase
-            .from('cards')
-            .delete()
-            .eq('id', cardId);
-
-        if (error) {
-            console.error("Erro ao deletar carta:", error);
-            alert("Erro ao deletar carta. Verifique as permissões de RLS.");
-        } else {
-            alert(`Carta ${cardName} deletada com sucesso!`);
-            await loadUnifiedView(); // Recarrega a visualização unificada
-        }
+        const { error } = await supabase.from('cards').delete().eq('id', cardId);
+        if (error) { console.error("Erro ao deletar carta:", error); alert("Erro ao deletar carta. Verifique as permissões de RLS."); } 
+        else { alert(`Carta ${cardName} deletada com sucesso!`); await loadUnifiedView(); }
     }
 }
 
 async function loadEvolutionCosts() {
-    const { data, error } = await supabase
-        .from('regras_raridade')
-        .select('raridade_nome, repetidas_para_evoluir');
-
-    if (error) {
-        console.error("Erro ao carregar custos de evolução:", error);
-        return;
-    }
-
+    const { data, error } = await supabase.from('regras_raridade').select('raridade_nome, repetidas_para_evoluir');
+    if (error) { console.error("Erro ao carregar custos de evolução:", error); return; }
     EVOLUTION_COSTS = data.reduce((acc, rule) => {
         acc[rule.raridade_nome] = rule.repetidas_para_evoluir;
         return acc;
@@ -658,90 +334,47 @@ function resetBaseFormState() {
 async function handleEditBaseCharacter(event) {
     const baseId = event.currentTarget.dataset.id;
     currentEditBaseCharacterId = baseId;
-
-    // 1. Buscar dados do Personagem Base
-    const { data: baseData, error } = await supabase
-        .from('personagens_base')
-        .select('*')
-        .eq('id_base', baseId)
-        .single();
-
-    if (error || !baseData) {
-        console.error("Erro ao buscar Personagem Base para edição:", error);
-        alert("Erro ao carregar dados do Personagem Base para edição.");
-        return;
-    }
-
-    // 2. Preencher o formulário de Personagem Base
+    const { data: baseData, error } = await supabase.from('personagens_base').select('*').eq('id_base', baseId).single();
+    if (error || !baseData) { console.error("Erro ao buscar Personagem Base para edição:", error); alert("Erro ao carregar dados do Personagem Base."); return; }
     document.getElementById("basePersonagem").value = baseData.personagem;
     document.getElementById("baseOrigem").value = baseData.origem;
     document.getElementById("baseElemento").value = baseData.elemento;
-    
-    // 3. Atualizar botões e visual do formulário (se houver)
     document.getElementById("saveBaseBtn").textContent = "Atualizar Personagem Base";
-    document.getElementById("baseFormContainer").classList.add("editing-mode"); // Adicione uma classe para estilizar
+    document.getElementById("baseFormContainer").classList.add("editing-mode");
 }
 
 function resetFormState() {
     currentEditCardId = null;
-    document.getElementById("cardForm").reset(); // Limpa os campos
+    document.getElementById("cardForm").reset();
     document.getElementById("saveCardBtn").textContent = "Salvar Carta";
-    document.getElementById("cardForm").classList.remove("editing-mode");
-    document.getElementById("cardForm").classList.remove("card-form-fixed"); // <--- REMOVE FIXO
-    document.getElementById("cardPreviewContainer").innerHTML = ""; // Limpa o preview
+    document.getElementById("cardForm").classList.remove("editing-mode", "card-form-fixed");
+    document.getElementById("cardPreviewContainer").innerHTML = "";
 }
 
 async function handleDeleteBaseCharacter(event) {
     const baseId = event.currentTarget.dataset.id;
     const baseName = event.currentTarget.dataset.name;
 
-    if (confirm(`Tem certeza que deseja DELETAR o Personagem Base "${baseName}"? Isso deletará TODAS as cartas ligadas a ele e é irreversível.`)) {
-        // Primeiro, verifique se existem cartas ligadas
-        const { data: cards, error: cardsError } = await supabase
-            .from('cards')
-            .select('id')
-            .eq('id_base', baseId);
+    if (!confirm(`Tem certeza que deseja DELETAR o Personagem Base "${baseName}"? Isso deletará TODAS as cartas ligadas a ele e é irreversível.`)) return;
 
-        if (cardsError) {
-            console.error("Erro ao verificar cartas ligadas:", cardsError);
-            alert("Erro ao verificar cartas ligadas. Tente novamente.");
-            return;
-        }
+    const { data: cards, error: cardsError } = await supabase.from('cards').select('id').eq('id_base', baseId);
+    if (cardsError) { console.error("Erro ao verificar cartas ligadas:", cardsError); alert("Erro ao verificar cartas ligadas."); return; }
 
-        if (cards.length > 0) {
-            if (!confirm(`Existem ${cards.length} cartas ligadas a "${baseName}". Deletar o Personagem Base também DELETARÁ TODAS essas cartas. Continuar?`)) {
-                return; // Usuário cancelou a deleção das cartas
-            }
-            // Deleta as cartas primeiro
-            const { error: deleteCardsError } = await supabase
-                .from('cards')
-                .delete()
-                .eq('id_base', baseId);
-
-            if (deleteCardsError) {
-                console.error("Erro ao deletar cartas ligadas:", deleteCardsError);
-                alert("Erro ao deletar cartas ligadas. Verifique as permissões de RLS.");
-                return;
-            }
-        }
-
-        // Agora, deleta o Personagem Base
-        const { error: deleteBaseError } = await supabase
-            .from('personagens_base')
-            .delete()
-            .eq('id_base', baseId);
-
-        if (deleteBaseError) {
-            console.error("Erro ao deletar Personagem Base:", deleteBaseError);
-            alert("Erro ao deletar Personagem Base. Verifique as permissões de RLS.");
-        } else {
-            alert(`Personagem Base "${baseName}" e suas cartas ligadas deletados com sucesso!`);
-            await loadUnifiedView(); // Recarrega a visualização unificada
-        }
+    if (cards.length > 0) {
+        if (!confirm(`Existem ${cards.length} cartas ligadas a "${baseName}". Deletar o Personagem Base também DELETARÁ TODAS essas cartas. Continuar?`)) return;
+        const { error: deleteCardsError } = await supabase.from('cards').delete().eq('id_base', baseId);
+        if (deleteCardsError) { console.error("Erro ao deletar cartas ligadas:", deleteCardsError); alert("Erro ao deletar cartas ligadas."); return; }
     }
+
+    const { error: deleteBaseError } = await supabase.from('personagens_base').delete().eq('id_base', baseId);
+
+    if (deleteBaseError) { console.error("Erro ao deletar Personagem Base:", deleteBaseError); alert("Erro ao deletar Personagem Base."); } 
+    else { alert(`Personagem Base "${baseName}" e suas cartas ligadas deletados com sucesso!`); await loadUnifiedView(); }
 }
 
-/* === GESTÃO DE REGRAS DE RARIDADE === */
+
+/* === GESTÃO DE REGRAS DE RARIDADE (CRUD COMPLETO) === */
+
 async function loadRarityRules() {
     const listContainer = document.getElementById("rarityRulesContainer");
     if (!listContainer) return;
@@ -752,18 +385,9 @@ async function loadRarityRules() {
         .select('*')
         .order("ordem_evolucao", { ascending: true });
 
-    if (error) {
-        console.error("Erro ao carregar regras de raridade:", error);
-        listContainer.innerHTML = "Erro ao carregar regras de raridade.";
-        return;
-    }
+    if (error) { console.error("Erro ao carregar regras de raridade:", error); listContainer.innerHTML = "Erro ao carregar regras de raridade."; return; }
 
-    if (rules.length === 0) {
-        listContainer.innerHTML = "Nenhuma regra de raridade cadastrada.";
-        return;
-    }
-
-    let html = '<table><thead><tr><th>Raridade</th><th>Repetidas para Evoluir</th><th>Ordem</th><th>Ações</th></tr></thead><tbody>';
+    let html = '<table><thead><tr><th>Raridade</th><th>Repetidas p/ Evoluir</th><th>Ordem</th><th>Ações</th></tr></thead><tbody>';
     
     rules.forEach(rule => {
         const primaryColor = getRarityColors(rule.raridade_nome).primary;
@@ -774,7 +398,7 @@ async function loadRarityRules() {
                 <td>${rule.ordem_evolucao}</td>
                 <td>
                     <button class="edit-rarity-btn" data-name="${rule.raridade_nome}"><i class="fas fa-edit"></i></button>
-                    </td>
+                </td>
             </tr>
         `;
     });
@@ -782,51 +406,88 @@ async function loadRarityRules() {
     html += '</tbody></table>';
     listContainer.innerHTML = html;
     
-    // Adiciona listener (a função handleEditRarity deve ser implementada no HTML)
     document.querySelectorAll('.edit-rarity-btn').forEach(button => {
         button.addEventListener('click', handleEditRarity); 
     });
 }
 
-// Implementar funções de edição de raridade no .js (Exemplo, a UI completa seria no HTML)
-let currentEditRarityName = null;
 async function handleEditRarity(event) {
     const name = event.currentTarget.dataset.name;
-    // ... Lógica para buscar a regra e preencher o formulário
-    alert(`Editar regra para ${name}. Necessário criar o formulário no HTML.`);
+    currentEditRarityName = name;
+    
+    const { data: rule, error } = await supabase
+        .from('regras_raridade')
+        .select('*')
+        .eq('raridade_nome', name)
+        .single();
+        
+    if (error || !rule) { alert("Erro ao carregar regra de raridade."); return; }
+    
+    // Preenche o formulário
+    document.getElementById('rarityNameInput').value = rule.raridade_nome;
+    document.getElementById('evolutionCostInput').value = rule.repetidas_para_evoluir;
+    document.getElementById('orderInput').value = rule.ordem_evolucao;
+    document.getElementById('rarityNameInput').disabled = true; 
+    document.getElementById('saveRarityBtn').textContent = `Atualizar ${name}`;
+    document.getElementById('rarityRulesFormSection').scrollIntoView({ behavior: 'smooth' });
 }
 
-/* === GESTÃO DE PACOTES === */
+async function saveRarityRule() {
+    const nome = document.getElementById('rarityNameInput').value;
+    const custo = parseInt(document.getElementById('evolutionCostInput').value);
+    const ordem = parseInt(document.getElementById('orderInput').value);
+
+    if (!nome || isNaN(custo) || isNaN(ordem)) { alert("Preencha todos os campos corretamente!"); return; }
+
+    const dataToSave = {
+        repetidas_para_evoluir: custo,
+        ordem_evolucao: ordem
+    };
+
+    let dbError;
+    
+    // Apenas Update é suportado para regras existentes
+    if (currentEditRarityName) {
+        const { error } = await supabase.from("regras_raridade").update(dataToSave).eq('raridade_nome', currentEditRarityName);
+        dbError = error;
+    } else {
+         alert("Erro: O formulário deve ser usado apenas para EDITAR raridades existentes. Use o botão 'Editar' na tabela.");
+         return;
+    }
+
+    if (dbError) { console.error("Erro ao salvar regra:", dbError); alert(`Erro ao salvar no banco: ${dbError.message}`); return; }
+
+    alert(`Regra de raridade "${nome}" atualizada com sucesso!`);
+    currentEditRarityName = null;
+    document.getElementById('rarityForm').reset();
+    document.getElementById('rarityNameInput').disabled = false;
+    document.getElementById('saveRarityBtn').textContent = `Salvar Regra (Apenas Edição)`;
+    
+    await loadEvolutionCosts();
+    await loadRarityRules();
+}
+
+
+/* === GESTÃO DE PACOTES (CRUD COMPLETO) === */
+
 async function loadPacks() {
     const listContainer = document.getElementById("packsContainer");
     if (!listContainer) return;
     listContainer.innerHTML = "Carregando Pacotes...";
 
-    const { data: packs, error } = await supabase
-        .from("pacotes")
-        .select('*')
-        .order("preco_moedas", { ascending: true });
+    const { data: packs, error } = await supabase.from("pacotes").select('*').order("preco_moedas", { ascending: true });
 
-    if (error) {
-        console.error("Erro ao carregar pacotes:", error);
-        listContainer.innerHTML = "Erro ao carregar pacotes.";
-        return;
-    }
-
-    if (packs.length === 0) {
-        listContainer.innerHTML = "Nenhum pacote cadastrado.";
-        return;
-    }
+    if (error) { console.error("Erro ao carregar pacotes:", error); listContainer.innerHTML = "Erro ao carregar pacotes."; return; }
 
     let html = '<table><thead><tr><th>Nome</th><th>Preço</th><th>Total Cartas</th><th>Chances (%)</th><th>Ações</th></tr></thead><tbody>';
     
     packs.forEach(pack => {
         const chances = [
-            `C: ${pack.chance_comum * 100}%`,
-            `R: ${pack.chance_rara * 100}%`,
-            `E: ${pack.chance_epica * 100}%`,
-            `L: ${pack.chance_lendaria * 100}%`,
-            `M: ${pack.chance_mitica * 100}%`
+            `C: ${(pack.chance_comum * 100).toFixed(1)}%`,
+            `R: ${(pack.chance_rara * 100).toFixed(1)}%`,
+            `E: ${(pack.chance_epica * 100).toFixed(1)}%`,
+            `L: ${(pack.chance_lendaria * 100).toFixed(1)}%`,
+            `M: ${(pack.chance_mitica * 100).toFixed(1)}%`
         ].join('<br>');
 
         html += `
@@ -846,19 +507,108 @@ async function loadPacks() {
     html += '</tbody></table>';
     listContainer.innerHTML = html;
     
-    // Adiciona listeners (funções de edição/deleção devem ser implementadas)
-    document.querySelectorAll('.edit-pack-btn').forEach(button => {
-        button.addEventListener('click', handleEditPack); 
-    });
-    document.querySelectorAll('.delete-pack-btn').forEach(button => {
-        button.addEventListener('click', handleDeletePack);
-    });
+    document.querySelectorAll('.edit-pack-btn').forEach(button => { button.addEventListener('click', handleEditPack); });
+    document.querySelectorAll('.delete-pack-btn').forEach(button => { button.addEventListener('click', handleDeletePack); });
+    
+    document.getElementById('newPackBtn').addEventListener('click', resetPackForm); // Adiciona listener para Novo Pacote
 }
-// Funções de CRUD de Pacotes (Implemente de forma similar ao CRUD de cards)
-function handleEditPack() { alert("Funcionalidade de edição de Pacotes pendente."); }
-function handleDeletePack() { alert("Funcionalidade de exclusão de Pacotes pendente."); }
 
-/* === GESTÃO DE JOGADORES === */
+function resetPackForm() {
+    currentEditPackId = null;
+    document.getElementById('packForm').reset();
+    document.getElementById('savePackBtn').textContent = 'Salvar Novo Pacote';
+    document.getElementById('packIdInput').value = ''; 
+    document.getElementById('packFormContainer').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function handleEditPack(event) {
+    const id = event.currentTarget.dataset.id;
+    currentEditPackId = id;
+    
+    const { data: pack, error } = await supabase.from('pacotes').select('*').eq('id', id).single();
+    if (error || !pack) { alert("Erro ao carregar dados do pacote."); return; }
+
+    document.getElementById('packIdInput').value = pack.id;
+    document.getElementById('packNameInput').value = pack.nome;
+    document.getElementById('packPriceInput').value = pack.preco_moedas;
+    document.getElementById('packTotalCardsInput').value = pack.cartas_total;
+    
+    // Chances (Multiplica por 100 para exibir em porcentagem)
+    document.getElementById('chanceComumInput').value = (pack.chance_comum * 100).toFixed(1);
+    document.getElementById('chanceRaraInput').value = (pack.chance_rara * 100).toFixed(1);
+    document.getElementById('chanceEpicaInput').value = (pack.chance_epica * 100).toFixed(1);
+    document.getElementById('chanceLendariaInput').value = (pack.chance_lendaria * 100).toFixed(1);
+    document.getElementById('chanceMiticaInput').value = (pack.chance_mitica * 100).toFixed(1);
+
+    document.getElementById('savePackBtn').textContent = `Atualizar Pacote ${pack.nome}`;
+    document.getElementById('packFormContainer').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function saveOrUpdatePack() {
+    const id = document.getElementById('packIdInput').value;
+    const nome = document.getElementById('packNameInput').value.trim();
+    const preco = parseInt(document.getElementById('packPriceInput').value);
+    const totalCartas = parseInt(document.getElementById('packTotalCardsInput').value);
+    
+    const chanceComum = parseFloat(document.getElementById('chanceComumInput').value) / 100;
+    const chanceRara = parseFloat(document.getElementById('chanceRaraInput').value) / 100;
+    const chanceEpica = parseFloat(document.getElementById('chanceEpicaInput').value) / 100;
+    const chanceLendaria = parseFloat(document.getElementById('chanceLendariaInput').value) / 100;
+    const chanceMitica = parseFloat(document.getElementById('chanceMiticaInput').value) / 100;
+
+    if (!nome || isNaN(preco) || isNaN(totalCartas) || isNaN(chanceComum)) {
+        alert("Preencha todos os campos do Pacote corretamente!");
+        return;
+    }
+    
+    const totalChance = chanceComum + chanceRara + chanceEpica + chanceLendaria + chanceMitica;
+    if (totalChance.toFixed(2) != 1.00) { 
+        alert(`A soma das chances deve ser 100%! Sua soma atual é ${(totalChance * 100).toFixed(2)}%. Ajuste os valores.`);
+        return;
+    }
+
+    const packData = {
+        nome,
+        preco_moedas: preco,
+        cartas_total: totalCartas,
+        chance_comum: chanceComum,
+        chance_rara: chanceRara,
+        chance_epica: chanceEpica,
+        chance_lendaria: chanceLendaria,
+        chance_mitica: chanceMitica
+    };
+
+    let dbError;
+    const isEditing = currentEditPackId !== null;
+
+    if (isEditing) {
+        const { error } = await supabase.from("pacotes").update(packData).eq('id', id);
+        dbError = error;
+    } else {
+        const { error } = await supabase.from("pacotes").insert([packData]);
+        dbError = error;
+    }
+
+    if (dbError) { console.error("Erro ao salvar Pacote:", dbError); alert(`Erro ao salvar no banco: ${dbError.message}`); return; }
+
+    alert(`Pacote "${nome}" ${isEditing ? 'atualizado' : 'criado'} com sucesso!`);
+    resetPackForm();
+    await loadPacks();
+}
+
+async function handleDeletePack(event) {
+    const id = event.currentTarget.dataset.id;
+    const name = event.currentTarget.dataset.name;
+    if (!confirm(`Tem certeza que deseja DELETAR o Pacote "${name}"? Isso é irreversível.`)) return;
+    
+    const { error } = await supabase.from('pacotes').delete().eq('id', id);
+    if (error) { console.error("Erro ao deletar pacote:", error); alert("Erro ao deletar pacote."); } 
+    else { alert(`Pacote "${name}" deletado com sucesso!`); await loadPacks(); }
+}
+
+
+/* === GESTÃO DE JOGADORES (CRUD Edição de Moedas/Nível) === */
+
 async function loadPlayers() {
     const listContainer = document.getElementById("playersContainer");
     if (!listContainer) return;
@@ -869,16 +619,7 @@ async function loadPlayers() {
         .select('id, nome, email, nivel, moedas, total_cartas, data_criacao')
         .order("data_criacao", { ascending: false });
 
-    if (error) {
-        console.error("Erro ao carregar jogadores:", error);
-        listContainer.innerHTML = "Erro ao carregar jogadores.";
-        return;
-    }
-
-    if (players.length === 0) {
-        listContainer.innerHTML = "Nenhum jogador cadastrado.";
-        return;
-    }
+    if (error) { console.error("Erro ao carregar jogadores:", error); listContainer.innerHTML = "Erro ao carregar jogadores."; return; }
 
     let html = '<table><thead><tr><th>Nome</th><th>Email</th><th>Nível</th><th>Moedas</th><th>Cartas</th><th>Registro</th><th>Ações</th></tr></thead><tbody>';
     
@@ -893,7 +634,7 @@ async function loadPlayers() {
                 <td>${player.total_cartas}</td>
                 <td>${formattedDate}</td>
                 <td>
-                    <button class="edit-player-btn" data-id="${player.id}"><i class="fas fa-edit"></i></button>
+                    <button class="edit-player-btn" data-id="${player.id}" data-name="${player.nome}" data-email="${player.email}" data-moedas="${player.moedas}" data-nivel="${player.nivel}"><i class="fas fa-edit"></i></button>
                     <button class="delete-player-btn" data-id="${player.id}" data-name="${player.nome}"><i class="fas fa-trash-alt"></i></button>
                 </td>
             </tr>
@@ -903,53 +644,96 @@ async function loadPlayers() {
     html += '</tbody></table>';
     listContainer.innerHTML = html;
     
-    // Adiciona listeners (funções de edição/deleção devem ser implementadas)
-    document.querySelectorAll('.edit-player-btn').forEach(button => {
-        button.addEventListener('click', handleEditPlayer); 
-    });
-    document.querySelectorAll('.delete-player-btn').forEach(button => {
-        button.addEventListener('click', handleDeletePlayer);
-    });
+    document.querySelectorAll('.edit-player-btn').forEach(button => { button.addEventListener('click', handleEditPlayer); });
+    document.querySelectorAll('.delete-player-btn').forEach(button => { button.addEventListener('click', handleDeletePlayer); });
 }
-// Funções de CRUD de Jogadores
-function handleEditPlayer() { alert("Funcionalidade de edição de Jogadores pendente. (Permite mudar moedas/nível)"); }
-function handleDeletePlayer() { alert("Funcionalidade de exclusão de Jogadores pendente. (Cuidado, deleta dados importantes!)"); }
 
-// Listeners
+// NOVO: Função para preencher o modal de edição de jogador
+async function handleEditPlayer(event) {
+    const id = event.currentTarget.dataset.id;
+    const name = event.currentTarget.dataset.name;
+    const email = event.currentTarget.dataset.email;
+    const moedas = event.currentTarget.dataset.moedas;
+    const nivel = event.currentTarget.dataset.nivel;
+
+    // Ações para preencher o formulário no HTML (que você precisará adicionar)
+    document.getElementById('playerEditId').value = id;
+    document.getElementById('playerEditName').value = name;
+    document.getElementById('playerEditEmail').value = email;
+    document.getElementById('playerEditMoedas').value = moedas;
+    document.getElementById('playerEditNivel').value = nivel;
+
+    // Mostra o formulário de edição (você precisará criar a div #playerEditFormSection no HTML)
+    document.getElementById('playerEditFormSection').style.display = 'block';
+    document.getElementById('playerEditFormSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+// NOVO: Função para salvar a edição do jogador
+async function savePlayerEdit() {
+    const id = document.getElementById('playerEditId').value;
+    const moedas = parseInt(document.getElementById('playerEditMoedas').value);
+    const nivel = parseInt(document.getElementById('playerEditNivel').value);
+    const nome = document.getElementById('playerEditName').value;
+
+    if (!id || isNaN(moedas) || isNaN(nivel)) {
+        alert("Dados inválidos para edição de jogador.");
+        return;
+    }
+
+    const { error } = await supabase.from('jogadores')
+        .update({ moedas, nivel })
+        .eq('id', id);
+
+    if (error) {
+        console.error("Erro ao atualizar jogador:", error);
+        alert(`Erro ao atualizar jogador "${nome}": ${error.message}`);
+    } else {
+        alert(`Jogador "${nome}" atualizado com sucesso (Moedas: ${moedas}, Nível: ${nivel})!`);
+        document.getElementById('playerEditFormSection').style.display = 'none';
+        await loadPlayers();
+    }
+}
+
+// NOVO: Função para deletar jogador
+async function handleDeletePlayer(event) {
+    const id = event.currentTarget.dataset.id;
+    const name = event.currentTarget.dataset.name;
+
+    if (!confirm(`ATENÇÃO! Tem certeza que deseja DELETAR o jogador "${name}"? Isso é irreversível e pode violar restrições de chaves estrangeiras se o jogador tiver cartas ou trocas ativas. RECOMENDA-SE USAR EXCLUSÃO LÓGICA NO DB.`)) return;
+
+    // Requer exclusão de todas as referências (cartas_do_jogador, trocas) antes de deletar o jogador.
+    // Para fins de ADMIN, vamos tentar deletar o jogador (assumindo RLS e Cascade Delete estão configurados).
+    const { error } = await supabase.from('jogadores').delete().eq('id', id);
+
+    if (error) {
+        console.error("Erro ao deletar jogador:", error);
+        alert(`Erro ao deletar jogador "${name}". Verifique restrições de chaves estrangeiras (RLS/Foreign Keys).`);
+    } else {
+        alert(`Jogador "${name}" deletado com sucesso!`);
+        await loadPlayers();
+    }
+}
+
+
+// === LISTENERS E INICIALIZAÇÃO ===
+
 document.getElementById("fileInput").addEventListener("change", previewCard);
 document.getElementById("cardName").addEventListener("input", previewCard);
 document.getElementById("cardPower").addEventListener("input", previewCard);
 document.getElementById("cardRarity").addEventListener("change", previewCard);
 
-document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', handleDelete);
-    });
-    document.querySelectorAll('.edit-btn').forEach(button => {
-        button.addEventListener('click', handleEdit); 
-    });
-
-    // NOVO: Adiciona Listeners para Deleção e Edição de PERSONAGEM BASE
-    document.querySelectorAll('.edit-base-btn').forEach(button => {
-        button.addEventListener('click', handleEditBaseCharacter);
-    });
-    // Você precisará de uma função handleDeleteBaseCharacter similar à de cartas
-    document.querySelectorAll('.delete-base-btn').forEach(button => {
-        button.addEventListener('click', handleDeleteBaseCharacter); // Crie esta função
-    });
-
+document.getElementById("saveCardBtn").addEventListener("click", saveOrUpdateCard);
 document.getElementById("saveBaseBtn").addEventListener("click", saveBasePersonagem);
 
-document.getElementById("saveCardBtn").addEventListener("click", async () => {
-await saveOrUpdateCard(); // USE A NOVA FUNÇÃO
-});
+document.getElementById("saveRarityBtn").addEventListener("click", saveRarityRule);
+document.getElementById("savePackBtn").addEventListener("click", saveOrUpdatePack);
+document.getElementById("savePlayerEditBtn").addEventListener("click", savePlayerEdit); // Listener do novo form de jogador
 
+// Listener Unificado (Executado uma vez)
 document.addEventListener("DOMContentLoaded", async () => {
-    // É mais seguro chamar loadEvolutionCosts aqui para que ele esteja disponível
-    await loadEvolutionCosts(); 
-    loadUnifiedView(); // Linha de Evolução e Gestão de Cartas
-    
-    // NOVAS CHAMADAS AQUI:
-    loadRarityRules();
-    loadPacks();
-    loadPlayers();
+    await loadEvolutionCosts(); 
+    loadUnifiedView(); 
+    loadRarityRules();
+    loadPacks();
+    loadPlayers();
 });
