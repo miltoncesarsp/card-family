@@ -214,23 +214,81 @@ font-weight: 800;
     background: #e6f0ff;
 }
 
+/* Estilos de Hierarquia */
 .group-title {
-    margin-top: 40px;
-    padding-bottom: 8px;
-    border-bottom: 3px solid #007bff;
-    color: #007bff;
     font-family: 'Bungee', cursive;
+    color: #4CAF50; /* Verde para Origem */
+    border-bottom: 3px solid #4CAF50;
+    margin-top: 40px;
 }
 
 .sub-title {
-    margin-top: 20px;
-    color: #555;
-    font-size: 1.5em;
     font-family: 'Poppins', sans-serif;
-    font-weight: bold;
+    font-weight: 700;
+    font-size: 1.4em;
+    color: #333;
+    padding-left: 10px;
+    margin-top: 20px;
+    border-left: 5px solid #007bff; /* Borda colorida para Personagem Base */
 }
 
-.card-evolution-line {
-    /* Garante que as cartas fiquem lado a lado como uma linha de evolução */
-    gap: 10px;
+.base-details {
+    font-size: 0.7em;
+    color: #666;
+    font-weight: 400;
+}
+
+/* Gestão e Edição */
+.card-editable {
+    position: relative;
+    border: 3px solid transparent !important; /* Esconde a borda original */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.card-content-wrapper {
+    position: relative;
+    height: 100%;
+    border: 3px solid #fff; /* Borda interna para usar a cor de raridade */
+    border-radius: 9px;
+    overflow: hidden;
+}
+
+.card-management-buttons {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 20;
+    display: flex;
+    gap: 5px;
+}
+
+.card-management-buttons button {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ccc;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.delete-btn {
+    color: #E74C3C; /* Vermelho */
+}
+
+.edit-btn {
+    color: #3498DB; /* Azul */
+}
+
+.evolution-cost {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 2px 5px;
+    border-radius: 5px;
+    font-size: 0.7em;
+    z-index: 10;
 }
