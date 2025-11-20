@@ -1,18 +1,18 @@
 function compressImage(file) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const MAX_WIDTH = 600;
-      const scale = MAX_WIDTH / img.width;
-      canvas.width = MAX_WIDTH;
-      canvas.height = img.height * scale;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.8);
-    };
-  });
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+        img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const MAX_WIDTH = 600;
+            const scale = MAX_WIDTH / img.width;
+            canvas.width = MAX_WIDTH;
+            canvas.height = img.height * scale;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.8);
+        };
+    });
 }
 
 // Cores do badge de raridade
@@ -28,39 +28,28 @@ function getRarityColor(rarity) {
 
 // Ícone Font Awesome do elemento
 function getElementIcon(element) {
-  switch (element.toLowerCase()) {
-    case "terra": return '<i class="fas fa-leaf"></i>';
-    case "fogo": return '<i class="fas fa-fire"></i>';
-    case "água": return '<i class="fas fa-tint"></i>';
-    case "ar": return '<i class="fas fa-wind"></i>';
-    case "tecnologia": return '<i class="fas fa-microchip"></i>';
-    case "luz": return '<i class="fas fa-sun"></i>';
-    case "sombra": return '<i class="fas fa-moon"></i>';
-    default: return '<i class="fas fa-question"></i>';
-  }
+switch (element.toLowerCase()) {
+        case "terra": return '<i class="fas fa-leaf"></i>';
+        case "fogo": return '<i class="fas fa-fire"></i>';
+        case "água": return '<i class="fas fa-tint"></i>';
+        case "ar": return '<i class="fas fa-wind"></i>';
+        case "tecnologia": return '<i class="fas fa-microchip"></i>';
+        case "luz": return '<i class="fas fa-sun"></i>';
+        case "sombra": return '<i class="fas fa-moon"></i>';
+        default: return '<i class="fas fa-question"></i>';
+    }
 }
 
 function getRarityColors(rarity) {
     let primaryColor;
-
     switch (rarity.toLowerCase()) {
-        case "mítica":
-            primaryColor = "#FFD700"; // Ouro
-            break;
-        case "lendária":
-            primaryColor = "#FF8C00"; // Laranja
-            break;
-        case "épica":
-            primaryColor = "#9932CC"; // Roxo
-            break;
-        case "rara":
-            primaryColor = "#1E90FF"; // Azul
-            break;
-        default:
-            primaryColor = "#A9A9A9"; // Cinza
-            break;
+        case "mítica": primaryColor = "#FFD700"; break;
+        case "lendária": primaryColor = "#FF8C00"; break;
+        case "épica": primaryColor = "#9932CC"; break;
+        case "rara": primaryColor = "#1E90FF"; break;
+        default: primaryColor = "#A9A9A9"; break;
     }
-    return { primary: primaryColor};
+    return { primary: primaryColor };
 }
 
 // Preview da carta
@@ -68,16 +57,11 @@ function previewCard() {
     const name = document.getElementById("cardName").value.trim();
     const power = document.getElementById("cardPower").value;
     const rarity = document.getElementById("cardRarity").value;
-    // REMOVIDO: const element = document.getElementById("cardElement").value;
+    const element = "Terra"; // Valor padrão para preview
+    
     const fileInput = document.getElementById("fileInput");
     const file = fileInput.files[0];
-    
-    // SOLUÇÃO: Usar um valor de elemento padrão para o preview
-    // O ideal seria fazer uma busca assíncrona, mas para manter o preview síncrono,
-    // usaremos 'Terra' ou um valor padrão até que o elemento seja salvo.
-    // Melhor usar o elemento de Terra se o campo de elemento não for mais acessível no JS
-    const element = "Terra"; 
-    
+
     const container = document.getElementById("cardPreviewContainer");
     container.innerHTML = "";
 
@@ -87,143 +71,96 @@ function previewCard() {
     div.className = "card-preview";
 
     const rarityStyles = getRarityColors(rarity);
-    const elementStyles = getElementStyles(element); 
-    
-    // NOVO: A cor do texto da raridade é SEMPRE branca, conforme solicitado.
-    const rarityTextColor = "white"; // <-- Ajustado para ser sempre branco
+    const elementStyles = getElementStyles(element);
+    const rarityTextColor = "white";
 
     if (file) div.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
 
     div.innerHTML = `
-        <div class="rarity-badge" 
-            style="background-color: ${rarityStyles.primary}; 
-                   color: ${rarityTextColor};">
-            ${rarity}
-        </div>
-        
-        <div class="card-element-badge"
-             style="background: ${elementStyles.background};">
-            ${getElementIcon(element)}
-        </div>
-        
-        <div class="card-name-footer" 
-            style="background-color: ${rarityStyles.primary}">
-            ${name}
-        </div>
-        
-        <div class="card-force-circle"
-            style="background-color: ${rarityStyles.primary};
-                   color: white; 
-                   border-color: white;"> 
-            ${power}
-        </div>
+        <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: ${rarityTextColor};">${rarity}</div>
+        <div class="card-element-badge" style="background: ${elementStyles.background};">${getElementIcon(element)}</div>
+        <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${name}</div>
+        <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${power}</div>
     `;
 
     container.appendChild(div);
 }
-
 function getElementStyles(element) {
     switch (element.toLowerCase()) {
-        case "terra":
-            return {
-                primary: "#8B4513", 
-                background: "linear-gradient(135deg, #A0522D 0%, #6B8E23 100%)" 
-            };
-        case "fogo":
-            return {
-                primary: "#FF4500", 
-                background: "linear-gradient(135deg, #FF4500 0%, #FFD700 100%)" 
-            };
-        case "água":
-            return {
-                primary: "#1E90FF", 
-                background: "linear-gradient(135deg, #1E90FF 0%, #87CEEB 100%)" 
-            };
-        case "ar":
-            return {
-                primary: "#5F9EA0", // Azul Acinzentado (Mais escuro)
-                // NOVO GRADIENTE: Usando tons de cinza/azul para garantir contraste
-                background: "linear-gradient(135deg, #708090 0%, #B0C4DE 100%)" // Cinza Ardósia para Azul Claro
-            };
-        case "tecnologia":
-            return {
-                primary: "#00CED1", 
-                background: "linear-gradient(135deg, #00CED1 0%, #191970 100%)" 
-            };
-        case "luz":
-            return {
-                primary: "#DAA520", // Dourado mais escuro (Goldenrod)
-                // NOVO GRADIENTE: Garantindo que a parte mais escura seja visível
-                background: "linear-gradient(135deg, #FFD700 0%, #DAA520 100%)" // Ouro para Dourado Escuro
-            };
-        case "sombra":
-            return {
-                primary: "#4B0082", 
-                background: "linear-gradient(135deg, #4B0082 0%, #000000 100%)" 
-            };
-        default:
-            return { primary: "#A9A9A9", background: "#A9A9A9" };
+        case "terra": return { primary: "#8B4513", background: "linear-gradient(135deg, #A0522D 0%, #6B8E23 100%)" };
+        case "fogo": return { primary: "#FF4500", background: "linear-gradient(135deg, #FF4500 0%, #FFD700 100%)" };
+        case "água": return { primary: "#1E90FF", background: "linear-gradient(135deg, #1E90FF 0%, #87CEEB 100%)" };
+        case "ar": return { primary: "#5F9EA0", background: "linear-gradient(135deg, #708090 0%, #B0C4DE 100%)" };
+        case "tecnologia": return { primary: "#00CED1", background: "linear-gradient(135deg, #00CED1 0%, #191970 100%)" };
+        case "luz": return { primary: "#DAA520", background: "linear-gradient(135deg, #FFD700 0%, #DAA520 100%)" };
+        case "sombra": return { primary: "#4B0082", background: "linear-gradient(135deg, #4B0082 0%, #000000 100%)" };
+        default: return { primary: "#A9A9A9", background: "#A9A9A9" };
     }
 }
 // Upload da carta
 async function uploadCard() {
     const name = document.getElementById("cardName").value.trim();
     const rarity = document.getElementById("cardRarity").value;
-    // REMOVIDO: const element = document.getElementById("cardElement").value;
     const power = parseInt(document.getElementById("cardPower").value);
     const fileInput = document.getElementById("fileInput");
     const file = fileInput.files[0];
 
-if (!name || !rarity || !power || !file) {
+    if (!name || !rarity || !power || !file) {
         alert("Preencha Nome, Raridade, Força e selecione uma imagem!");
         return;
     }
 
-const { data: baseDataArray, error: baseError } = await supabase
+    // 1. Busca o ID_BASE, origem e elemento
+    const { data: baseDataArray, error: baseError } = await supabase
         .from("personagens_base")
-        .select("id_base, origem, elemento") // <-- ELEMENTO ADICIONADO AQUI
-        .ilike("personagem", name)
+        .select("id_base, origem, elemento") 
+        .ilike("personagem", name) // Usa ILIKE para evitar erro de Case
         .limit(1);
 
-if (baseError || !baseDataArray || baseDataArray.length === 0) {
-  console.error("Erro ao buscar base:", baseError || "Personagem não encontrado.");
+    if (baseError || !baseDataArray || baseDataArray.length === 0) {
+        console.error("Erro ao buscar base:", baseError || "Personagem não encontrado.");
         alert("Não foi possível encontrar o Personagem Base! Crie-o primeiro.");
         return;
     }
 
-const { id_base, origem, elemento } = baseDataArray[0]; // <-- ELEMENTO DESESTRUTURADO AQUI
-  
-  const compressed = await compressImage(file);
-  const filePath = `cards/${origem}/${Date.now()}_${file.name}`;
+    const { id_base, origem, elemento } = baseDataArray[0];
+    
+    // 2. Upload da imagem
+    const compressed = await compressImage(file);
+    const filePath = `cards/${origem}/${Date.now()}_${file.name}`;
 
-  const { data: uploadData, error: uploadError } = await supabase.storage
-    .from("cards")
-    .upload(filePath, compressed);
+    const { error: uploadError } = await supabase.storage
+        .from("cards")
+        .upload(filePath, compressed);
 
-  if (uploadError) {
-    console.error("Erro no upload:", uploadError);
-    alert("Erro ao enviar imagem!");
-    return;
-  }
+    if (uploadError) {
+        console.error("Erro no upload:", uploadError);
+        alert("Erro ao enviar imagem!");
+        return;
+    }
 
-  const { data: publicUrl } = supabase.storage.from("cards").getPublicUrl(filePath);
-const imageUrl = publicUrl.publicUrl;
+    const { data: publicUrl } = supabase.storage.from("cards").getPublicUrl(filePath);
+    const imageUrl = publicUrl.publicUrl;
 
-    // 2. Inserção na tabela 'cards' (Agora incluindo o id_base)
+    // 3. Inserção na tabela 'cards'
     const { error: dbError } = await supabase.from("cards")
         .insert([{ 
             name, rarity, element, power, image_url: imageUrl, id_base: id_base 
-        }]); // <-- ELEMENTO INSERIDO AQUI
+        }]);
 
-  if (dbError) {
-    console.error("Erro ao salvar no banco:", dbError);
-    alert("Erro ao salvar no banco!");
-    return;
-  }
+    if (dbError) {
+        console.error("Erro ao salvar no banco:", dbError);
+        alert("Erro ao salvar no banco!");
+        return;
+    }
 
-  alert("Carta salva com sucesso!");
-  document.getElementById("cardForm").reset();
-  document.getElementById("cardPreviewContainer").innerHTML = "";
+    alert("Carta salva com sucesso!");
+    document.getElementById("cardName").value = "";
+    document.getElementById("cardPower").value = "";
+    document.getElementById("fileInput").value = "";
+    document.getElementById("cardPreviewContainer").innerHTML = "";
+
+    await loadCards(); // Recarrega a lista de cartas
 }
 
 /**
@@ -243,11 +180,10 @@ function groupBy(list, key) {
  * Busca e exibe as cartas agrupadas por Origem.
  */
 async function loadCards() {
-const listContainer = document.getElementById("cardListContainer");
+    const listContainer = document.getElementById("cardListContainer");
     listContainer.innerHTML = "Carregando cartas...";
 
-// Busca das cartas fazendo JOIN implícito com personagens_base para pegar a origem
-const { data: cards, error: cardsError } = await supabase
+    const { data: cards, error: cardsError } = await supabase
         .from("cards")
         .select(`
             *,
@@ -263,13 +199,13 @@ const { data: cards, error: cardsError } = await supabase
         listContainer.innerHTML = "Erro ao carregar as cartas.";
         return;
     }
-
     if (!cards || cards.length === 0) {
         listContainer.innerHTML = "Nenhuma carta cadastrada.";
         return;
     }
 
-const groupedByOriginAndPersonagem = cards.reduce((acc, card) => {
+    // Agrupamento em Níveis: Origem -> Personagem -> Cartas
+    const groupedByOriginAndPersonagem = cards.reduce((acc, card) => {
         const origem = card.personagens_base ? card.personagens_base.origem : "Desconhecida";
         const personagem = card.personagens_base ? card.personagens_base.personagem : "Desconhecido";
 
@@ -280,30 +216,58 @@ const groupedByOriginAndPersonagem = cards.reduce((acc, card) => {
     }, {});
 
 
-    // 3. Renderiza na tela
+    // Renderiza na tela
     listContainer.innerHTML = "";
     
-    // Iteração Nível 1: Origem (Marvel, DC, etc.)
+    // Iteração Nível 1: Origem
     for (const [origem, personagens] of Object.entries(groupedByOriginAndPersonagem).sort(([a], [b]) => a.localeCompare(b))) {
         listContainer.innerHTML += `<h3 class="group-title">${origem}</h3>`;
         
-        // Iteração Nível 2: Personagem (Hulk, Homem Aranha, etc.)
-for (const [personagem, cardArray] of Object.entries(personagens).sort(([a], [b]) => a.localeCompare(b))) {
-  
-            // Renderiza o título do personagem e uma linha para as cartas
+        // Iteração Nível 2: Personagem
+        for (const [personagem, cardArray] of Object.entries(personagens).sort(([a], [b]) => a.localeCompare(b))) {
+            
             listContainer.innerHTML += `<h4 class="sub-title">${personagem}</h4>`;
             listContainer.innerHTML += `<div class="card-group-container card-evolution-line">`; 
 
-            // O seu array 'cardArray' agora contém todas as raridades (Comum, Rara, Épica, etc.) para aquele personagem.
-            
-            // Iteração Nível 3: Cartas do Personagem (Ordem de Raridade)
-            // É melhor ordenar aqui para que a linha de evolução faça sentido
+            // Ordena por Raridade
             const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
             cardArray.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
 
+            // Iteração Nível 3: Renderização do Card
             cardArray.forEach(card => {
-                // ... (O código de renderização do card-preview.card-small aqui) ...
-                // Use o HTML de renderização que já está no seu loadCards
+                const rarityStyles = getRarityColors(card.rarity);
+                const elemento = card.personagens_base ? card.personagens_base.elemento : "Desconhecido";
+                const elementStyles = getElementStyles(elemento);
+
+                listContainer.innerHTML += `
+                    <div class="card-preview card-small" 
+                        style="background-image: url(${card.image_url}); 
+                               border: 3px solid ${rarityStyles.primary};">
+
+                        <div class="rarity-badge"  
+                            style="background-color: ${rarityStyles.primary}; 
+                                   color: white;">
+                            ${card.rarity}
+                        </div>
+                        
+                        <div class="card-element-badge"
+                            style="background: ${elementStyles.background};">
+                            ${getElementIcon(elemento)}
+                        </div>
+
+                        <div class="card-name-footer" 
+                            style="background-color: ${rarityStyles.primary}">
+                            ${card.name}
+                        </div>
+                        
+                        <div class="card-force-circle"
+                            style="background-color: ${rarityStyles.primary};
+                                   color: white; 
+                                   border-color: white;"> 
+                            ${card.power}
+                        </div>
+                    </div>
+                `;
             });
             
             listContainer.innerHTML += `</div>`; // Fecha card-group-container
@@ -312,34 +276,107 @@ for (const [personagem, cardArray] of Object.entries(personagens).sort(([a], [b]
 }
 
 async function saveBasePersonagem() {
-    // REMOVA: const id_base = document.getElementById("baseId").value.trim(); <-- REMOVIDO
-    const personagem = document.getElementById("basePersonagem").value.trim();
-    const origem = document.getElementById("baseOrigem").value.trim();
-    const elemento = document.getElementById("baseElemento").value;
+    const personagem = document.getElementById("basePersonagem").value.trim();
+    const origem = document.getElementById("baseOrigem").value.trim();
+    const elemento = document.getElementById("baseElemento").value;
 
-    if (!personagem || !origem || !elemento) { // Removida a verificação do id_base
-        alert("Preencha todos os campos do formulário Base!");
-        return;
-    }
+    if (!personagem || !origem || !elemento) {
+        alert("Preencha todos os campos do formulário Base!");
+        return;
+    }
 
-    // O ID é gerado pelo banco. Não o inclua no insert.
-    const { error: dbError } = await supabase.from("personagens_base")
-        .insert([{ personagem, origem, elemento }]); // <-- id_base foi removido daqui
+    const { error: dbError } = await supabase.from("personagens_base")
+        .insert([{ personagem, origem, elemento }]);
 
-    if (dbError) {
-        console.error("Erro ao salvar Base:", dbError);
-        alert(`Erro ao salvar no banco (Base): ${dbError.message}`);
-        return;
-    }
+    if (dbError) {
+        console.error("Erro ao salvar Base:", dbError);
+        alert(`Erro ao salvar no banco (Base): ${dbError.message}`);
+        return;
+    }
 
-alert(`Personagem Base "${personagem}" salvo com sucesso!`);
+    alert(`Personagem Base "${personagem}" salvo com sucesso!`);
     
     // LIMPEZA MANUAL
     document.getElementById("basePersonagem").value = "";
     document.getElementById("baseOrigem").value = "";
-    document.getElementById("baseElemento").selectedIndex = 0; // Volta para o primeiro
-    
-    // REMOVA: document.getElementById("baseForm").reset(); // <--- Linha original que causava o erro
+    document.getElementById("baseElemento").selectedIndex = 0;
+
+    await loadBaseCharacters(); // Recarrega a lista de personagens base
+}
+
+async function loadBaseCharacters() {
+    const listContainer = document.getElementById("baseListContainer");
+    if (!listContainer) return;
+
+    listContainer.innerHTML = "Carregando personagens base e suas cartas...";
+
+    const { data: baseData, error } = await supabase
+        .from("personagens_base")
+        .select(`
+            id_base,
+            personagem,
+            origem,
+            elemento,
+            cards (
+                id,
+                name,
+                rarity,
+                power,
+                image_url
+            )
+        `)
+        .order("origem", { ascending: true })
+        .order("personagem", { ascending: true }); 
+
+    if (error) {
+        console.error("Erro ao carregar personagens base:", error);
+        listContainer.innerHTML = "Erro ao carregar a lista de personagens base.";
+        return;
+    }
+
+    if (!baseData || baseData.length === 0) {
+        listContainer.innerHTML = "Nenhum personagem base cadastrado.";
+        return;
+    }
+
+    // Renderiza os dados
+    listContainer.innerHTML = baseData.map(base => {
+        const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
+        base.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
+
+        const cardListHTML = base.cards.length > 0 ?
+            base.cards.map(card => {
+                const rarityStyles = getRarityColors(card.rarity);
+                const elementStyles = getElementStyles(base.elemento);
+                
+                return `
+                    <div class="card-base-small" style="background-color: #f7f7f7; border: 1px solid ${rarityStyles.primary};">
+                        <span class="base-small-name">
+                            ${card.name} 
+                            <span class="base-small-element" style="background: ${elementStyles.background};">
+                                ${getElementIcon(base.elemento)}
+                            </span>
+                        </span>
+                        <span class="base-small-rarity" style="background-color: ${rarityStyles.primary};">
+                            ${card.rarity} (${card.power} POW)
+                        </span>
+                    </div>
+                `;
+            }).join('') :
+            '<p class="no-cards">Nenhuma carta ligada a este personagem.</p>';
+
+        return `
+            <div class="base-character-item">
+                <h4 class="base-character-header">
+                    ${base.personagem} (${base.origem}) - Elemento: ${base.elemento} (ID: ${base.id_base})
+                </h4>
+                <div class="linked-cards-container">
+                    ${cardListHTML}
+                </div>
+            </div>
+            <hr class="base-hr">
+        `;
+    }).join('');
 }
 
 // Listeners
@@ -347,9 +384,19 @@ document.getElementById("fileInput").addEventListener("change", previewCard);
 document.getElementById("cardName").addEventListener("input", previewCard);
 document.getElementById("cardPower").addEventListener("input", previewCard);
 document.getElementById("cardRarity").addEventListener("change", previewCard);
-document.addEventListener("DOMContentLoaded", loadCards); 
+
+// Listener para salvar base e recarregar a lista de base
 document.getElementById("saveBaseBtn").addEventListener("click", saveBasePersonagem);
+
+// Listener para salvar carta e recarregar ambas as listas
 document.getElementById("saveCardBtn").addEventListener("click", async () => {
     await uploadCard();
-    await loadCards(); // Recarrega a lista após salvar
+    await loadBaseCharacters(); // Atualiza a lista de Base (com as novas cartas ligadas)
+    await loadCards(); // Recarrega a lista de cartas
+});
+
+// Listener principal para carregar os dados ao iniciar a página
+document.addEventListener("DOMContentLoaded", () => {
+    loadBaseCharacters();
+    loadCards();
 });
