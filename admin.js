@@ -161,31 +161,31 @@ function getElementStyles(element) {
 }
 // Upload da carta
 async function uploadCard() {
-const name = document.getElementById("cardName").value.trim();
-  const rarity = document.getElementById("cardRarity").value;
-  const element = document.getElementById("cardElement").value;
-  const power = parseInt(document.getElementById("cardPower").value);
-  const fileInput = document.getElementById("fileInput");
-  const file = fileInput.files[0];
+    const name = document.getElementById("cardName").value.trim();
+    const rarity = document.getElementById("cardRarity").value;
+    // REMOVIDO: const element = document.getElementById("cardElement").value;
+    const power = parseInt(document.getElementById("cardPower").value);
+    const fileInput = document.getElementById("fileInput");
+    const file = fileInput.files[0];
 
-  if (!name || !rarity || !element || !power || !file) {
-    alert("Preencha todos os campos e selecione uma imagem!");
-    return;
-  }
+if (!name || !rarity || !power || !file) {
+        alert("Preencha Nome, Raridade, Força e selecione uma imagem!");
+        return;
+    }
 
 const { data: baseDataArray, error: baseError } = await supabase
         .from("personagens_base")
-        .select("id_base, origem")
-        .ilike("personagem", name) // <-- CORREÇÃO: Usa ILIKE para evitar erro de case
-        .limit(1); // <-- OTIMIZAÇÃO: Pega apenas 1 resultado
+        .select("id_base, origem, elemento") // <-- ELEMENTO ADICIONADO AQUI
+        .ilike("personagem", name)
+        .limit(1);
 
-    if (baseError || !baseDataArray || baseDataArray.length === 0) {
-        console.error("Erro ao buscar base:", baseError || "Personagem não encontrado.");
+if (baseError || !baseDataArray || baseDataArray.length === 0) {
+  console.error("Erro ao buscar base:", baseError || "Personagem não encontrado.");
         alert("Não foi possível encontrar o Personagem Base! Crie-o primeiro.");
         return;
     }
 
-    const { id_base, origem } = baseDataArray[0];
+const { id_base, origem, elemento } = baseDataArray[0]; // <-- ELEMENTO DESESTRUTURADO AQUI
   
   const compressed = await compressImage(file);
   const filePath = `cards/${origem}/${Date.now()}_${file.name}`;
@@ -206,13 +206,8 @@ const imageUrl = publicUrl.publicUrl;
     // 2. Inserção na tabela 'cards' (Agora incluindo o id_base)
     const { error: dbError } = await supabase.from("cards")
         .insert([{ 
-            name, 
-            rarity, 
-            element, 
-            power, 
-            image_url: imageUrl,
-            id_base: id_base // <-- CHAVE LIGADA!
-        }]);
+            name, rarity, element, power, image_url: imageUrl, id_base: id_base 
+        }]); // <-- ELEMENTO INSERIDO AQUI
 
   if (dbError) {
     console.error("Erro ao salvar no banco:", dbError);
