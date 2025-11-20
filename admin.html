@@ -76,24 +76,83 @@
 
     <hr>
     
-    <section class="management-section">
-        <h2>📜 Gerenciar Regras de Raridade</h2>
-        <div id="rarityRulesContainer"></div>
-        </section>
+<section class="management-section" id="rarityRulesFormSection">
+    <h2>📜 Gerenciar Regras de Raridade</h2>
+    <div id="rarityRulesContainer"></div>
+    
+    <div class="form-wrapper">
+        <h3>Editar Regra de Raridade (Chave Primária)</h3>
+        <form class="card-form" id="rarityForm">
+            <label>Raridade (Nome):</label>
+            <input id="rarityNameInput" type="text" disabled> <label>Repetidas para Evoluir:</label>
+            <input id="evolutionCostInput" type="number" min="0" required>
+            
+            <label>Ordem de Evolução (1=Comum, 5=Mítica):</label>
+            <input id="orderInput" type="number" min="1" max="10" required>
+            
+            <button type="button" id="saveRarityBtn">Salvar Regra (Apenas Edição)</button>
+        </form>
+    </div>
+</section>
+    <hr>
+    
+<section class="management-section">
+    <h2>📦 Gerenciar Pacotes (Preço e Chances)</h2>
+    <button type="button" id="newPackBtn" style="width: 200px; margin-bottom: 15px;">+ Novo Pacote</button>
+    <div id="packsContainer"></div>
+    
+    <div class="form-wrapper" id="packFormContainer">
+        <h3>Criar/Editar Pacote</h3>
+        <form class="card-form" id="packForm">
+            <input type="hidden" id="packIdInput"> 
+            
+            <label>Nome do Pacote:</label>
+            <input id="packNameInput" type="text" required>
+            
+            <label>Preço em Moedas:</label>
+            <input id="packPriceInput" type="number" min="0" required>
+            
+            <label>Total de Cartas no Pacote:</label>
+            <input id="packTotalCardsInput" type="number" min="1" required>
+
+            <h4 class="form-sub-title">Chances de Drop (%) - Soma deve ser 100%</h4>
+            <label>Comum (%):</label><input id="chanceComumInput" type="number" min="0" max="100" step="0.1" required>
+            <label>Rara (%):</label><input id="chanceRaraInput" type="number" min="0" max="100" step="0.1" required>
+            <label>Épica (%):</label><input id="chanceEpicaInput" type="number" min="0" max="100" step="0.1" required>
+            <label>Lendária (%):</label><input id="chanceLendariaInput" type="number" min="0" max="100" step="0.1" required>
+            <label>Mítica (%):</label><input id="chanceMiticaInput" type="number" min="0" max="100" step="0.1" required>
+            
+            <button type="button" id="savePackBtn">Salvar Novo Pacote</button>
+        </form>
+    </div>
+</section>
 
     <hr>
     
-    <section class="management-section">
-        <h2>📦 Gerenciar Pacotes (Preço e Chances)</h2>
-        <div id="packsContainer"></div>
-        </section>
-
-    <hr>
+<section class="management-section">
+    <h2>👤 Gerenciar Jogadores</h2>
+    <p class="base-details">Edição de Moedas e Nível. Use com cautela.</p>
+    <div id="playersContainer"></div>
     
-    <section class="management-section">
-        <h2>👤 Gerenciar Jogadores</h2>
-        <div id="playersContainer"></div>
-        </section>
+    <div class="form-wrapper" id="playerEditFormSection" style="display:none; margin-top: 20px; border-left: 5px solid #ff9800;">
+        <h3>Editar Saldo/Nível do Jogador</h3>
+        <form class="card-form">
+            <input type="hidden" id="playerEditId"> 
+            <label>Nome:</label>
+            <input id="playerEditName" type="text" disabled>
+            <label>Email:</label>
+            <input id="playerEditEmail" type="text" disabled>
+            
+            <label>Moedas:</label>
+            <input id="playerEditMoedas" type="number" min="0" required>
+            
+            <label>Nível:</label>
+            <input id="playerEditNivel" type="number" min="1" required>
+            
+            <button type="button" id="savePlayerEditBtn">Atualizar Jogador</button>
+        </form>
+    </div>
+</section>
     
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <script src="supabaseClient-v2.js?v=2"></script>
