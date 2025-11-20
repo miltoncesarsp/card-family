@@ -388,22 +388,22 @@ async function loadUnifiedView() {
 
     // 1. Busca todos os personagens base e faz o JOIN com todas as cartas ligadas
     const { data: baseData, error } = await supabase
-        .from("personagens_base")
-        .select(`
-            id_base,
-            personagem,
-            origem,
-            elemento,
-            cards (
-                id,
-                name,
-                rarity,
-                power,
-                image_url // <--- ESTE CAMPO É ESSENCIAL!
-            )
-        `)
-        .order("origem", { ascending: true })
-        .order("personagem", { ascending: true }); 
+    .from("personagens_base")
+    .select(`
+        id_base,
+        personagem,
+        origem,
+        elemento,
+        cards (
+            id,
+            name,
+            rarity,
+            power,
+            image_url
+        )
+    `)
+    .order("origem", { ascending: true })
+    .order("personagem", { ascending: true });
 
     if (error) {
         console.error("Erro ao carregar dados unificados:", error);
