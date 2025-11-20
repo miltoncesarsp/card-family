@@ -15,17 +15,6 @@ function compressImage(file) {
     });
 }
 
-// Cores do badge de raridade
-function getRarityColor(rarity) {
-  switch (rarity.toLowerCase()) {
-    case "mítica": return "#FFD700";
-    case "lendária": return "#E67E22";
-    case "épica": return "#9B59B6";
-    case "rara": return "#3498DB";
-    default: return "#95A5A6";
-  }
-}
-
 // Ícone Font Awesome do elemento
 function getElementIcon(element) {
 switch (element.toLowerCase()) {
@@ -161,19 +150,6 @@ async function uploadCard() {
     document.getElementById("cardPreviewContainer").innerHTML = "";
 
     await loadCards(); // Recarrega a lista de cartas
-}
-
-/**
- * Agrupa um array de objetos por uma chave específica.
- * @param {Array<Object>} list O array de cartas.
- * @param {string} key A chave para agrupar (neste caso, 'origem').
- * @returns {Object<string, Array>} Um objeto onde as chaves são as origens.
- */
-function groupBy(list, key) {
-    return list.reduce((acc, item) => {
-        (acc[item[key]] = acc[item[key]] || []).push(item);
-        return acc;
-    }, {});
 }
 
 /**
