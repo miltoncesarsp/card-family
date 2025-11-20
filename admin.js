@@ -161,7 +161,7 @@ function getElementStyles(element) {
 }
 // Upload da carta
 async function uploadCard() {
-  const name = document.getElementById("cardName").value.trim();
+const name = document.getElementById("cardName").value.trim();
   const rarity = document.getElementById("cardRarity").value;
   const element = document.getElementById("cardElement").value;
   const power = parseInt(document.getElementById("cardPower").value);
@@ -174,19 +174,18 @@ async function uploadCard() {
   }
 
 const { data: baseDataArray, error: baseError } = await supabase
-    .from("personagens_base")
-    .select("origem")
-    .eq("personagem", name); // REMOVEU .single()
+        .from("personagens_base")
+        .select("id_base, origem") // Pega os campos de ligação e agrupamento
+        .eq("personagem", name); // Filtra pelo nome fornecido
 
-if (baseError || !baseDataArray || baseDataArray.length === 0) {
-    // Verifica se houve erro OU se o array está vazio (personagem não encontrado)
-    console.error("Erro ao buscar origem:", baseError || "Personagem não encontrado na base.");
-    alert("Não foi possível encontrar a origem do personagem! Verifique a grafia.");
-    return;
-}
+    if (baseError || !baseDataArray || baseDataArray.length === 0) {
+        // Usa baseDataArray.length para verificar se encontrou (mais seguro que .single())
+        console.error("Erro ao buscar base:", baseError || "Personagem não encontrado.");
+        alert("Não foi possível encontrar a origem ou ID base do personagem! Verifique a grafia.");
+        return;
+    }
 
-// Se encontrou, pega o primeiro (e único) item do array.
-const origem = baseDataArray[0].origem;
+    const { id_base, origem } = baseDataArray[0]; // Pega os dados do primeiro resultado
   
   const compressed = await compressImage(file);
   const filePath = `cards/${origem}/${Date.now()}_${file.name}`;
@@ -202,10 +201,18 @@ const origem = baseDataArray[0].origem;
   }
 
   const { data: publicUrl } = supabase.storage.from("cards").getPublicUrl(filePath);
-  const imageUrl = publicUrl.publicUrl;
+const imageUrl = publicUrl.publicUrl;
 
-  const { error: dbError } = await supabase.from("cards")
-    .insert([{ name, rarity, element, power, image_url: imageUrl }]);
+    // 2. Inserção na tabela 'cards' (Agora incluindo o id_base)
+    const { error: dbError } = await supabase.from("cards")
+        .insert([{ 
+            name, 
+            rarity, 
+            element, 
+            power, 
+            image_url: imageUrl,
+            id_base: id_base // <-- CHAVE LIGADA!
+        }]);
 
   if (dbError) {
     console.error("Erro ao salvar no banco:", dbError);
@@ -235,31 +242,18 @@ function groupBy(list, key) {
  * Busca e exibe as cartas agrupadas por Origem.
  */
 async function loadCards() {
-    const listContainer = document.getElementById("cardListContainer");
+const listContainer = document.getElementById("cardListContainer");
     listContainer.innerHTML = "Carregando cartas...";
 
-    // 1. Busca todas as entradas da tabela 'personagens_base'
-    const { data: baseData, error: baseError } = await supabase
-        .from("personagens_base")
-        .select("personagem, origem"); // Pega apenas o nome e a origem
-
-    if (baseError) {
-        console.error("Erro ao buscar personagens base:", baseError);
-        listContainer.innerHTML = "Erro ao carregar a base de personagens.";
-        return;
-    }
-
-    // Cria um mapa para buscar a origem rapidamente (key: nome da carta, value: origem)
-    const originMap = baseData.reduce((map, item) => {
-        map[item.personagem] = item.origem;
-        return map;
-    }, {});
-
-
-    // 2. Busca todas as cartas da tabela 'cards'
-    const { data: cards, error: cardsError } = await supabase
+// Busca das cartas fazendo JOIN implícito com personagens_base para pegar a origem
+  const { data: cards, error: cardsError } = await supabase
         .from("cards")
-        .select("*");
+        .select(`
+            *,
+            personagens_base (
+                origem
+            )
+        `); 
 
     if (cardsError) {
         console.error("Erro ao buscar cartas:", cardsError);
@@ -278,11 +272,12 @@ async function loadCards() {
         origem: originMap[card.name] || "Desconhecida" // Usa o mapa
     }));
 
-    const groupedCards = allCardsWithOrigin.reduce((acc, card) => {
-        (acc[card.origem] = acc[card.origem] || []).push(card);
+const groupedCards = cards.reduce((acc, card) => {
+        // A origem agora está aninhada em card.personagens_base.origem
+        const origem = card.personagens_base ? card.personagens_base.origem : "Desconhecida";
+        (acc[origem] = acc[origem] || []).push(card);
         return acc;
     }, {});
-
 
     // 4. Renderiza na tela
     listContainer.innerHTML = "";
@@ -335,7 +330,6 @@ document.getElementById("cardName").addEventListener("input", previewCard);
 document.getElementById("cardPower").addEventListener("input", previewCard);
 document.getElementById("cardRarity").addEventListener("change", previewCard);
 document.getElementById("cardElement").addEventListener("change", previewCard);
-document.getElementById("saveCardBtn").addEventListener("click", uploadCard);
 document.addEventListener("DOMContentLoaded", loadCards); 
 document.getElementById("saveCardBtn").addEventListener("click", async () => {
     await uploadCard();
