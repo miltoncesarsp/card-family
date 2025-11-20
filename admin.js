@@ -106,7 +106,7 @@ function previewCard(imageUrl = null) {
     const elementStyles = getElementStyles(element);
     const rarityTextColor = "white";
 
-    const finalImageUrl = urlFromEdit || (currentImageUrl && !file) ? currentImageUrl : null;
+    const finalImageUrl = imageUrl || (currentImageUrl && !file ? currentImageUrl : null);
 
     // NOVIDADE: Verifica se há um URL para pré-visualização (caso de edição)
     if (file) {
@@ -751,16 +751,6 @@ document.querySelectorAll('.delete-btn').forEach(button => {
     document.querySelectorAll('.edit-btn').forEach(button => {
         button.addEventListener('click', handleEdit); 
     });
-
-    // NOVO: Adiciona Listeners para Deleção e Edição de PERSONAGEM BASE
-    document.querySelectorAll('.edit-base-btn').forEach(button => {
-        button.addEventListener('click', handleEditBaseCharacter);
-    });
-    // Você precisará de uma função handleDeleteBaseCharacter similar à de cartas
-    document.querySelectorAll('.delete-base-btn').forEach(button => {
-        button.addEventListener('click', handleDeleteBaseCharacter); // Crie esta função
-    });
-
 document.getElementById("saveBaseBtn").addEventListener("click", saveBasePersonagem);
 
 document.getElementById("saveCardBtn").addEventListener("click", async () => {
