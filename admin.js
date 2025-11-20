@@ -171,7 +171,7 @@ async function saveOrUpdateCard() {
         return;
     }
 
-    const { id_base, elemento } = baseDataArray[0];
+    const { id_base, elemento, origem } = baseDataArray[0]; // <<< ADICIONE 'origem' AQUI
     let imageUrlToSave = null; // Variável que conterá o URL final da imagem
 
     // Se estiver editando, busca a URL da imagem atual da carta
@@ -192,13 +192,16 @@ async function saveOrUpdateCard() {
 
     // 2. Lógica de Upload da imagem (SÓ SE UMA NOVA IMAGEM FOR SELECIONADA)
     if (file) {
-        const compressed = await compressImage(file);
-        const uniqueFileName = `${id_base}_${rarity}_${Date.now()}.jpeg`;
-        const filePath = `${id_base}/${uniqueFileName}`;
+        const compressed = await compressImage(file);
+        const uniqueFileName = `${id_base}_${rarity}_${Date.now()}.jpeg`;
+        
+        // CORREÇÃO AQUI: Usa a Origem normalizada como pasta
+        const folderName = slugify(origem); // Ex: 'Marvel' -> 'marvel'
+        const filePath = `${folderName}/${uniqueFileName}`; // Ex: 'marvel/32_Comum_16788888.jpeg'
 
         const { error: uploadError } = await supabase.storage
-            .from(BUCKET_NAME)
-            .upload(filePath, compressed, { cacheControl: '3600', upsert: false });
+            .from(BUCKET_NAME)
+            .upload(filePath, compressed, { cacheControl: '3600', upsert: false });
 
         if (uploadError) {
             console.error("Erro no upload da imagem:", uploadError);
@@ -253,6 +256,16 @@ async function saveOrUpdateCard() {
     resetFormState(); 
     await loadUnifiedView();
 }
+
+function slugify(text) {
+    return text
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '') // Remove caracteres especiais, mas mantém espaços e hífens
+        .replace(/[\s_-]+/g, '-') // Substitui espaços e múltiplos hífens/underscores por um único hífen
+        .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
+}
+
 /**
  * Busca e exibe as cartas agrupadas por Origem.
  */
@@ -726,6 +739,180 @@ async function handleDeleteBaseCharacter(event) {
     }
 }
 
+/* === GESTÃO DE REGRAS DE RARIDADE === */
+async function loadRarityRules() {
+    const listContainer = document.getElementById("rarityRulesContainer");
+    if (!listContainer) return;
+    listContainer.innerHTML = "Carregando Regras de Raridade...";
+
+    const { data: rules, error } = await supabase
+        .from("regras_raridade")
+        .select('*')
+        .order("ordem_evolucao", { ascending: true });
+
+    if (error) {
+        console.error("Erro ao carregar regras de raridade:", error);
+        listContainer.innerHTML = "Erro ao carregar regras de raridade.";
+        return;
+    }
+
+    if (rules.length === 0) {
+        listContainer.innerHTML = "Nenhuma regra de raridade cadastrada.";
+        return;
+    }
+
+    let html = '<table><thead><tr><th>Raridade</th><th>Repetidas para Evoluir</th><th>Ordem</th><th>Ações</th></tr></thead><tbody>';
+    
+    rules.forEach(rule => {
+        const primaryColor = getRarityColors(rule.raridade_nome).primary;
+        html += `
+            <tr data-rarity="${rule.raridade_nome}">
+                <td style="color: ${primaryColor}; font-weight: bold;">${rule.raridade_nome}</td>
+                <td>${rule.repetidas_para_evoluir}</td>
+                <td>${rule.ordem_evolucao}</td>
+                <td>
+                    <button class="edit-rarity-btn" data-name="${rule.raridade_nome}"><i class="fas fa-edit"></i></button>
+                    </td>
+            </tr>
+        `;
+    });
+
+    html += '</tbody></table>';
+    listContainer.innerHTML = html;
+    
+    // Adiciona listener (a função handleEditRarity deve ser implementada no HTML)
+    document.querySelectorAll('.edit-rarity-btn').forEach(button => {
+        button.addEventListener('click', handleEditRarity); 
+    });
+}
+
+// Implementar funções de edição de raridade no .js (Exemplo, a UI completa seria no HTML)
+let currentEditRarityName = null;
+async function handleEditRarity(event) {
+    const name = event.currentTarget.dataset.name;
+    // ... Lógica para buscar a regra e preencher o formulário
+    alert(`Editar regra para ${name}. Necessário criar o formulário no HTML.`);
+}
+
+/* === GESTÃO DE PACOTES === */
+async function loadPacks() {
+    const listContainer = document.getElementById("packsContainer");
+    if (!listContainer) return;
+    listContainer.innerHTML = "Carregando Pacotes...";
+
+    const { data: packs, error } = await supabase
+        .from("pacotes")
+        .select('*')
+        .order("preco_moedas", { ascending: true });
+
+    if (error) {
+        console.error("Erro ao carregar pacotes:", error);
+        listContainer.innerHTML = "Erro ao carregar pacotes.";
+        return;
+    }
+
+    if (packs.length === 0) {
+        listContainer.innerHTML = "Nenhum pacote cadastrado.";
+        return;
+    }
+
+    let html = '<table><thead><tr><th>Nome</th><th>Preço</th><th>Total Cartas</th><th>Chances (%)</th><th>Ações</th></tr></thead><tbody>';
+    
+    packs.forEach(pack => {
+        const chances = [
+            `C: ${pack.chance_comum * 100}%`,
+            `R: ${pack.chance_rara * 100}%`,
+            `E: ${pack.chance_epica * 100}%`,
+            `L: ${pack.chance_lendaria * 100}%`,
+            `M: ${pack.chance_mitica * 100}%`
+        ].join('<br>');
+
+        html += `
+            <tr data-id="${pack.id}">
+                <td>${pack.nome}</td>
+                <td>${pack.preco_moedas} moedas</td>
+                <td>${pack.cartas_total}</td>
+                <td>${chances}</td>
+                <td>
+                    <button class="edit-pack-btn" data-id="${pack.id}"><i class="fas fa-edit"></i></button>
+                    <button class="delete-pack-btn" data-id="${pack.id}" data-name="${pack.nome}"><i class="fas fa-trash-alt"></i></button>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += '</tbody></table>';
+    listContainer.innerHTML = html;
+    
+    // Adiciona listeners (funções de edição/deleção devem ser implementadas)
+    document.querySelectorAll('.edit-pack-btn').forEach(button => {
+        button.addEventListener('click', handleEditPack); 
+    });
+    document.querySelectorAll('.delete-pack-btn').forEach(button => {
+        button.addEventListener('click', handleDeletePack);
+    });
+}
+// Funções de CRUD de Pacotes (Implemente de forma similar ao CRUD de cards)
+function handleEditPack() { alert("Funcionalidade de edição de Pacotes pendente."); }
+function handleDeletePack() { alert("Funcionalidade de exclusão de Pacotes pendente."); }
+
+/* === GESTÃO DE JOGADORES === */
+async function loadPlayers() {
+    const listContainer = document.getElementById("playersContainer");
+    if (!listContainer) return;
+    listContainer.innerHTML = "Carregando Jogadores...";
+
+    const { data: players, error } = await supabase
+        .from("jogadores")
+        .select('id, nome, email, nivel, moedas, total_cartas, data_criacao')
+        .order("data_criacao", { ascending: false });
+
+    if (error) {
+        console.error("Erro ao carregar jogadores:", error);
+        listContainer.innerHTML = "Erro ao carregar jogadores.";
+        return;
+    }
+
+    if (players.length === 0) {
+        listContainer.innerHTML = "Nenhum jogador cadastrado.";
+        return;
+    }
+
+    let html = '<table><thead><tr><th>Nome</th><th>Email</th><th>Nível</th><th>Moedas</th><th>Cartas</th><th>Registro</th><th>Ações</th></tr></thead><tbody>';
+    
+    players.forEach(player => {
+        const formattedDate = new Date(player.data_criacao).toLocaleDateString();
+        html += `
+            <tr data-id="${player.id}">
+                <td>${player.nome}</td>
+                <td>${player.email}</td>
+                <td>${player.nivel}</td>
+                <td>${player.moedas}</td>
+                <td>${player.total_cartas}</td>
+                <td>${formattedDate}</td>
+                <td>
+                    <button class="edit-player-btn" data-id="${player.id}"><i class="fas fa-edit"></i></button>
+                    <button class="delete-player-btn" data-id="${player.id}" data-name="${player.nome}"><i class="fas fa-trash-alt"></i></button>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += '</tbody></table>';
+    listContainer.innerHTML = html;
+    
+    // Adiciona listeners (funções de edição/deleção devem ser implementadas)
+    document.querySelectorAll('.edit-player-btn').forEach(button => {
+        button.addEventListener('click', handleEditPlayer); 
+    });
+    document.querySelectorAll('.delete-player-btn').forEach(button => {
+        button.addEventListener('click', handleDeletePlayer);
+    });
+}
+// Funções de CRUD de Jogadores
+function handleEditPlayer() { alert("Funcionalidade de edição de Jogadores pendente. (Permite mudar moedas/nível)"); }
+function handleDeletePlayer() { alert("Funcionalidade de exclusão de Jogadores pendente. (Cuidado, deleta dados importantes!)"); }
+
 // Listeners
 document.getElementById("fileInput").addEventListener("change", previewCard);
 document.getElementById("cardName").addEventListener("input", previewCard);
@@ -758,4 +945,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     // É mais seguro chamar loadEvolutionCosts aqui para que ele esteja disponível
     await loadEvolutionCosts(); 
     loadUnifiedView(); // loadUnifiedView agora depende dos custos
+});
+
+document.addEventListener("DOMContentLoaded", async () => {
+    // É mais seguro chamar loadEvolutionCosts aqui para que ele esteja disponível
+    await loadEvolutionCosts(); 
+    loadUnifiedView(); // Linha de Evolução e Gestão de Cartas
+    
+    // NOVAS CHAMADAS AQUI:
+    loadRarityRules();
+    loadPacks();
+    loadPlayers();
 });
