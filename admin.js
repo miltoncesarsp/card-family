@@ -381,7 +381,7 @@ async function loadUnifiedView() {
     const listContainer = document.getElementById("unifiedListContainer");
     listContainer.innerHTML = "Carregando dados unificados...";
 
-    // NOVO: GARANTE QUE OS CUSTOS ESTÃO CARREGADOS (Se a chamada DOMContentLoaded falhou)
+    // NOVO: GARANTE QUE OS CUSTOS ESTÃO CARREGADOS
     if (Object.keys(EVOLUTION_COSTS).length === 0) {
         await loadEvolutionCosts();
     }
@@ -399,7 +399,7 @@ async function loadUnifiedView() {
                 name,
                 rarity,
                 power,
-                image_url
+                image_url // <--- ESTE CAMPO É ESSENCIAL!
             )
         `)
         .order("origem", { ascending: true })
@@ -417,8 +417,7 @@ async function loadUnifiedView() {
     }
 
     // 2. Preenche o Datalist (Autocompletar)
-    // NOTE: Você precisa ter a função updateNameDatalist definida em outro lugar do seu JS
-    // updateNameDatalist(baseData); 
+    updateNameDatalist(baseData); 
 
     // 3. Renderiza a Hierarquia
     const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
@@ -450,15 +449,19 @@ async function loadUnifiedView() {
             // Ordena as cartas pela linha de evolução
             base.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
 
-            base.cards.forEach(card => { // <-- AQUI INICIA O FOREACH
+            base.cards.forEach(card => { 
                 const rarityStyles = getRarityColors(card.rarity);
                 const custo = EVOLUTION_COSTS[card.rarity];
                 const custoTexto = (card.rarity === 'Mítica' || custo === 0) ? "Máximo" : (custo ? `${custo}x` : "N/A");
-                const baseElementStyles = getElementStyles(base.elemento); // Usa 'base' para o elemento
-
-                // HTML DA CARTA (Corrigido para usar outputHTML +=)
+                
+                // HTML DA CARTA (INJEÇÃO DO BACKGROUND-IMAGE AQUI!)
                 outputHTML += `
-                    <div class="card-preview card-small card-editable" data-card-id="${card.id}" data-card-name="${card.name}">
+                    <div 
+                        class="card-preview card-small card-editable" 
+                        data-card-id="${card.id}" 
+                        data-card-name="${card.name}"
+                        style="background-image: url('${card.image_url}');" 
+                    >
                         <div class="card-management-buttons">
                             <button class="edit-btn" data-id="${card.id}">
                                 <i class="fas fa-edit"></i>
@@ -478,11 +481,12 @@ async function loadUnifiedView() {
                         </div>
                     </div>
                 `;
-            }); // <-- AQUI TERMINA O FOREACH
+            }); 
 
             outputHTML += `</div></div>`; // Fecha card-group-container e personagem-base-container
         });
     }
+
     listContainer.innerHTML = outputHTML;
     
     // 4. Adiciona Listeners para botões de Deleção/Edição
