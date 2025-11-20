@@ -175,17 +175,17 @@ const name = document.getElementById("cardName").value.trim();
 
 const { data: baseDataArray, error: baseError } = await supabase
         .from("personagens_base")
-        .select("id_base, origem") // Pega os campos de ligação e agrupamento
-        .eq("personagem", name); // Filtra pelo nome fornecido
+        .select("id_base, origem")
+        .ilike("personagem", name) // <-- CORREÇÃO: Usa ILIKE para evitar erro de case
+        .limit(1); // <-- OTIMIZAÇÃO: Pega apenas 1 resultado
 
     if (baseError || !baseDataArray || baseDataArray.length === 0) {
-        // Usa baseDataArray.length para verificar se encontrou (mais seguro que .single())
         console.error("Erro ao buscar base:", baseError || "Personagem não encontrado.");
-        alert("Não foi possível encontrar a origem ou ID base do personagem! Verifique a grafia.");
+        alert("Não foi possível encontrar o Personagem Base! Crie-o primeiro.");
         return;
     }
 
-    const { id_base, origem } = baseDataArray[0]; // Pega os dados do primeiro resultado
+    const { id_base, origem } = baseDataArray[0];
   
   const compressed = await compressImage(file);
   const filePath = `cards/${origem}/${Date.now()}_${file.name}`;
