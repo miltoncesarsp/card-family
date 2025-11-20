@@ -360,6 +360,147 @@ async function loadBaseCharacters() {
     }).join('');
 }
 
+/**
+ * Preenche a datalist de autocompletar com nomes de personagens base.
+ * @param {Array<Object>} baseCharacters Lista de personagens_base.
+ */
+function updateNameDatalist(baseCharacters) {
+    const datalist = document.getElementById('personagem-nomes');
+    if (!datalist) return;
+    
+    datalist.innerHTML = baseCharacters.map(base => 
+        `<option value="${base.personagem}">`
+    ).join('');
+}
+
+async function loadUnifiedView() {
+    const listContainer = document.getElementById("unifiedListContainer");
+    listContainer.innerHTML = "Carregando dados unificados...";
+
+    // 1. Busca todos os personagens base e faz o JOIN com todas as cartas ligadas
+    const { data: baseData, error } = await supabase
+        .from("personagens_base")
+        .select(`
+            id_base,
+            personagem,
+            origem,
+            elemento,
+            cards (
+                id,
+                name,
+                rarity,
+                power,
+                image_url
+            )
+        `)
+        .order("origem", { ascending: true })
+        .order("personagem", { ascending: true }); 
+
+    if (error) {
+        console.error("Erro ao carregar dados unificados:", error);
+        listContainer.innerHTML = "Erro ao carregar os dados de evolução.";
+        return;
+    }
+    
+    if (!baseData || baseData.length === 0) {
+        listContainer.innerHTML = "Nenhum Personagem Base cadastrado.";
+        return;
+    }
+
+    // 2. Preenche o Datalist (Autocompletar)
+    updateNameDatalist(baseData); 
+
+    // 3. Renderiza a Hierarquia
+    const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
+    let outputHTML = '';
+
+    const groupedByOrigin = baseData.reduce((acc, base) => {
+        (acc[base.origem] = acc[base.origem] || []).push(base);
+        return acc;
+    }, {});
+
+    for (const [origem, personagensArray] of Object.entries(groupedByOrigin)) {
+        outputHTML += `<h3 class="group-title">${origem}</h3>`; // Origem
+        
+        personagensArray.forEach(base => {
+            const baseElementStyles = getElementStyles(base.elemento);
+            
+            outputHTML += `<div class="personagem-base-container">`;
+            
+            // Título do Personagem Base (Inclui Elemento e ID)
+            outputHTML += `<h4 class="sub-title" style="border-left-color: ${baseElementStyles.primary};">
+                ${base.personagem} 
+                <span class="base-details">
+                    (ID: ${base.id_base} | Elemento: ${base.elemento})
+                </span>
+            </h4>`;
+            
+            outputHTML += `<div class="card-group-container card-evolution-line">`;
+            
+            // Ordena as cartas pela linha de evolução
+            base.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
+
+            base.cards.forEach(card => {
+                const rarityStyles = getRarityColors(card.rarity);
+                const custo = EVOLUTION_COSTS[card.rarity] || "-";
+                
+                // Renderização da Carta (com botões de Gestão e Custo)
+                outputHTML += `
+                    <div class="card-preview card-small card-editable" data-card-id="${card.id}" data-card-name="${card.name}">
+                        <div class="card-management-buttons">
+                            <button class="edit-btn" data-id="${card.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="delete-btn" data-id="${card.id}" data-name="${card.name}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        <div class="card-content-wrapper">
+                            <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity}</div>
+                            <div class="card-element-badge" style="background: ${baseElementStyles.background};">${getElementIcon(base.elemento)}</div>
+                            <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+                            <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
+                        </div>
+                        <div class="evolution-cost">
+                            Próxima Evolução: ${custo}x
+                        </div>
+                    </div>
+                `;
+            });
+            
+            outputHTML += `</div></div>`; // Fecha card-group-container e personagem-base-container
+        });
+    }
+
+    listContainer.innerHTML = outputHTML;
+    
+    // 4. Adiciona Listeners para botões de Deleção/Edição
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', handleDelete);
+    });
+    // Implementação da Edição é mais complexa e requer uma função separada (handleEdit)
+}
+
+async function handleDelete(event) {
+    const cardId = event.currentTarget.dataset.id;
+    const cardName = event.currentTarget.dataset.name;
+
+    if (confirm(`Tem certeza que deseja DELETAR a carta ${cardName}? Isso é irreversível.`)) {
+        const { error } = await supabase
+            .from('cards')
+            .delete()
+            .eq('id', cardId);
+
+        if (error) {
+            console.error("Erro ao deletar carta:", error);
+            alert("Erro ao deletar carta. Verifique as permissões de RLS.");
+        } else {
+            alert(`Carta ${cardName} deletada com sucesso!`);
+            await loadUnifiedView(); // Recarrega a visualização unificada
+        }
+    }
+}
+
 // Listeners
 document.getElementById("fileInput").addEventListener("change", previewCard);
 document.getElementById("cardName").addEventListener("input", previewCard);
@@ -372,12 +513,14 @@ document.getElementById("saveBaseBtn").addEventListener("click", saveBasePersona
 // Listener para salvar carta e recarregar ambas as listas
 document.getElementById("saveCardBtn").addEventListener("click", async () => {
     await uploadCard();
-    await loadBaseCharacters(); // Atualiza a lista de Base (com as novas cartas ligadas)
-    await loadCards(); // Recarrega a lista de cartas
+    await loadUnifiedView(); // Recarrega a visualização unificada
 });
 
 // Listener principal para carregar os dados ao iniciar a página
 document.addEventListener("DOMContentLoaded", () => {
-    loadBaseCharacters();
-    loadCards();
+    loadUnifiedView(); // Chama a função unificada
 });
+
+
+
+
