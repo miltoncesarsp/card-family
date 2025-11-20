@@ -374,7 +374,7 @@ function updateNameDatalist(baseCharacters) {
 }
 
 async function loadUnifiedView() {
-    const listContainer = document.getElementById("unifiedListContainer");
+   const listContainer = document.getElementById("unifiedListContainer"); // AGORA BUSCA O ID CORRETO
     listContainer.innerHTML = "Carregando dados unificados...";
 
     // 1. Busca todos os personagens base e faz o JOIN com todas as cartas ligadas
@@ -510,13 +510,11 @@ document.getElementById("cardRarity").addEventListener("change", previewCard);
 // Listener para salvar base e recarregar a lista de base
 document.getElementById("saveBaseBtn").addEventListener("click", saveBasePersonagem);
 
-// Listener para salvar carta e recarregar ambas as listas
 document.getElementById("saveCardBtn").addEventListener("click", async () => {
     await uploadCard();
-    await loadUnifiedView(); // Recarrega a visualização unificada
+    await loadUnifiedView(); // Chama a função unificada
 });
 
-// Listener principal para carregar os dados ao iniciar a página
 document.addEventListener("DOMContentLoaded", () => {
     loadUnifiedView(); // Chama a função unificada
 });
