@@ -311,28 +311,28 @@ const groupedByOriginAndPersonagem = cards.reduce((acc, card) => {
 }
 
 async function saveBasePersonagem() {
-    const id_base = document.getElementById("baseId").value.trim();
-    const personagem = document.getElementById("basePersonagem").value.trim();
-    const origem = document.getElementById("baseOrigem").value.trim();
-    const elemento = document.getElementById("baseElemento").value;
+    // REMOVA: const id_base = document.getElementById("baseId").value.trim(); <-- REMOVIDO
+    const personagem = document.getElementById("basePersonagem").value.trim();
+    const origem = document.getElementById("baseOrigem").value.trim();
+    const elemento = document.getElementById("baseElemento").value;
 
-    if (!id_base || !personagem || !origem || !elemento) {
-        alert("Preencha todos os campos do formulário Base!");
-        return;
-    }
+    if (!personagem || !origem || !elemento) { // Removida a verificação do id_base
+        alert("Preencha todos os campos do formulário Base!");
+        return;
+    }
 
-    const { error: dbError } = await supabase.from("personagens_base")
-        .insert([{ id_base, personagem, origem, elemento }]);
+    // O ID é gerado pelo banco. Não o inclua no insert.
+    const { error: dbError } = await supabase.from("personagens_base")
+        .insert([{ personagem, origem, elemento }]); // <-- id_base foi removido daqui
 
-    if (dbError) {
-        // Erro 23505 (Unique violation) é comum se o ID Base já existir.
-        console.error("Erro ao salvar Base:", dbError);
-        alert(`Erro ao salvar no banco (Base). Possivelmente ID Base já existe: ${dbError.message}`);
-        return;
-    }
+    if (dbError) {
+        console.error("Erro ao salvar Base:", dbError);
+        alert(`Erro ao salvar no banco (Base): ${dbError.message}`);
+        return;
+    }
 
-    alert(`Personagem Base "${personagem}" (ID: ${id_base}) salvo com sucesso!`);
-    document.getElementById("baseForm").reset();
+    alert(`Personagem Base "${personagem}" salvo com sucesso!`);
+    document.getElementById("baseForm").reset();
 }
 
 // Listeners
