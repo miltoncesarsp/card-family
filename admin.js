@@ -368,7 +368,7 @@ async function loadUnifiedView() {
     const listContainer = document.getElementById("unifiedListContainer");
     listContainer.innerHTML = "Carregando dados unificados...";
 
-    // NOVO: GARANTE QUE OS CUSTOS ESTÃO CARREGADOS
+    // NOVO: GARANTE QUE OS CUSTOS ESTÃO CARREGADOS (Se a chamada DOMContentLoaded falhou)
     if (Object.keys(EVOLUTION_COSTS).length === 0) {
         await loadEvolutionCosts();
     }
@@ -394,7 +394,7 @@ async function loadUnifiedView() {
 
     if (error) {
         console.error("Erro ao carregar dados unificados:", error);
-        listContainer.innerHTML = "Erro ao carregar os dados de evolução.";
+        listContainer.innerHTML = "Erro ao carregar os dados de evolução. (Verifique RLS e conexão)";
         return;
     }
     
@@ -404,7 +404,8 @@ async function loadUnifiedView() {
     }
 
     // 2. Preenche o Datalist (Autocompletar)
-    updateNameDatalist(baseData); 
+    // NOTE: Você precisa ter a função updateNameDatalist definida em outro lugar do seu JS
+    // updateNameDatalist(baseData); 
 
     // 3. Renderiza a Hierarquia
     const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
@@ -436,52 +437,45 @@ async function loadUnifiedView() {
             // Ordena as cartas pela linha de evolução
             base.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
 
-            base.cards.forEach(card => {
-  const rarityStyles = getRarityColors(card.rarity);
-const custo = EVOLUTION_COSTS[card.rarity];
-const custoTexto = (card.rarity === 'Mítica' || custo === 0) ? "Máximo" : (custo ? `${custo}x` : "N/A");
-const baseElementStyles = getElementStyles(base.elemento); // Usa 'base' para o elemento
+            base.cards.forEach(card => { // <-- AQUI INICIA O FOREACH
+                const rarityStyles = getRarityColors(card.rarity);
+                const custo = EVOLUTION_COSTS[card.rarity];
+                const custoTexto = (card.rarity === 'Mítica' || custo === 0) ? "Máximo" : (custo ? `${custo}x` : "N/A");
+                const baseElementStyles = getElementStyles(base.elemento); // Usa 'base' para o elemento
 
-outputHTML += `
-    <div class="card-preview card-small card-editable" data-card-id="${card.id}" data-card-name="${card.name}">
-        <div class="card-management-buttons">
-            <button class="edit-btn" data-id="${card.id}">
-                <i class="fas fa-edit"></i>
-            </button>
-            <button class="delete-btn" data-id="${card.id}" data-name="${card.name}">
-                <i class="fas fa-trash-alt"></i>
-            </button>
-        </div>
-        <div class="card-content-wrapper">
-            <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity}</div>
-            <div class="card-element-badge" style="background: ${baseElementStyles.background};">${getElementIcon(base.elemento)}</div>
-            <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
-            <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
-        </div>
-        <div class="evolution-cost">
-            Próxima Evolução: ${custoTexto}
-        </div>
-    </div>
-`;
-            });
-            
-            outputHTML += `
-            <div class="card-preview card-small card-editable" data-card-id="${card.id}" data-card-name="${card.name}">
-                <div class="evolution-cost">
-                    Próxima Evolução: ${custoTexto}
-                </div>
-            </div>
-        `;
+                // HTML DA CARTA (Corrigido para usar outputHTML +=)
+                outputHTML += `
+                    <div class="card-preview card-small card-editable" data-card-id="${card.id}" data-card-name="${card.name}">
+                        <div class="card-management-buttons">
+                            <button class="edit-btn" data-id="${card.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="delete-btn" data-id="${card.id}" data-name="${card.name}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        <div class="card-content-wrapper">
+                            <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity}</div>
+                            <div class="card-element-badge" style="background: ${baseElementStyles.background};">${getElementIcon(base.elemento)}</div>
+                            <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+                            <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
+                        </div>
+                        <div class="evolution-cost">
+                            Próxima Evolução: ${custoTexto}
+                        </div>
+                    </div>
+                `;
+            }); // <-- AQUI TERMINA O FOREACH
+
+            outputHTML += `</div></div>`; // Fecha card-group-container e personagem-base-container
         });
     }
-
     listContainer.innerHTML = outputHTML;
     
     // 4. Adiciona Listeners para botões de Deleção/Edição
     document.querySelectorAll('.delete-btn').forEach(button => {
         button.addEventListener('click', handleDelete);
     });
-    // Implementação da Edição é mais complexa e requer uma função separada (handleEdit)
 }
 
 async function handleDelete(event) {
@@ -514,7 +508,6 @@ async function loadEvolutionCosts() {
         return;
     }
 
-    // Transforma o array em um objeto de acesso rápido: { "Comum": 2, "Rara": 3, ... }
     EVOLUTION_COSTS = data.reduce((acc, rule) => {
         acc[rule.raridade_nome] = rule.repetidas_para_evoluir;
         return acc;
