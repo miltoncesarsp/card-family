@@ -674,6 +674,56 @@ function resetFormState() {
     document.getElementById("cardPreviewContainer").innerHTML = ""; // Limpa o preview
 }
 
+async function handleDeleteBaseCharacter(event) {
+    const baseId = event.currentTarget.dataset.id;
+    const baseName = event.currentTarget.dataset.name;
+
+    if (confirm(`Tem certeza que deseja DELETAR o Personagem Base "${baseName}"? Isso deletará TODAS as cartas ligadas a ele e é irreversível.`)) {
+        // Primeiro, verifique se existem cartas ligadas
+        const { data: cards, error: cardsError } = await supabase
+            .from('cards')
+            .select('id')
+            .eq('id_base', baseId);
+
+        if (cardsError) {
+            console.error("Erro ao verificar cartas ligadas:", cardsError);
+            alert("Erro ao verificar cartas ligadas. Tente novamente.");
+            return;
+        }
+
+        if (cards.length > 0) {
+            if (!confirm(`Existem ${cards.length} cartas ligadas a "${baseName}". Deletar o Personagem Base também DELETARÁ TODAS essas cartas. Continuar?`)) {
+                return; // Usuário cancelou a deleção das cartas
+            }
+            // Deleta as cartas primeiro
+            const { error: deleteCardsError } = await supabase
+                .from('cards')
+                .delete()
+                .eq('id_base', baseId);
+
+            if (deleteCardsError) {
+                console.error("Erro ao deletar cartas ligadas:", deleteCardsError);
+                alert("Erro ao deletar cartas ligadas. Verifique as permissões de RLS.");
+                return;
+            }
+        }
+
+        // Agora, deleta o Personagem Base
+        const { error: deleteBaseError } = await supabase
+            .from('personagens_base')
+            .delete()
+            .eq('id_base', baseId);
+
+        if (deleteBaseError) {
+            console.error("Erro ao deletar Personagem Base:", deleteBaseError);
+            alert("Erro ao deletar Personagem Base. Verifique as permissões de RLS.");
+        } else {
+            alert(`Personagem Base "${baseName}" e suas cartas ligadas deletados com sucesso!`);
+            await loadUnifiedView(); // Recarrega a visualização unificada
+        }
+    }
+}
+
 // Listeners
 document.getElementById("fileInput").addEventListener("change", previewCard);
 document.getElementById("cardName").addEventListener("input", previewCard);
