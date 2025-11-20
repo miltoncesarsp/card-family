@@ -72,7 +72,8 @@ function getElementStyles(element) {
 }
 
 /**
- * NOVO: Preenche a datalist de autocompletar com nomes de personagens base.
+ * Preenche a datalist de autocompletar com nomes de personagens base.
+ * (CORRIGIDO: Esta função estava faltando na última versão enviada pelo usuário)
  * @param {Array<Object>} baseCharacters Lista de personagens_base.
  */
 function updateNameDatalist(baseCharacters) {
@@ -97,11 +98,11 @@ async function handleEdit(event) {
     document.getElementById("cardRarity").value = cardData.rarity;
     document.getElementById("saveCardBtn").textContent = "Atualizar Carta";
     document.getElementById("cardForm").classList.add("editing-mode", "card-form-fixed");
-    document.getElementById("cancelEditBtn").style.display = 'inline-block'; // MOSTRA BOTÃO CANCELAR
+    document.getElementById("cancelEditBtn").style.display = 'inline-block';
     previewCard(cardData.image_url);
 }
 
-function cancelEditCard() { // Adicionado o Cancelar Edição
+function cancelEditCard() {
     resetFormState();
     document.getElementById("cancelEditBtn").style.display = 'none';
 }
@@ -214,7 +215,7 @@ async function saveOrUpdateCard() {
 
     alert(`Carta ${isEditing ? 'atualizada' : 'salva'} com sucesso!`);
     resetFormState();
-    document.getElementById("cancelEditBtn").style.display = 'none'; // Esconde após salvar
+    document.getElementById("cancelEditBtn").style.display = 'none'; 
     await loadUnifiedView();
 }
 
@@ -259,7 +260,6 @@ async function loadUnifiedView() {
     if (error) { console.error("Erro ao carregar dados unificados:", error); listContainer.innerHTML = "Erro ao carregar os dados de evolução."; return; }
     if (!baseData || baseData.length === 0) { listContainer.innerHTML = "Nenhum Personagem Base cadastrado."; return; }
 
-    // CORRIGIDO: A função existe agora.
     updateNameDatalist(baseData); 
     
     const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
@@ -320,7 +320,6 @@ async function loadUnifiedView() {
 
     listContainer.innerHTML = outputHTML;
     
-    // Listeners anexados corretamente após o DOM ser injetado
     document.querySelectorAll('.delete-btn').forEach(button => { button.addEventListener('click', handleDelete); });
     document.querySelectorAll('.edit-btn').forEach(button => { button.addEventListener('click', handleEdit); });
     document.querySelectorAll('.edit-base-btn').forEach(button => { button.addEventListener('click', handleEditBaseCharacter); });
@@ -365,7 +364,7 @@ async function handleEditBaseCharacter(event) {
     document.getElementById("baseElemento").value = baseData.elemento;
     document.getElementById("saveBaseBtn").textContent = "Atualizar Personagem Base";
     document.getElementById("baseFormContainer").classList.add("editing-mode");
-    document.getElementById('baseFormContainer').scrollIntoView({ behavior: 'smooth' }); // Faz scroll
+    document.getElementById('baseFormContainer').scrollIntoView({ behavior: 'smooth' });
 }
 
 function resetFormState() {
@@ -374,7 +373,7 @@ function resetFormState() {
     document.getElementById("saveCardBtn").textContent = "Salvar Carta";
     document.getElementById("cardForm").classList.remove("editing-mode", "card-form-fixed");
     document.getElementById("cardPreviewContainer").innerHTML = "";
-    document.getElementById("cancelEditBtn").style.display = 'none'; // Esconde Cancelar
+    document.getElementById("cancelEditBtn").style.display = 'none'; 
 }
 
 async function handleDeleteBaseCharacter(event) {
@@ -436,7 +435,11 @@ async function loadRarityRules() {
         button.addEventListener('click', handleEditRarity); 
     });
     
-    document.getElementById('rarityFormSection').style.display = 'none';
+    // CORRIGIDO O ID do elemento que deve ser ocultado inicialmente
+    const formSection = document.getElementById('rarityFormSection');
+    if (formSection) {
+        formSection.style.display = 'none';
+    }
 }
 
 async function handleEditRarity(event) {
@@ -456,8 +459,13 @@ async function handleEditRarity(event) {
     document.getElementById('orderInput').value = rule.ordem_evolucao;
     document.getElementById('rarityNameInput').disabled = true; 
     document.getElementById('saveRarityBtn').textContent = `Atualizar ${name}`;
-    document.getElementById('rarityFormSection').style.display = 'block'; 
-    document.getElementById('rarityFormSection').scrollIntoView({ behavior: 'smooth' });
+    
+    // CORRIGIDO O ID do elemento que deve ser exibido
+    const formSection = document.getElementById('rarityFormSection');
+    if (formSection) {
+        formSection.style.display = 'block'; 
+        formSection.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 async function saveRarityRule() {
@@ -486,10 +494,16 @@ async function saveRarityRule() {
     document.getElementById('rarityForm').reset();
     document.getElementById('rarityNameInput').disabled = false;
     document.getElementById('saveRarityBtn').textContent = `Salvar Regra (Apenas Edição)`;
-    document.getElementById('rarityFormSection').style.display = 'none'; 
+    
+    // Esconde o formulário após salvar
+    const formSection = document.getElementById('rarityFormSection');
+    if (formSection) {
+        formSection.style.display = 'none'; 
+    }
     
     await loadEvolutionCosts();
     await loadRarityRules();
+    await loadUnifiedView(); // GARANTE ATUALIZAÇÃO DAS CARTAS
 }
 
 
@@ -536,7 +550,12 @@ async function loadPacks() {
     document.querySelectorAll('.delete-pack-btn').forEach(button => { button.addEventListener('click', handleDeletePack); });
     
     document.getElementById('newPackBtn').addEventListener('click', resetPackForm); 
-    document.getElementById('packFormSection').style.display = 'none';
+    
+    // CORRIGIDO O ID do elemento que deve ser ocultado inicialmente
+    const formSection = document.getElementById('packFormSection');
+    if (formSection) {
+        formSection.style.display = 'none';
+    }
 }
 
 function resetPackForm() {
@@ -544,8 +563,13 @@ function resetPackForm() {
     document.getElementById('packForm').reset();
     document.getElementById('savePackBtn').textContent = 'Salvar Novo Pacote';
     document.getElementById('packIdInput').value = ''; 
-    document.getElementById('packFormSection').style.display = 'block'; 
-    document.getElementById('packFormSection').scrollIntoView({ behavior: 'smooth' });
+    
+    // CORRIGIDO: Exibe o formulário
+    const formSection = document.getElementById('packFormSection');
+    if (formSection) {
+        formSection.style.display = 'block'; 
+        formSection.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 async function handleEditPack(event) {
@@ -567,8 +591,13 @@ async function handleEditPack(event) {
     document.getElementById('chanceMiticaInput').value = (pack.chance_mitica * 100).toFixed(1);
 
     document.getElementById('savePackBtn').textContent = `Atualizar Pacote ${pack.nome}`;
-    document.getElementById('packFormSection').style.display = 'block'; 
-    document.getElementById('packFormSection').scrollIntoView({ behavior: 'smooth' });
+    
+    // CORRIGIDO: Exibe o formulário
+    const formSection = document.getElementById('packFormSection');
+    if (formSection) {
+        formSection.style.display = 'block'; 
+        formSection.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 async function saveOrUpdatePack() {
@@ -614,7 +643,13 @@ async function saveOrUpdatePack() {
     if (dbError) { console.error("Erro ao salvar Pacote:", dbError); alert(`Erro ao salvar no banco: ${dbError.message}`); return; }
 
     alert(`Pacote "${nome}" ${isEditing ? 'atualizado' : 'criado'} com sucesso!`);
-    document.getElementById('packFormSection').style.display = 'none'; 
+    
+    // Esconde o formulário após salvar
+    const formSection = document.getElementById('packFormSection');
+    if (formSection) {
+        formSection.style.display = 'none';
+    }
+    
     resetPackForm();
     await loadPacks();
 }
@@ -653,7 +688,10 @@ async function loadPlayers() {
         return;
     }
     
-    document.getElementById('playerEditFormSection').style.display = 'none';
+    const formSection = document.getElementById('playerEditFormSection');
+    if (formSection) {
+        formSection.style.display = 'none';
+    }
 
     let html = '<table><thead><tr><th>Nome</th><th>Email</th><th>Nível</th><th>Moedas</th><th>Cartas</th><th>Registro</th><th>Ações</th></tr></thead><tbody>';
     
@@ -694,8 +732,11 @@ async function handleEditPlayer(event) {
     document.getElementById('playerEditMoedas').value = player.moedas;
     document.getElementById('playerEditNivel').value = player.nivel;
 
-    document.getElementById('playerEditFormSection').style.display = 'block';
-    document.getElementById('playerEditFormSection').scrollIntoView({ behavior: 'smooth' });
+    const formSection = document.getElementById('playerEditFormSection');
+    if (formSection) {
+        formSection.style.display = 'block';
+        formSection.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 async function savePlayerEdit() {
@@ -718,7 +759,11 @@ async function savePlayerEdit() {
         alert(`Erro ao atualizar jogador "${nome}": ${error.message}`);
     } else {
         alert(`Jogador "${nome}" atualizado com sucesso!`);
-        document.getElementById('playerEditFormSection').style.display = 'none';
+        
+        const formSection = document.getElementById('playerEditFormSection');
+        if (formSection) {
+            formSection.style.display = 'none';
+        }
         await loadPlayers();
     }
 }
@@ -750,7 +795,7 @@ document.getElementById("cardRarity").addEventListener("change", previewCard);
 
 document.getElementById("saveCardBtn").addEventListener("click", saveOrUpdateCard);
 document.getElementById("saveBaseBtn").addEventListener("click", saveBasePersonagem);
-document.getElementById("cancelEditBtn").addEventListener("click", cancelEditCard); // Listener de Cancelar
+document.getElementById("cancelEditBtn").addEventListener("click", cancelEditCard); 
 
 document.getElementById("saveRarityBtn").addEventListener("click", saveRarityRule);
 
