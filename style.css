@@ -206,3 +206,31 @@ font-weight: 800;
     bottom: 25px; /* Ajuste para o rodapé menor */
     right: 3px;
 }
+
+/* style.css (Adicionar ao final) */
+
+.base-form {
+    border: 2px solid #007bff;
+    background: #e6f0ff;
+}
+
+.group-title {
+    margin-top: 40px;
+    padding-bottom: 8px;
+    border-bottom: 3px solid #007bff;
+    color: #007bff;
+    font-family: 'Bungee', cursive;
+}
+
+.sub-title {
+    margin-top: 20px;
+    color: #555;
+    font-size: 1.5em;
+    font-family: 'Poppins', sans-serif;
+    font-weight: bold;
+}
+
+.card-evolution-line {
+    /* Garante que as cartas fiquem lado a lado como uma linha de evolução */
+    gap: 10px;
+}
