@@ -342,6 +342,7 @@ document.getElementById("cardPower").addEventListener("input", previewCard);
 document.getElementById("cardRarity").addEventListener("change", previewCard);
 document.getElementById("cardElement").addEventListener("change", previewCard);
 document.addEventListener("DOMContentLoaded", loadCards); 
+document.getElementById("saveBaseBtn").addEventListener("click", saveBasePersonagem);
 document.getElementById("saveCardBtn").addEventListener("click", async () => {
     await uploadCard();
     await loadCards(); // Recarrega a lista após salvar
