@@ -73,6 +73,7 @@ async function handleEdit(event) {
     // 3. Atualizar botões e visual
     document.getElementById("saveCardBtn").textContent = "Atualizar Carta";
     document.getElementById("cardForm").classList.add("editing-mode"); // Adiciona classe para estilizar
+    document.getElementById("cardForm").classList.add("card-form-fixed"); // <--- ADICIONA FIXO
     
     // O fileInput não pode ser preenchido por questões de segurança, mas disparamos o preview
     // Se a carta tem uma imagem_url, a gente pré-visualiza usando um método temporário.
@@ -671,6 +672,7 @@ function resetFormState() {
     document.getElementById("cardForm").reset(); // Limpa os campos
     document.getElementById("saveCardBtn").textContent = "Salvar Carta";
     document.getElementById("cardForm").classList.remove("editing-mode");
+    document.getElementById("cardForm").classList.remove("card-form-fixed"); // <--- REMOVE FIXO
     document.getElementById("cardPreviewContainer").innerHTML = ""; // Limpa o preview
 }
 
