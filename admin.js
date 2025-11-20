@@ -173,19 +173,21 @@ async function uploadCard() {
     return;
   }
 
-  const { data: baseData, error: baseError } = await supabase
+const { data: baseDataArray, error: baseError } = await supabase
     .from("personagens_base")
     .select("origem")
-    .eq("personagem", name)
-    .single();
+    .eq("personagem", name); // REMOVEU .single()
 
-  if (baseError || !baseData) {
-    console.error("Erro ao buscar origem:", baseError);
-    alert("Não foi possível encontrar a origem do personagem!");
+if (baseError || !baseDataArray || baseDataArray.length === 0) {
+    // Verifica se houve erro OU se o array está vazio (personagem não encontrado)
+    console.error("Erro ao buscar origem:", baseError || "Personagem não encontrado na base.");
+    alert("Não foi possível encontrar a origem do personagem! Verifique a grafia.");
     return;
-  }
+}
 
-  const origem = baseData.origem;
+// Se encontrou, pega o primeiro (e único) item do array.
+const origem = baseDataArray[0].origem;
+  
   const compressed = await compressImage(file);
   const filePath = `cards/${origem}/${Date.now()}_${file.name}`;
 
