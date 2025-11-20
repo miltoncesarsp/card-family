@@ -236,7 +236,25 @@ async function loadCards() {
     const listContainer = document.getElementById("cardListContainer");
     listContainer.innerHTML = "Carregando cartas...";
 
-    // 1. Busca todas as cartas da tabela 'cards'
+    // 1. Busca todas as entradas da tabela 'personagens_base'
+    const { data: baseData, error: baseError } = await supabase
+        .from("personagens_base")
+        .select("personagem, origem"); // Pega apenas o nome e a origem
+
+    if (baseError) {
+        console.error("Erro ao buscar personagens base:", baseError);
+        listContainer.innerHTML = "Erro ao carregar a base de personagens.";
+        return;
+    }
+
+    // Cria um mapa para buscar a origem rapidamente (key: nome da carta, value: origem)
+    const originMap = baseData.reduce((map, item) => {
+        map[item.personagem] = item.origem;
+        return map;
+    }, {});
+
+
+    // 2. Busca todas as cartas da tabela 'cards'
     const { data: cards, error: cardsError } = await supabase
         .from("cards")
         .select("*");
@@ -252,40 +270,32 @@ async function loadCards() {
         return;
     }
 
-    let allCardsWithOrigin = [];
-    
-    // 2. Itera sobre cada carta para buscar sua origem na tabela 'personagens_base'
-    // OBS: Isso pode ser lento para muitas cartas, mas é a solução mais simples por agora.
-    for (const card of cards) {
-        const { data: baseData, error: baseError } = await supabase
-            .from("personagens_base")
-            .select("origem")
-            .eq("personagem", card.name)
-            .single();
+    // 3. Adiciona a origem e agrupa as cartas em JavaScript (Mais rápido que fazer 50+ chamadas)
+    let allCardsWithOrigin = cards.map(card => ({
+        ...card,
+        origem: originMap[card.name] || "Desconhecida" // Usa o mapa
+    }));
 
-        if (baseData) {
-            allCardsWithOrigin.push({ ...card, origem: baseData.origem });
-        } else {
-            // Caso não encontre a origem, agrupa como 'Desconhecida'
-            allCardsWithOrigin.push({ ...card, origem: "Desconhecida" });
-        }
-    }
+    const groupedCards = allCardsWithOrigin.reduce((acc, card) => {
+        (acc[card.origem] = acc[card.origem] || []).push(card);
+        return acc;
+    }, {});
 
-    // 3. Agrupa as cartas por origem
-    const groupedCards = groupBy(allCardsWithOrigin, 'origem');
-    
+
     // 4. Renderiza na tela
-    listContainer.innerHTML = ""; // Limpa "Carregando..."
+    listContainer.innerHTML = "";
     
-    for (const [origem, cardArray] of Object.entries(groupedCards)) {
+    // Converte em um array e ordena pelas chaves (Origem)
+    const sortedGroups = Object.entries(groupedCards).sort(([a], [b]) => a.localeCompare(b));
+
+    for (const [origem, cardArray] of sortedGroups) {
         let groupHtml = `<h3>${origem} (${cardArray.length} Cartas)</h3>`;
-        groupHtml += `<div class="card-group-container">`; // Novo container para o layout
+        groupHtml += `<div class="card-group-container">`;
 
         cardArray.forEach(card => {
-            // Usa a estrutura de preview (pode ser simplificada, mas é funcional)
             const rarityStyles = getRarityColors(card.rarity);
             const elementStyles = getElementStyles(card.element);
-            const rarityTextColor = "white"; // Sempre branco
+            const rarityTextColor = "white";
 
             groupHtml += `
                 <div class="card-preview card-small" 
