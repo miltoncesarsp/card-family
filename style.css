@@ -174,11 +174,20 @@ font-weight: 800;
 
 /* Reduz o tamanho da carta na lista para não ocupar demais */
 .card-preview.card-small {
-    width: 150px; /* Largura menor */
-    height: 225px; /* Altura menor (proporcional) */
+    width: 150px; 
+    height: 225px; 
     font-size: 0.9em;
-    border: 3px solid #fff;
+    
+    /* Esta borda é a borda branca externa que você deseja */
+    border: 4px solid #fff; 
+    border-radius: 12px; /* Garante que a borda externa tenha borda arredondada */
+    
+    /* Mantendo a imagem de fundo no .card-preview.card-small e escondendo o excesso */
+    overflow: hidden; 
+    background-size: cover;
+    background-position: center;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    position: relative; /* Essencial */
 }
 
 /* Ajustes finos nos elementos internos para a versão pequena */
@@ -246,11 +255,22 @@ font-weight: 800;
 }
 
 .card-content-wrapper {
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 100%;
-    border: 3px solid #fff; /* Borda interna para usar a cor de raridade */
-    border-radius: 9px;
-    overflow: hidden;
+    
+    /* Remove a borda interna que estava lá: border: 3px solid #fff; */
+    border: none;
+    
+    /* Garante que os elementos internos se posicionem corretamente */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 5px; 
+    box-sizing: border-box;
+    z-index: 2; 
 }
 
 .card-management-buttons {
