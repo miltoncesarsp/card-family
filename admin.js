@@ -942,12 +942,6 @@ await saveOrUpdateCard(); // USE A NOVA FUNÇÃO
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // É mais seguro chamar loadEvolutionCosts aqui para que ele esteja disponível
-    await loadEvolutionCosts(); 
-    loadUnifiedView(); // loadUnifiedView agora depende dos custos
-});
-
-document.addEventListener("DOMContentLoaded", async () => {
     // É mais seguro chamar loadEvolutionCosts aqui para que ele esteja disponível
     await loadEvolutionCosts(); 
     loadUnifiedView(); // Linha de Evolução e Gestão de Cartas
