@@ -1,6 +1,7 @@
 let EVOLUTION_COSTS = {}; // Será preenchido com dados do DB
 const BUCKET_NAME = 'cards'; // Assumindo que seu bucket se chama 'cards'
-let currentEditCardId = null; // Variável para armazenar o ID da carta que está sendo editada
+let currentEditCardId = null; 
+let currentEditBaseCharacterId = null; // NOVO: Para edição de Personagem Base
 
 function compressImage(file) {
     return new Promise((resolve) => {
@@ -130,15 +131,15 @@ function getElementStyles(element) {
     }
 }
 // Upload da carta
-async function saveOrUpdateCard() { // NOVO NOME
+async function saveOrUpdateCard() {
     const name = document.getElementById("cardName").value.trim();
     const rarity = document.getElementById("cardRarity").value;
     const power = parseInt(document.getElementById("cardPower").value);
     const fileInput = document.getElementById("fileInput");
     const file = fileInput.files[0];
     
-    // Define se é uma edição ou um novo card
     const isEditing = currentEditCardId !== null;
+    let existingImageUrl = null; // Para armazenar a URL da imagem existente ao editar
 
     if (!name || !rarity || !power) {
         alert("Preencha Nome, Raridade e Força!");
@@ -146,6 +147,7 @@ async function saveOrUpdateCard() { // NOVO NOME
     }
     
     // Se for um novo card, a imagem é obrigatória
+    // Se for edição E não há novo arquivo, a imagem NÃO é obrigatória, usaremos a existente
     if (!isEditing && !file) {
         alert("Selecione uma imagem para a nova carta!");
         return;
@@ -155,7 +157,11 @@ async function saveOrUpdateCard() { // NOVO NOME
     const { data: baseDataArray, error: baseError } = await supabase
         .from("personagens_base")
         .select("id_base, origem, elemento")
-        .ilike("personagem", name)
+        // No modo de edição, podemos buscar a carta pelo ID para obter o nome original
+        // Ou, para simplificar, continuamos buscando pelo nome atual do input
+        // Se o nome do personagem for mudado durante a edição da carta, isso pode ser um problema.
+        // Por ora, vamos assumir que o "name" no formulário de carta se refere ao "personagem" base.
+        .ilike("personagem", name) // Continua usando o nome do input
         .limit(1);
 
     if (baseError || !baseDataArray || baseDataArray.length === 0) {
@@ -165,8 +171,24 @@ async function saveOrUpdateCard() { // NOVO NOME
     }
 
     const { id_base, elemento } = baseDataArray[0];
-    let imageUrl = null;
-    
+    let imageUrlToSave = null; // Variável que conterá o URL final da imagem
+
+    // Se estiver editando, busca a URL da imagem atual da carta
+    if (isEditing) {
+        const { data: existingCard, error: existingCardError } = await supabase
+            .from('cards')
+            .select('image_url')
+            .eq('id', currentEditCardId)
+            .single();
+
+        if (existingCardError) {
+            console.error("Erro ao buscar URL da imagem existente:", existingCardError);
+            alert("Erro ao verificar imagem existente da carta.");
+            return;
+        }
+        existingImageUrl = existingCard ? existingCard.image_url : null;
+    }
+
     // 2. Lógica de Upload da imagem (SÓ SE UMA NOVA IMAGEM FOR SELECIONADA)
     if (file) {
         const compressed = await compressImage(file);
@@ -187,23 +209,22 @@ async function saveOrUpdateCard() { // NOVO NOME
             .from(BUCKET_NAME)
             .getPublicUrl(filePath);
 
-        imageUrl = publicUrlData.publicUrl;
+        imageUrlToSave = publicUrlData.publicUrl;
+    } else {
+        // Se não houver novo arquivo, e estiver editando, mantém a imagem existente
+        imageUrlToSave = existingImageUrl;
     }
     
     // 3. Monta o objeto de dados
     const cardData = {
         name,
         rarity,
-        element: elemento,
+        element: elemento, // O elemento é do Personagem Base
         power,
-        id_base: id_base
+        id_base: id_base,
+        image_url: imageUrlToSave // Usa o URL final da imagem
     };
     
-    // Adiciona o URL da imagem SE houver um novo upload
-    if (imageUrl) {
-        cardData.image_url = imageUrl;
-    }
-
     let dbError;
 
     if (isEditing) {
@@ -228,7 +249,7 @@ async function saveOrUpdateCard() { // NOVO NOME
     alert(`Carta ${isEditing ? 'atualizada' : 'salva'} com sucesso!`);
     
     // 4. Limpar e recarregar
-    resetFormState(); // Novo método de limpeza
+    resetFormState(); 
     await loadUnifiedView();
 }
 /**
@@ -324,13 +345,27 @@ async function saveBasePersonagem() {
     const origem = document.getElementById("baseOrigem").value.trim();
     const elemento = document.getElementById("baseElemento").value;
 
+    const isEditingBase = currentEditBaseCharacterId !== null;
+
     if (!personagem || !origem || !elemento) {
         alert("Preencha todos os campos do formulário Base!");
         return;
     }
 
-    const { error: dbError } = await supabase.from("personagens_base")
-        .insert([{ personagem, origem, elemento }]);
+    let dbError;
+
+    if (isEditingBase) {
+        // AÇÃO: UPDATE
+        const { error: updateError } = await supabase.from("personagens_base")
+            .update({ personagem, origem, elemento })
+            .eq('id_base', currentEditBaseCharacterId);
+        dbError = updateError;
+    } else {
+        // AÇÃO: INSERT
+        const { error: insertError } = await supabase.from("personagens_base")
+            .insert([{ personagem, origem, elemento }]);
+        dbError = insertError;
+    }
 
     if (dbError) {
         console.error("Erro ao salvar Base:", dbError);
@@ -338,14 +373,11 @@ async function saveBasePersonagem() {
         return;
     }
 
-    alert(`Personagem Base "${personagem}" salvo com sucesso!`);
+    alert(`Personagem Base "${personagem}" ${isEditingBase ? 'atualizado' : 'salvo'} com sucesso!`);
     
-    // LIMPEZA MANUAL
-    document.getElementById("basePersonagem").value = "";
-    document.getElementById("baseOrigem").value = "";
-    document.getElementById("baseElemento").selectedIndex = 0;
-
-   await loadUnifiedView(); // <--- CHAMA A FUNÇÃO DE VISUALIZAÇÃO PRINCIPAL
+    // Limpeza e redefinição do estado
+    resetBaseFormState(); // Criaremos essa função
+    await loadUnifiedView(); 
 }
 
 async function loadBaseCharacters() {
@@ -502,6 +534,10 @@ async function loadUnifiedView() {
                 <span class="base-details">
                     (ID: ${base.id_base} | Elemento: ${base.elemento})
                 </span>
+                <div class="base-management-buttons">
+                    <button class="edit-base-btn" data-id="${base.id_base}"><i class="fas fa-edit"></i></button>
+                    <button class="delete-base-btn" data-id="${base.id_base}" data-name="${base.personagem}"><i class="fas fa-trash-alt"></i></button>
+                </div>
             </h4>`;
             
             outputHTML += `<div class="card-group-container card-evolution-line">`;
@@ -594,6 +630,42 @@ async function loadEvolutionCosts() {
     }, {});
 }
 
+function resetBaseFormState() {
+    currentEditBaseCharacterId = null;
+    document.getElementById("basePersonagem").value = "";
+    document.getElementById("baseOrigem").value = "";
+    document.getElementById("baseElemento").selectedIndex = 0;
+    document.getElementById("saveBaseBtn").textContent = "Salvar Personagem Base";
+    document.getElementById("baseFormContainer").classList.remove("editing-mode");
+}
+
+async function handleEditBaseCharacter(event) {
+    const baseId = event.currentTarget.dataset.id;
+    currentEditBaseCharacterId = baseId;
+
+    // 1. Buscar dados do Personagem Base
+    const { data: baseData, error } = await supabase
+        .from('personagens_base')
+        .select('*')
+        .eq('id_base', baseId)
+        .single();
+
+    if (error || !baseData) {
+        console.error("Erro ao buscar Personagem Base para edição:", error);
+        alert("Erro ao carregar dados do Personagem Base para edição.");
+        return;
+    }
+
+    // 2. Preencher o formulário de Personagem Base
+    document.getElementById("basePersonagem").value = baseData.personagem;
+    document.getElementById("baseOrigem").value = baseData.origem;
+    document.getElementById("baseElemento").value = baseData.elemento;
+    
+    // 3. Atualizar botões e visual do formulário (se houver)
+    document.getElementById("saveBaseBtn").textContent = "Atualizar Personagem Base";
+    document.getElementById("baseFormContainer").classList.add("editing-mode"); // Adicione uma classe para estilizar
+}
+
 function resetFormState() {
     currentEditCardId = null;
     document.getElementById("cardForm").reset(); // Limpa os campos
@@ -607,17 +679,23 @@ document.getElementById("fileInput").addEventListener("change", previewCard);
 document.getElementById("cardName").addEventListener("input", previewCard);
 document.getElementById("cardPower").addEventListener("input", previewCard);
 document.getElementById("cardRarity").addEventListener("change", previewCard);
-// 4. Adiciona Listeners para botões de Deleção/Edição
+
 document.querySelectorAll('.delete-btn').forEach(button => {
-    button.addEventListener('click', handleDelete);
-});
+        button.addEventListener('click', handleDelete);
+    });
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', handleEdit); 
+    });
 
-// NOVIDADE: Adiciona listener para o botão de Edição
-document.querySelectorAll('.edit-btn').forEach(button => {
-    button.addEventListener('click', handleEdit); 
-});
+    // NOVO: Adiciona Listeners para Deleção e Edição de PERSONAGEM BASE
+    document.querySelectorAll('.edit-base-btn').forEach(button => {
+        button.addEventListener('click', handleEditBaseCharacter);
+    });
+    // Você precisará de uma função handleDeleteBaseCharacter similar à de cartas
+    document.querySelectorAll('.delete-base-btn').forEach(button => {
+        button.addEventListener('click', handleDeleteBaseCharacter); // Crie esta função
+    });
 
-// Listener para salvar base e recarregar a lista de base
 document.getElementById("saveBaseBtn").addEventListener("click", saveBasePersonagem);
 
 document.getElementById("saveCardBtn").addEventListener("click", async () => {
