@@ -9,64 +9,40 @@
 </head>
 <body> 
     
-    <h2>✨ Criar Novo Personagem Base</h2>
+ <h2>✨ Criar Novo Personagem Base</h2>
     <form class="card-form base-form" id="baseForm">
-        <label>Nome do Personagem (Ex: Hulk):</label>
-        <input id="basePersonagem" type="text" required>
-        
-        <label>Origem (Ex: Marvel):</label>
-        <input id="baseOrigem" type="text" required>
-        
-        <label>Elemento Padrão:</label>
-        <select id="baseElemento" required>
-            <option value="Terra">Terra</option>
-            <option value="Fogo">Fogo</option>
-            <option value="Água">Água</option>
-            <option value="Ar">Ar</option>
-            <option value="Tecnologia">Tecnologia</option>
-            <option value="Luz">Luz</option>
-            <option value="Sombra">Sombra</option>
-        </select>
-        
         <button type="button" id="saveBaseBtn">Salvar Personagem Base</button>
     </form>
 
     <hr>
     
-    <h2>👥 Personagens Base Cadastrados</h2>
-    <div id="baseListContainer">
-        </div>
-
-    <hr>
-    
     <h2>🃏 Criar Carta (Nível Específico)</h2>
-    <div class="card-form" id="cardForm">
-        <label>Nome:</label>
-        <input id="cardName" type="text">
+    <form class="card-form" id="cardForm">
+        <label>Nome do Personagem:</label>
+        <input id="cardName" type="text" list="personagem-nomes">
+        <datalist id="personagem-nomes"></datalist>
 
         <label>Força:</label>
         <input id="cardPower" type="number" min="0">
-
+        
         <label>Raridade:</label>
         <select id="cardRarity">
             <option value="Comum">Comum (cinza)</option>
-            <option value="Rara">Rara (azul)</option>
-            <option value="Épica">Épica (roxa)</option>
-            <option value="Lendária">Lendária (laranja)</option>
-            <option value="Mítica">Mítica (amarela)</option>
-        </select>
-
+            </select>
+        
         <label>Imagem da carta:</label>
         <input id="fileInput" type="file" accept="image/*">
 
         <button type="button" id="saveCardBtn">Salvar Carta</button>
-    </div>
+    </form>
 
     <div id="cardPreviewContainer"></div>
 
-    <h2>🃏 Cartas Criadas</h2>
-    <div id="cardListContainer"></div>
+    <hr>
 
+    <h2>📊 Linha de Evolução e Gestão</h2>
+    <div id="unifiedListContainer"></div>
+    
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <script src="supabaseClient-v2.js?v=2"></script>
     <script src="admin.js?v=2"></script>
