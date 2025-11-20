@@ -440,29 +440,30 @@ async function loadUnifiedView() {
     const listContainer = document.getElementById("unifiedListContainer");
     listContainer.innerHTML = "Carregando dados unificados...";
 
-    // NOVO: GARANTE QUE OS CUSTOS ESTÃO CARREGADOS
+    // 1. Garante que os custos de evolução estejam carregados
+    // (A função loadEvolutionCosts deve ser chamada no DOMContentLoaded e salva em EVOLUTION_COSTS)
     if (Object.keys(EVOLUTION_COSTS).length === 0) {
         await loadEvolutionCosts();
     }
 
-    // 1. Busca todos os personagens base e faz o JOIN com todas as cartas ligadas
+    // 2. Busca de dados (Personagem Base + Cartas Ligadas)
     const { data: baseData, error } = await supabase
-    .from("personagens_base")
-    .select(`
-        id_base,
-        personagem,
-        origem,
-        elemento,
-        cards (
-            id,
-            name,
-            rarity,
-            power,
-            image_url
-        )
-    `)
-    .order("origem", { ascending: true })
-    .order("personagem", { ascending: true });
+        .from("personagens_base")
+        .select(`
+            id_base,
+            personagem,
+            origem,
+            elemento,
+            cards (
+                id,
+                name,
+                rarity,
+                power,
+                image_url
+            )
+        `)
+        .order("origem", { ascending: true })
+        .order("personagem", { ascending: true }); 
 
     if (error) {
         console.error("Erro ao carregar dados unificados:", error);
@@ -470,15 +471,14 @@ async function loadUnifiedView() {
         return;
     }
     
+    // 3. Verifica se há dados e preenche o Datalist (Autocompletar)
     if (!baseData || baseData.length === 0) {
         listContainer.innerHTML = "Nenhum Personagem Base cadastrado.";
         return;
     }
+    updateNameDatalist(baseData); // Função que preenche o datalist para o autocompletar
 
-    // 2. Preenche o Datalist (Autocompletar)
-    updateNameDatalist(baseData); 
-
-    // 3. Renderiza a Hierarquia
+    // 4. Agrupamento Hierárquico (Origem -> Personagem)
     const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
     let outputHTML = '';
 
@@ -487,70 +487,74 @@ async function loadUnifiedView() {
         return acc;
     }, {});
 
+    // 5. Renderização (Hierarquia + Cartões)
     for (const [origem, personagensArray] of Object.entries(groupedByOrigin)) {
-        outputHTML += `<h3 class="group-title">${origem}</h3>`; // Origem
+        outputHTML += `<h3 class="group-title">${origem}</h3>`; // Nível 1: Origem
         
         personagensArray.forEach(base => {
             const baseElementStyles = getElementStyles(base.elemento);
             
             outputHTML += `<div class="personagem-base-container">`;
             
-            // Título do Personagem Base (Inclui Elemento e ID)
+            // Título do Personagem Base
             outputHTML += `<h4 class="sub-title" style="border-left-color: ${baseElementStyles.primary};">
-        ${base.personagem} 
-        <span class="base-details">
-            (ID: ${base.id_base} | Elemento: ${base.elemento})
-        </span>
-    </h4>`;
+                ${base.personagem} 
+                <span class="base-details">
+                    (ID: ${base.id_base} | Elemento: ${base.elemento})
+                </span>
+            </h4>`;
             
             outputHTML += `<div class="card-group-container card-evolution-line">`;
             
             // Ordena as cartas pela linha de evolução
             base.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
 
-            base.cards.forEach(card => { 
-                const rarityStyles = getRarityColors(card.rarity);
-                const custo = EVOLUTION_COSTS[card.rarity];
-                const custoTexto = (card.rarity === 'Mítica' || custo === 0) ? "Máximo" : (custo ? `${custo}x` : "N/A");
-                
-                // HTML DA CARTA (INJEÇÃO DO BACKGROUND-IMAGE AQUI!)
-                outputHTML += `
-                    <div 
-                        class="card-preview card-small card-editable" 
-                        data-card-id="${card.id}" 
-                        data-card-name="${card.name}"
-                        style="background-image: url('${card.image_url}');" 
-                    >
-                        <div class="card-management-buttons">
-                            <button class="edit-btn" data-id="${card.id}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="delete-btn" data-id="${card.id}" data-name="${card.name}">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
+            // Renderização das Cartas (Nível 3)
+            if (base.cards.length === 0) {
+                outputHTML += `<p class="base-details" style="margin-left: 10px;">Nenhuma carta criada para este personagem.</p>`;
+            } else {
+                base.cards.forEach(card => { 
+                    const rarityStyles = getRarityColors(card.rarity);
+                    const custo = EVOLUTION_COSTS[card.rarity];
+                    const custoTexto = (card.rarity === 'Mítica' || custo === 0) ? "Máximo" : (custo ? `${custo}x` : "N/A");
+                    
+                    // Injeção do Card HTML com Botões de Gerenciamento
+                    outputHTML += `
+                        <div class="card-preview card-small card-editable" 
+                             data-card-id="${card.id}" 
+                             data-card-name="${card.name}"
+                             style="background-image: url('${card.image_url}');" 
+                        >
+                            <div class="card-management-buttons">
+                                <button class="edit-btn" data-id="${card.id}"><i class="fas fa-edit"></i></button>
+                                <button class="delete-btn" data-id="${card.id}" data-name="${card.name}"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                            <div class="card-content-wrapper">
+                                <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity}</div>
+                                <div class="card-element-badge" style="background: ${baseElementStyles.background};">${getElementIcon(base.elemento)}</div>
+                                <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+                                <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
+                            </div>
+                            <div class="evolution-cost">
+                                Próxima Evolução: ${custoTexto}
+                            </div>
                         </div>
-                        <div class="card-content-wrapper">
-                            <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity}</div>
-                            <div class="card-element-badge" style="background: ${baseElementStyles.background};">${getElementIcon(base.elemento)}</div>
-                            <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
-                            <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
-                        </div>
-                        <div class="evolution-cost">
-                            Próxima Evolução: ${custoTexto}
-                        </div>
-                    </div>
-                `;
-            }); 
-
+                    `;
+                });
+            } // Fim do if/else de cartas
+            
             outputHTML += `</div></div>`; // Fecha card-group-container e personagem-base-container
         });
     }
 
     listContainer.innerHTML = outputHTML;
     
-    // 4. Adiciona Listeners para botões de Deleção/Edição
+    // 6. Adiciona Listeners para Deleção e Edição (Funções que você implementou)
     document.querySelectorAll('.delete-btn').forEach(button => {
         button.addEventListener('click', handleDelete);
+    });
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', handleEdit); 
     });
 }
 
