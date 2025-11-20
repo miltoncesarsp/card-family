@@ -448,41 +448,32 @@ async function loadUnifiedView() {
             base.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
 
             base.cards.forEach(card => {
-        const rarityStyles = getRarityColors(card.rarity);
-        const custo = EVOLUTION_COSTS[card.rarity];
-        
-        // Define o texto do custo
-        let custoTexto;
-        if (card.rarity === 'Mítica' || custo === 0) {
-             custoTexto = "Máximo";
-        } else if (custo) {
-             custoTexto = `${custo}x`;
-        } else {
-             custoTexto = "N/A";
-        }
-                
-                // Renderização da Carta (com botões de Gestão e Custo)
-                outputHTML += `
-                    <div class="card-preview card-small card-editable" data-card-id="${card.id}" data-card-name="${card.name}">
-                        <div class="card-management-buttons">
-                            <button class="edit-btn" data-id="${card.id}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="delete-btn" data-id="${card.id}" data-name="${card.name}">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                        <div class="card-content-wrapper">
-                            <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity}</div>
-                            <div class="card-element-badge" style="background: ${baseElementStyles.background};">${getElementIcon(base.elemento)}</div>
-                            <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
-                            <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
-                        </div>
-                        <div class="evolution-cost">
-                            Próxima Evolução: ${custo}x
-                        </div>
-                    </div>
-                `;
+  const rarityStyles = getRarityColors(card.rarity);
+const custo = EVOLUTION_COSTS[card.rarity];
+const custoTexto = (card.rarity === 'Mítica' || custo === 0) ? "Máximo" : (custo ? `${custo}x` : "N/A");
+const baseElementStyles = getElementStyles(base.elemento); // Usa 'base' para o elemento
+
+outputHTML += `
+    <div class="card-preview card-small card-editable" data-card-id="${card.id}" data-card-name="${card.name}">
+        <div class="card-management-buttons">
+            <button class="edit-btn" data-id="${card.id}">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="delete-btn" data-id="${card.id}" data-name="${card.name}">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
+        <div class="card-content-wrapper">
+            <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity}</div>
+            <div class="card-element-badge" style="background: ${baseElementStyles.background};">${getElementIcon(base.elemento)}</div>
+            <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+            <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
+        </div>
+        <div class="evolution-cost">
+            Próxima Evolução: ${custoTexto}
+        </div>
+    </div>
+`;
             });
             
             outputHTML += `
