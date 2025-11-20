@@ -68,10 +68,16 @@ function previewCard() {
     const name = document.getElementById("cardName").value.trim();
     const power = document.getElementById("cardPower").value;
     const rarity = document.getElementById("cardRarity").value;
-    const element = document.getElementById("cardElement").value;
+    // REMOVIDO: const element = document.getElementById("cardElement").value;
     const fileInput = document.getElementById("fileInput");
     const file = fileInput.files[0];
-
+    
+    // SOLUÇÃO: Usar um valor de elemento padrão para o preview
+    // O ideal seria fazer uma busca assíncrona, mas para manter o preview síncrono,
+    // usaremos 'Terra' ou um valor padrão até que o elemento seja salvo.
+    // Melhor usar o elemento de Terra se o campo de elemento não for mais acessível no JS
+    const element = "Terra"; 
+    
     const container = document.getElementById("cardPreviewContainer");
     container.innerHTML = "";
 
