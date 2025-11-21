@@ -25,17 +25,52 @@
         </div>
     </div>
 
-    <div id="game-content" class="hidden">
+<div id="game-content" class="hidden">
         
         <header class="game-header">
-           <button id="logoutBtn" style="float: right; background: red; color: white;">Sair</button>
+            <div class="header-left">
+                <h1 class="game-title">Card Family</h1>
+            </div>
+            
+            <div class="user-info" id="userInfo">
+                <span id="player-name">Carregando...</span>
+                <span class="separator">|</span>
+                <span id="player-coins">...</span>
+            </div>
+
+            <button id="logoutBtn" class="btn-logout">Sair</button>
         </header>
 
         <nav class="main-navigation">
-           </nav>
+            <button data-section="album" class="nav-btn active">
+                <i class="fas fa-book"></i> Álbum
+            </button>
+            <button data-section="shop" class="nav-btn">
+                <i class="fas fa-store"></i> Loja
+            </button>
+        </nav>
 
         <main id="main-content">
-           </main>
+            
+            <section id="album-section" class="game-section active">
+                <div class="section-header">
+                    <h2>🖼️ Minha Coleção</h2>
+                </div>
+                <div id="album-cards-container" class="card-grid">
+                    <p style="color: white; text-align: center;">Carregando álbum...</p>
+                </div>
+            </section>
+
+            <section id="shop-section" class="game-section hidden">
+                <div class="section-header">
+                    <h2>🛍️ Loja de Pacotes</h2>
+                </div>
+                <div id="packs-list-container" class="pack-list">
+                    <p style="color: white; text-align: center;">Carregando loja...</p>
+                </div>
+            </section>
+
+        </main>
 
     </div>
 
