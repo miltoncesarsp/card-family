@@ -318,6 +318,44 @@ function renderShop() {
     });
 }
 
+// --- NOVO CÓDIGO PARA O MODAL ---
+
+function showPackOpeningModal(newCards) {
+    const modal = document.getElementById('pack-opening-modal');
+    const container = document.getElementById('new-cards-display');
+    const closeBtn = document.getElementById('closeModalBtn');
+    
+    container.innerHTML = ''; // Limpa anterior
+
+    // Gera o HTML das cartas ganhas
+    newCards.forEach(card => {
+        const rarityStyles = getRarityColors(card.rarity);
+        
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card-preview card-small';
+        cardDiv.style.backgroundImage = `url('${card.image_url}')`;
+        cardDiv.style.borderColor = rarityStyles.primary;
+        cardDiv.innerHTML = `
+            <div class="card-content-wrapper">
+                <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity}</div>
+                <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white;">${card.power}</div>
+            </div>
+        `;
+        container.appendChild(cardDiv);
+    });
+
+    // Mostra o modal
+    modal.classList.remove('hidden');
+
+    // Configura o botão de fechar
+    closeBtn.onclick = () => {
+        modal.classList.add('hidden');
+        renderAlbum(); // Atualiza o álbum só quando fechar
+    };
+}
+
+// --- ATUALIZAÇÃO NA FUNÇÃO DE COMPRA ---
+
 async function handleBuyPack(event) {
     if (!player) return;
     const packId = event.currentTarget.dataset.id;
@@ -346,15 +384,20 @@ async function handleBuyPack(event) {
     updateHeaderInfo();
 
     // 2. Gerar Cartas
-    const newCards = await generateCardsForPack(packsAvailable.find(p => p.id == packId));
+    const packData = packsAvailable.find(p => p.id == packId);
+    const newCards = await generateCardsForPack(packData);
     
+    if (newCards.length === 0) {
+        showNotification("Erro: Pacote vazio (Verifique se existem cartas cadastradas no Admin!)", true);
+        return;
+    }
+
     // 3. Salvar Cartas
     await updatePlayerCards(newCards);
     
-    showNotification(`Compra realizada! ${newCards.length} novas cartas.`);
-    renderAlbum();
+    // 4. AQUI MUDOU: Mostra o Modal com Animação!
+    showPackOpeningModal(newCards);
 }
-
 async function generateCardsForPack(pack) {
     // (Mantive sua lógica de sorteio aqui - simplificada para o exemplo)
     const { data: allCards } = await supabase.from('cards').select('*');
