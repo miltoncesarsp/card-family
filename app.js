@@ -464,12 +464,16 @@ function setupNavigation() {
             const sectionId = e.currentTarget.dataset.section;
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.game-section').forEach(sec => sec.classList.add('hidden'));
+            
             e.currentTarget.classList.add('active');
             const section = document.getElementById(sectionId + '-section');
             if(section) section.classList.remove('hidden');
+
+            // ADICIONE ESTA LINHA SE ELA NÃO ESTIVER LÁ:
+            if(sectionId === 'trade') renderTrade(); 
+
             if(sectionId === 'shop') renderShop();
-            if(sectionId === 'trade') renderTrade();
-            if(sectionId === 'album') { currentOriginView = null; renderAlbum(); } // Reseta view ao clicar na aba
+            if(sectionId === 'album') { currentOriginView = null; renderAlbum(); }
         });
     });
 }
