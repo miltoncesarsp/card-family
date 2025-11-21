@@ -468,6 +468,7 @@ function setupNavigation() {
             const section = document.getElementById(sectionId + '-section');
             if(section) section.classList.remove('hidden');
             if(sectionId === 'shop') renderShop();
+            if(sectionId === 'trade') renderTrade();
             if(sectionId === 'album') { currentOriginView = null; renderAlbum(); } // Reseta view ao clicar na aba
         });
     });
