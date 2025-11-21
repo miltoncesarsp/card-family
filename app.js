@@ -284,12 +284,40 @@ function closeOriginView() {
 }
 
 async function handleEvolution(cardId, rarity) {
-    event.stopPropagation(); 
+    // Impede que o clique abra a visualização da carta (se tiver)
+    if(event) event.stopPropagation(); 
+    
     const cost = evolutionRules[rarity];
-    if(!confirm(`Gastar ${cost} cartas para tentar evoluir? (Funcionalidade em breve)`)) return;
-    // Implementar lógica de backend aqui
-}
+    
+    if(!confirm(`✨ EVOLUÇÃO ✨\n\nDeseja fundir ${cost} cartas desta para obter 1 de raridade superior?`)) return;
 
+    // Mostra loading (opcional, ou muda o cursor)
+    document.body.style.cursor = 'wait';
+
+    // Chama a função mágica do Banco de Dados
+    const { data: newCard, error } = await supabase.rpc('evoluir_carta', { 
+        p_card_id: cardId 
+    });
+
+    document.body.style.cursor = 'default';
+
+    if (error) {
+        // Toca som de erro ou alerta
+        alert("❌ Erro na evolução: " + error.message);
+    } else {
+        // SUCESSO!
+        // Toca som de sucesso (opcional)
+        
+        // Recarrega os dados para atualizar o álbum
+        await loadPlayerData(player.id);
+        
+        // Mostra a nova carta ganha usando o mesmo modal de abrir pacotes!
+        // O modal espera um array, então passamos [newCard]
+        showPackOpeningModal([newCard], "✨ EVOLUÇÃO COMPLETA! ✨");
+        
+        showNotification(`Sucesso! Você obteve: ${newCard.name}!`);
+    }
+}
 // ------------------------------------
 // 4. Lógica da Loja e Helpers
 // ------------------------------------
@@ -369,26 +397,43 @@ function getElementIcon(element) {
     }
 }
 
-function showPackOpeningModal(newCards) {
+function showPackOpeningModal(newCards, title = "🎁 Pacote Aberto!") {
     const modal = document.getElementById('pack-opening-modal');
     const container = document.getElementById('new-cards-display');
     const closeBtn = document.getElementById('closeModalBtn');
+    const titleEl = modal.querySelector('h2');
+    
+    // Define o título (Se for 1 carta só e vier da evolução, podemos mudar o texto)
+    titleEl.textContent = title;
+    
     container.innerHTML = ''; 
 
     newCards.forEach(card => {
         const rarityStyles = getRarityColors(card.rarity);
         const cardDiv = document.createElement('div');
-        cardDiv.className = 'card-preview card-small';
+        cardDiv.className = 'card-preview card-small'; // Tamanho pequeno para caber no modal
+        
+        // Garante que a imagem apareça
         cardDiv.style.backgroundImage = `url('${card.image_url}')`;
         cardDiv.style.borderColor = rarityStyles.primary;
+        
+        // Efeito de brilho na carta nova
+        cardDiv.style.boxShadow = `0 0 30px ${rarityStyles.primary}`;
+        
         cardDiv.innerHTML = `
             <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity.substring(0,1)}</div>
             <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white;">${card.power}</div>
+            <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
         `;
         container.appendChild(cardDiv);
     });
+
     modal.classList.remove('hidden');
-    closeBtn.onclick = () => { modal.classList.add('hidden'); renderAlbum(); };
+    
+    closeBtn.onclick = () => { 
+        modal.classList.add('hidden'); 
+        renderAlbum(); // Garante atualização visual
+    };
 }
 
 // --- Helpers que você já tinha ---
