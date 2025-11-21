@@ -544,55 +544,6 @@ h1, h2, h3, h4 {
     box-sizing: border-box;
 }
 
-/* Responsividade para Celular */
-@media (max-width: 600px) {
-.card-grid {
-        gap: 10px;
-        padding: 10px;
-    }
-    /* No celular, força 2 colunas exatas */
-    .card-preview.card-small {
-        width: 45%; /* Quase metade da tela */
-        flex-grow: 1;
-        max-width: 170px;
-    }
-   .trade-slots-row {
-        grid-template-columns: 1fr 1fr !important; 
-        gap: 10px;
-        padding: 5px;
-    }
-   /* Garante que a carta dentro do wrapper de troca obedeça o tamanho */
-    .market-card-wrapper .card-preview.card-small {
-        width: 100% !important;
-        max-width: 170px;
-        height: auto !important;
-        aspect-ratio: 220 / 308;
-    }
-   #my-offer-grid {
-        /* Força 2 colunas exatas */
-        grid-template-columns: 1fr 1fr !important; 
-        gap: 8px; /* Gap menor para caber */
-    }
-
-    /* Garante a proporção da carta DENTRO do modal */
-    #my-offer-grid .card-preview.card-small {
-        width: 100% !important;
-        height: auto !important;
-        aspect-ratio: 220 / 308; /* Mantém o formato retangular perfeito */
-        max-width: 150px; /* Limite para não estourar */
-    }
-    
-    /* Diminui um pouco a fonte só nesse modal se precisar */
-    #my-offer-grid .card-name-footer {
-        font-size: 9px;
-    }
-    
-    /* Ajuste de fontes no mobile */
-    .card-preview.card-small .card-name-footer { font-size: 10px; }
-    .card-preview.card-small .card-force-circle { width: 30px; height: 30px; font-size: 12px; }
-}
-
-
 /* Container das Pastas (Origens) */
 .origin-hub-grid {
     display: flex;
@@ -1071,14 +1022,69 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     cursor: pointer;
 }
 
+/* 1. O Grid dentro da Janela */
 #my-offer-grid {
     display: grid !important;
-    /* PC: Mantém flexível */
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+    /* No PC, cria colunas de no mínimo 120px */
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
     gap: 10px;
     padding: 5px;
     width: 100%;
     box-sizing: border-box;
-    justify-items: center;
+    justify-items: center; /* Centraliza */
+}
+
+/* 2. A Carta dentro do Modal (Regra Geral) */
+#my-offer-grid .card-preview.card-small {
+    /* Garante que a carta tenha proporção, não importa o que aconteça */
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 220 / 308 !important; /* Mantém o formato retangular */
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    border: 2px solid #fff; /* Borda um pouco mais fina pra caber melhor */
+}
+
+/* 3. Regras Específicas para Celular (Tela pequena) */
+@media (max-width: 600px) {
+    /* Ajusta a janela do modal para aproveitar mais espaço */
+.card-grid {
+        gap: 10px;
+        padding: 10px;
+    }
+    /* No celular, força 2 colunas exatas */
+    .card-preview.card-small {
+        width: 45%; /* Quase metade da tela */
+        flex-grow: 1;
+        max-width: 170px;
+    }
+   .trade-slots-row {
+        grid-template-columns: 1fr 1fr !important; 
+        gap: 10px;
+        padding: 5px;
+    }
+
+    /* O Grid no celular */
+    #my-offer-grid {
+        /* Força 2 colunas ou 3 dependendo do tamanho do celular, mas nunca 1 gigante */
+        grid-template-columns: repeat(2, 1fr) !important; 
+        gap: 8px;
+    }
+
+    /* Trava de Segurança anti-quadradinho */
+    #my-offer-grid .card-preview.card-small {
+        min-height: 140px !important; /* <--- O SEGREDO: Obriga a ter altura */
+        max-width: 100% !important;   /* Ocupa a coluna toda */
+    }
+
+       /* Ajuste de fontes no mobile */
+    .card-preview.card-small .card-name-footer { font-size: 10px; }
+    .card-preview.card-small .card-force-circle { width: 30px; height: 30px; font-size: 12px; }
+    
+    /* Diminui fontes para caber */
+    #my-offer-grid .card-name-footer { font-size: 9px; padding: 4px 0; }
+    #my-offer-grid .card-force-circle { width: 25px; height: 25px; font-size: 10px; bottom: 25px; }
+    #my-offer-grid .card-quantity { width: 20px; height: 20px; font-size: 10px; top: -5px; left: 50%; }
 }
 
