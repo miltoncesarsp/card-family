@@ -701,3 +701,12 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     padding-bottom: 10px;
 }
 
+/* Grid das Pastas de Origem */
+.origin-hub-grid {
+    display: grid;
+    /* Cria colunas automáticas de no mínimo 250px. Se a tela for grande, cabem várias. */
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
+    gap: 25px;
+    padding: 20px;
+    justify-content: center; /* Centraliza o bloco se sobrar espaço */
+}
