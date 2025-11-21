@@ -287,8 +287,7 @@ async function loadUnifiedView() {
                     const custo = EVOLUTION_COSTS[card.rarity];
                     const custoTexto = (card.rarity === 'Mítica' || !custo) ? "Máx" : `${custo}x`;
                     
-                    // --- AQUI ESTÁ A ATUALIZAÇÃO IMPORTANTE DE HTML ---
-                    // Removemos card-content-wrapper e usamos a estrutura limpa
+                    // --- COPIE E COLE ESTE BLOCO INTEIRO ---
                     outputHTML += `
                         <div class="card-preview card-small card-editable" 
                             data-card-id="${card.id}" 
@@ -300,8 +299,14 @@ async function loadUnifiedView() {
                                 <button class="delete-btn" data-id="${card.id}" data-name="${card.name}"><i class="fas fa-trash-alt"></i></button>
                             </div>
                             
+                            <div class="card-element-badge" style="background: ${baseElementStyles.background};">
+                                ${getElementIcon(base.elemento)}
+                            </div>
+
                             <div class="rarity-badge" style="background-color: ${rarityStyles.primary};">${card.rarity.substring(0,1)}</div>
+                            
                             <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
+                            
                             <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
                             
                             <div class="evolution-cost">Evolui: ${custoTexto}</div>
