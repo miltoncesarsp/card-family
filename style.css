@@ -1,304 +1,599 @@
-/* Importando fontes divertidas e modernas sans-serif */
-@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Poppins:wght@400;700&display=swap');
+/* =========================================
+   1. VARIÁVEIS E RESET GLOBAL
+   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Poppins:wght@400;700;800&display=swap');
 
 :root {
-    /* Mantendo as cores principais do seu admin para consistência */
-    --primary-color: #007bff; /* Azul do seu botão principal */
-    --secondary-color: #4CAF50; /* Verde para sucesso/moedas */
-    --header-bg: #34495e; /* Cinza/Azul escuro para cabeçalho */
-    --coin-color: #FFD700;
+    --primary-color: #007bff; 
+    --secondary-color: #4CAF50; 
+    --header-bg: #16213e; 
+    --bg-color: #1a1a2e;
     --box-bg: #fff;
+    --coin-color: #FFD700;
 }
 
 body {
-    font-family: 'Poppins', sans-serif; /* Fonte geral sans-serif */
+    font-family: 'Poppins', sans-serif;
     margin: 0;
-    background: #f7f7f7;
-    color: #333;
+    background-color: var(--bg-color);
+    color: #333; /* Texto padrão escuro (para áreas brancas) */
 }
 
-h1 {
-    margin-bottom: 20px;
+h1, h2, h3, h4 {
+    margin: 0;
 }
 
-/* Layout principal para PC (Container Flex) */
-.main-forms-container {
+/* Classe utilitária para esconder elementos */
+.hidden {
+    display: none !important;
+}
+
+/* =========================================
+   2. TELA DE LOGIN
+   ========================================= */
+.login-container {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
     display: flex;
-    gap: 20px;
     justify-content: center;
+    align-items: center;
+    z-index: 10000;
 }
 
-.form-section {
-    flex: 1;
-    max-width: 400px; /* Limita a largura dos formulários */
-}
-
-/* Responsividade: Empilha em telas menores (celular) */
-@media (max-width: 800px) {
-    .main-forms-container {
-        flex-direction: column;
-        align-items: center;
-    }
-    .form-section {
-        max-width: 100%;
-        width: 90%;
-    }
-}
-
-.card-form { /* Usei a classe do seu HTML */
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    max-width: 400px;
-    margin-bottom: 20px;
-}
-
-label {
-  display: block;
-  margin-top: 10px;
-}
-
-input, select, button {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-
-button {
-    margin-top: 15px;
-    background: #007bff;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #0056b3;
-}
-
-#cardPreviewContainer { /* Alterei o ID aqui para o que você usa no HTML/JS */
-    margin-top: 15px;
+.login-box {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.5);
     text-align: center;
-    display: flex; /* Para centralizar/organizar o preview */
-    justify-content: center;
+    width: 90%;
+    max-width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
+.login-box h1 {
+    font-family: 'Bungee', cursive;
+    color: var(--primary-color);
+    font-size: 1.8rem;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.login-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.login-actions button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.btn-primary { background-color: var(--secondary-color); color: white; }
+.btn-primary:hover { background-color: #388E3C; }
+
+.btn-secondary { background-color: var(--primary-color); color: white; }
+.btn-secondary:hover { background-color: #0056b3; }
+
+.error-msg { color: #e74c3c; font-size: 0.9em; margin-top: 5px; }
+
+
+/* =========================================
+   3. LAYOUT DO JOGO (HEADER E NAV)
+   ========================================= */
+
+/* Cabeçalho */
+.game-header {
+    background-color: var(--header-bg);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.game-title {
+    font-family: 'Bungee', cursive;
+    font-size: 1.5em;
+    color: #fff;
+}
+
+.user-info {
+    background: rgba(255,255,255,0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1rem;
+}
+
+.user-info .fa-coins { color: var(--coin-color); }
+
+.btn-logout {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    flex-grow: 0; 
+    width: auto; 
+}
+
+/* Navegação (Abas) */
+.main-navigation {
+    display: flex;
+    justify-content: center;
+    background-color: #0f3460;
+    padding: 10px 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.nav-btn {
+    background: none;
+    border: 2px solid transparent;
+    color: #aaa;
+    padding: 8px 20px;
+    margin: 0 5px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.nav-btn.active {
+    background-color: #e94560;
+    color: white;
+    border-color: #e94560;
+}
+
+.nav-btn:hover:not(.active) {
+    color: white;
+    background-color: rgba(255,255,255,0.1);
+}
+
+/* Área Principal */
+#main-content {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 80vh;
+}
+
+/* =========================================
+   4. CARTAS (O CORAÇÃO DO DESIGN)
+   ========================================= */
+
+/* --- CARTA PADRÃO (GRANDE - Usada no Admin) --- */
 .card-preview {
-    /* Tamanho PADRÃO (Usado no Admin) */
-    width: 200px;
-    height: 300px;
+    width: 260px;
+    height: 364px; /* Proporção 1.4 */
     position: relative;
     background-size: cover;
     background-position: center;
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
     font-family: 'Poppins', sans-serif;
-    margin: 10px;
-    border: 4px solid #fff;
-    overflow: hidden; /* Garante que o rodapé não saia da carta */
+    margin: 15px;
+    border: 5px solid #fff;
+    overflow: hidden;
     transition: transform 0.2s;
+    background-color: #333; /* Cor de fundo se imagem falhar */
 }
 
 .card-preview:hover {
     transform: translateY(-5px);
-    z-index: 10;
+    z-index: 5;
 }
 
-/* Badge de Raridade (Canto Superior Esquerdo) */
+/* Badge de Raridade */
 .card-preview .rarity-badge {
     position: absolute;
-    top: 5px;
-    left: 5px;
-    padding: 3px 8px;
+    top: 8px;
+    left: 8px;
+    padding: 4px 10px;
     font-weight: 800;
     color: #fff; 
     border-radius: 6px;
     text-transform: uppercase;
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    font-size: 12px; /* Tamanho legível para Admin */
+    font-size: 14px;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
     z-index: 10;
 }
 
-/* Ícone do Elemento (Canto Superior Direito - Abaixo da Quantidade) */
+/* Ícone do Elemento */
 .card-preview .card-element-badge {
     position: absolute;
-    top: 35px; /* Abaixei um pouco para não bater na quantidade */
-    right: 5px;
-    width: 30px;
-    height: 30px;
+    top: 45px;
+    right: 8px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 16px;
+    font-size: 18px;
     color: white;
     border: 2px solid white;
     z-index: 9;
+    background: rgba(0,0,0,0.3);
 }
 
-/* Círculo de Força (Canto Inferior Direito - Acima do nome) */
+/* Círculo de Força */
 .card-preview .card-force-circle {
     position: absolute;
-    bottom: 35px; /* Fica logo acima da barra de nome */
-    right: 5px;
-    width: 40px;
-    height: 40px;
+    bottom: 45px; /* Acima do rodapé */
+    right: 8px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     font-weight: 800;
-    font-size: 18px;
+    font-size: 22px;
     font-family: 'Bungee', cursive;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
-    border: 3px solid; 
+    border: 3px solid white; 
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     z-index: 15;
 }
 
-/* Nome da Carta (Barra Fixa no Rodapé) */
+/* Nome da Carta (Rodapé) */
 .card-preview .card-name-footer {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    background: rgba(0, 0, 0, 0.85); /* Fundo escuro para leitura */
+    background: rgba(0, 0, 0, 0.85);
     color: white;
     text-align: center;
     font-weight: bold;
-    font-size: 14px;
-    padding: 8px 0;
+    font-size: 16px;
+    padding: 10px 0;
     z-index: 10;
     font-family: 'Bungee', cursive;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; /* Adiciona ... se o nome for longo */
+    text-overflow: ellipsis;
 }
 
-#previewContainer {
-  margin-top: 15px;
-  text-align: center;
+/* Bolinha de Quantidade (Padrão oculta no Admin, visível no Jogo) */
+.card-quantity {
+    display: none; /* No admin não precisa */
 }
 
-#previewContainer img {
-  max-width: 200px;
-  border-radius: 8px;
-  margin-top: 5px;
-  border: 1px solid #ccc;
-}
 
-/* Estilos para a Visualização de Lista */
-#cardListContainer h3 {
-    margin-top: 30px;
-    padding-bottom: 5px;
-    border-bottom: 2px solid #ccc;
-    font-family: 'Bungee', cursive;
-    color: #007bff;
-}
-
-.card-group-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px; /* Espaço entre as cartas */
-    margin-bottom: 20px;
-}
-
-/* === VERSÃO PEQUENA DA CARTA (PARA O ÁLBUM DO JOGO) === */
+/* --- CARTA MÉDIA (JOGO/ÁLBUM) --- */
+/* Esta classe sobrescreve os tamanhos para o jogo */
 
 .card-preview.card-small {
-    width: 120px; /* Largura ideal para celular e PC */
-    height: 160px;
-    font-size: 0.9em;
-    margin: 0; /* Remove margem externa pois usamos gap no grid */
+    width: 170px;
+    height: 238px;
+    font-size: 1em;
+    margin: 0; /* Margem controlada pelo Grid */
+    border: 3px solid #fff;
 }
 
-/* Ajustes dos elementos internos para a versão pequena */
+/* Ajustes internos para o tamanho médio */
 .card-preview.card-small .rarity-badge {
-    font-size: 10px;
-    padding: 2px 5px;
+    font-size: 11px;
+    padding: 3px 6px;
+    top: 5px; left: 5px;
 }
 
 .card-preview.card-small .card-element-badge {
-    display: none; /* Opcional: Esconde o elemento na carta pequena para limpar o visual (já tem no título) */
+    display: none; /* Limpa o visual no álbum */
 }
 
 .card-preview.card-small .card-force-circle {
-    width: 25px;
-    height: 25px;
-    font-size: 12px;
-    bottom: 30px; /* Ajusta posição */
+    width: 35px; height: 35px; 
+    font-size: 14px; 
+    bottom: 35px;
+    right: 5px;
     border-width: 2px;
 }
 
 .card-preview.card-small .card-name-footer {
-    font-size: 10px;
-    padding: 4px 0;
+    font-size: 12px; 
+    padding: 6px 0;
 }
 
-/* style.css (Adicionar ao final) */
-
-.base-form {
-    border: 2px solid #007bff;
-    background: #e6f0ff;
-}
-
-/* Estilos de Hierarquia */
-.group-title {
-    font-family: 'Bungee', cursive;
-    color: #4CAF50; /* Verde para Origem */
-    border-bottom: 3px solid #4CAF50;
-    margin-top: 40px;
-}
-
-.sub-title {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    font-size: 1.4em;
-    color: #333;
-    padding-left: 10px;
-    margin-top: 20px;
-    border-left: 5px solid #007bff;
-    
-    /* NOVIDADE: Configuração Flex para alinhar botões ao lado do título */
+/* Quantidade (Estilo Notificação) */
+.card-preview.card-small .card-quantity {
     display: flex;
-    justify-content: space-between; /* Empurra o conteúdo do título para a esquerda e os botões para a direita */
-    align-items: center;
-}
-
-.base-details {
-    font-size: 0.7em;
-    color: #666;
-    font-weight: 400;
-}
-
-/* Gestão e Edição */
-.card-editable {
-    position: relative;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.card-content-wrapper {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: -8px;
+    right: -8px;
+    background-color: #e74c3c;
+    color: white;
+    border: 2px solid #1a1a2e;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 20;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* --- ESTILO DA CARTA BLOQUEADA (MISSING) --- */
+.card-missing {
+    filter: grayscale(100%) brightness(0.4);
+    opacity: 0.8;
+    border-style: dashed !important;
+    border-color: #666 !important;
+    cursor: not-allowed;
+}
+
+.card-missing::after {
+    content: '\f023'; /* Ícone de Cadeado */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    position: absolute;
+    top: 40%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Esconde detalhes se bloqueada */
+.card-missing .card-force-circle,
+.card-missing .rarity-badge,
+.card-missing .card-quantity {
+    display: none; 
+}
+
+
+/* =========================================
+   5. BOTÃO DE EVOLUÇÃO (NOVO)
+   ========================================= */
+.evolution-btn {
+    position: absolute;
+    bottom: 35px; /* Acima do rodapé */
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(45deg, #2ecc71, #00b894); 
+    color: white;
+    border: 1px solid #fff;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 800;
+    font-family: 'Poppins', sans-serif;
+    text-transform: uppercase;
+    cursor: pointer;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.8);
+    animation: pulse-green 1.5s infinite;
+}
+
+.evolution-btn:hover {
+    transform: translateX(-50%) scale(1.1);
+}
+
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(46, 204, 113, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+}
+
+
+/* =========================================
+   6. ÁLBUM: ORGANIZAÇÃO E GRID
+   ========================================= */
+
+/* Grid Inteligente das Cartas */
+.card-grid {
+    display: grid;
+    /* PC: Colunas automáticas, mínimo 160px */
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    justify-items: center;
+}
+
+/* Responsividade para Celular */
+@media (max-width: 600px) {
+    .card-grid {
+        /* Celular: 2 colunas fixas */
+        grid-template-columns: 1fr 1fr; 
+        gap: 10px;
+        padding: 10px;
+    }
+
+    /* Ajusta a carta para caber no grid do celular */
+    .card-preview.card-small {
+        width: 100%; 
+        max-width: 170px;
+        height: auto;
+        aspect-ratio: 2.5 / 3.5;
+    }
     
-    /* Remove a borda interna que estava lá: border: 3px solid #fff; */
-    border: none;
-    
-    /* Garante que os elementos internos se posicionem corretamente */
+    /* Ajuste de fontes no mobile */
+    .card-preview.card-small .card-name-footer { font-size: 10px; }
+    .card-preview.card-small .card-force-circle { width: 30px; height: 30px; font-size: 12px; }
+}
+
+
+/* Grid das Pastas de Origem */
+.origin-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 25px;
+    padding: 20px;
+}
+
+.origin-folder {
+    background: linear-gradient(145deg, #2c3e50, #000000);
+    border: 1px solid #444;
+    border-radius: 15px;
+    padding: 20px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    padding: 5px; 
-    box-sizing: border-box;
-    z-index: 2; 
+    align-items: center;
+    text-align: center;
 }
 
+.origin-folder:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,123,255,0.3);
+    border-color: var(--primary-color);
+}
+
+.origin-icon { font-size: 40px; color: var(--coin-color); margin-bottom: 10px; }
+.origin-name { font-family: 'Bungee', cursive; font-size: 1.5em; color: white; margin: 5px 0; }
+.origin-stats { font-size: 0.9em; color: #aaa; margin-bottom: 10px; }
+
+/* Barra de Progresso */
+.progress-bar-container {
+    width: 100%; height: 8px; background-color: #333; border-radius: 5px; overflow: hidden; margin-top: 10px;
+}
+.progress-bar-fill { height: 100%; transition: width 0.5s ease-in-out; }
+
+/* Botão Voltar */
+.back-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: #e74c3c; color: white; border: none;
+    padding: 10px 20px; border-radius: 50px;
+    cursor: pointer; font-weight: bold; margin: 20px;
+}
+
+
+/* =========================================
+   7. MODAL DE PACOTES E NOTIFICAÇÕES
+   ========================================= */
+
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 20000;
+    animation: fadeIn 0.3s;
+}
+
+.modal-content {
+    background: linear-gradient(to bottom, #2c3e50, #000000);
+    padding: 30px; border-radius: 15px; text-align: center;
+    border: 2px solid var(--coin-color);
+    box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+    max-width: 90%; max-height: 90vh; overflow-y: auto;
+}
+
+.new-cards-grid {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 20px 0;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    80% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); }
+}
+
+.new-cards-grid .card-preview { animation: popIn 0.5s ease-out backwards; }
+.new-cards-grid .card-preview:nth-child(1) { animation-delay: 0.1s; }
+.new-cards-grid .card-preview:nth-child(2) { animation-delay: 0.3s; }
+.new-cards-grid .card-preview:nth-child(3) { animation-delay: 0.5s; }
+
+.notification {
+    position: fixed; top: 20px; right: 20px;
+    padding: 15px 25px; border-radius: 8px;
+    color: white; font-weight: bold;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.notification.success { background-color: var(--secondary-color); }
+.notification.error { background-color: #f44336; }
+
+
+/* =========================================
+   8. ESTILOS DO ADMIN (MANTIDOS)
+   ========================================= */
+/* Layout principal para PC */
+.main-forms-container { display: flex; gap: 20px; justify-content: center; padding: 20px; }
+.form-section { flex: 1; max-width: 500px; }
+
+@media (max-width: 800px) {
+    .main-forms-container { flex-direction: column; align-items: center; }
+    .form-section { max-width: 100%; width: 90%; }
+}
+
+.card-form {
+    background: #fff; padding: 20px; border-radius: 10px;
+    margin-bottom: 20px; color: #333;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+label { display: block; margin-top: 10px; font-weight: bold; }
+input, select, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; }
+button { margin-top: 15px; cursor: pointer; }
+
+/* Tabelas do Admin */
+table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; color: #333; }
+th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+th { background-color: var(--primary-color); color: white; }
+
+/* Loja visual */
+.pack-list {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;
+}
+.pack-item {
+    background-color: #fff; color: #333;
+    padding: 20px; border-radius: 10px; text-align: center;
+    border-top: 5px solid var(--primary-color);
+}
+/* CONTINUAÇÃO DOS ESTILOS DO ADMIN (QUE FALTARAM) */
+
+/* Feedback visual para o Modo de Edição */
+.card-form.editing-mode {
+    border: 3px solid #FFD700; /* Borda amarela para indicar Edição */
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.card-form-fixed {
+    position: sticky; 
+    top: 10px;
+    z-index: 100; 
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Botões de Gerenciamento (Editar/Excluir) */
 .card-management-buttons {
     position: absolute;
     top: 5px;
@@ -317,43 +612,58 @@ button:hover {
     border: 1px solid #ccc;
     cursor: pointer;
     line-height: 1;
+    margin-top: 0; /* Corrige margem global */
 }
 
-.delete-btn {
-    color: #E74C3C; /* Vermelho */
-}
+.delete-btn { color: #E74C3C; }
+.edit-btn { color: #3498DB; }
 
-.edit-btn {
-    color: #3498DB; /* Azul */
-}
-
+/* Custo de Evolução no Admin */
 .evolution-cost {
     position: absolute;
-    bottom: 55px; /* ALTERE PARA ISSO */
+    bottom: 50px; /* Ajustado para não cobrir o nome */
     left: 5px; 
     background: rgba(0, 0, 0, 0.7);
     color: white;
-    padding: 2px 5px;
+    padding: 2px 6px;
     border-radius: 5px;
-    font-size: 0.7em;
+    font-size: 0.8em;
     z-index: 10;
-    line-height: 1.2; /* ADICIONE ESTA LINHA */
 }
 
-.card-preview.card-small .evolution-cost {
-    bottom: 45px; /* ALTERE PARA ISSO */
-    font-size: 0.6em; /* ADICIONE ESTA LINHA (opcional, para reduzir um pouco o texto) */
-}
-/* Feedback visual para o Modo de Edição */
-.card-form.editing-mode {
-    border: 3px solid #FFD700; /* Borda amarela para indicar Edição */
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+/* Ajustes finos para tabelas */
+tr:nth-child(even) { background-color: #f2f2f2; }
+table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; }
+
+.management-section {
+    overflow-x: auto;
+    padding: 10px;
+    margin-top: 30px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* NOVO: Estiliza os botões (para aparecerem ao lado do nome) */
-.base-management-buttons {
+/* Hierarquia Visual do Admin */
+.group-title {
+    font-family: 'Bungee', cursive;
+    color: var(--secondary-color);
+    border-bottom: 3px solid var(--secondary-color);
+    margin-top: 40px;
+    font-size: 1.5em;
+}
+
+.sub-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 1.2em;
+    color: #333;
+    padding-left: 10px;
+    margin-top: 20px;
+    border-left: 5px solid var(--primary-color);
     display: flex;
-    gap: 8px; /* Espaçamento entre os botões */
+    justify-content: space-between;
+    align-items: center;
 }
 
 .base-management-buttons button {
@@ -361,513 +671,7 @@ button:hover {
     height: 30px;
     padding: 0;
     border-radius: 50%;
-    /* Estilo do botão base (opcional) */
     background: #f7f7f7;
     border: 1px solid #ddd;
-    cursor: pointer;
-}
-
-/* Estilo para indicar que o formulário de base está em modo de edição */
-#baseFormContainer.editing-mode {
-    border: 2px solid #007bff; /* Ou qualquer cor que indique edição */
-    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
-}
-
-.card-form-fixed {
-    position: sticky; /* ou fixed, mas sticky é mais suave */
-    top: 10px;
-    z-index: 100; /* Garante que fique acima de tudo */
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-/* Estilos de Tabelas para as novas seções (Raridade, Pacotes, Jogadores) */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    background: white;
-}
-
-th, td {
-    padding: 12px 15px;
-    border: 1px solid #ddd;
-    text-align: left;
-    font-size: 0.9em;
-    vertical-align: middle;
-}
-
-th {
-    background-color: #007bff;
-    color: white;
-    font-weight: bold;
-}
-
-/* Linhas zebradas para melhor legibilidade */
-tr:nth-child(even) {
-    background-color: #f2f2f2;
-}
-
-.management-section {
-    overflow-x: auto; /* Permite rolar a tabela horizontalmente em telas pequenas */
-    padding: 10px;
-    margin-top: 30px;
-}
-
-/* Botões dentro de tabelas */
-table button {
-    width: auto;
-    padding: 5px 8px;
-    margin: 2px;
-    font-size: 0.8em;
-}
-
-/* Adicione este bloco no seu style.css */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 15px 25px;
-    border-radius: 8px;
-    color: white;
-    font-weight: bold;
-    z-index: 1000;
-    opacity: 1;
-    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    transform: translateY(0);
-}
-
-.notification.success {
-    background-color: #4CAF50; /* Verde */
-}
-
-.notification.error {
-    background-color: #f44336; /* Vermelho */
-}
-
-.notification.hide {
-    opacity: 0;
-    transform: translateY(-20px);
-}
-
-.game-header {
-    background-color: var(--header-bg);
-    color: white;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.game-title {
-    margin: 0;
-    font-size: 1.8em;
-    font-family: 'Bungee', cursive; /* Fonte do jogo */
-}
-
-.user-info {
-    font-size: 1.1em;
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 5px 10px;
-    border-radius: 5px;
-}
-
-.user-info .fa-coins {
-    color: var(--coin-color);
-}
-
-.user-info .fa-star {
-    color: #FFA500;
-}
-
-.auth-buttons button {
-    background-color: var(--secondary-color); /* Usando o verde para login/ação positiva */
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s;
-}
-
-.auth-buttons button:hover {
-    background-color: #43a047;
-}
-
-
-/* === NAVEGAÇÃO PRINCIPAL (ABAS) === */
-
-.main-navigation {
-    display: flex;
-    justify-content: center;
-    background-color: #ecf0f1;
-    border-bottom: 2px solid #bdc3c7;
-    padding: 5px 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 50; /* Abaixo do modal/notificações, acima do conteúdo */
-}
-
-.nav-btn {
-    background: none;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-size: 1em;
-    color: #34495e;
-    transition: background-color 0.2s, color 0.2s;
-    font-weight: 700;
-}
-
-.nav-btn:hover:not(:disabled) {
-    background-color: #dfe6e9;
-}
-
-.nav-btn.active {
-    color: var(--primary-color); /* Azul do tema */
-    border-bottom: 3px solid var(--primary-color);
-}
-
-.nav-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* === SEÇÕES DE CONTEÚDO (ÁLBUM, LOJA, ETC.) === */
-
-#main-content {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.game-section h2 {
-    color: var(--primary-color);
-    border-bottom: 2px solid #ccc;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    font-family: 'Bungee', cursive;
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* === ESTILOS DO ÁLBUM === */
-
-.album-group {
-    width: 100%;
-    margin-bottom: 30px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 15px;
-    background-color: var(--box-bg);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.album-group h3 {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    padding-left: 10px;
-    border-left: 5px solid; /* A cor será definida pelo elemento no JS (baseElementStyles.primary) */
     margin-top: 0;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.card-evolution-line {
-    display: flex;
-    gap: 15px;
-    overflow-x: auto; /* Permite rolar se houver muitas cartas */
-    padding-bottom: 10px;
-}
-
-/* Card no Álbum (Herdando de .card-preview.card-small) */
-.card-preview.card-collected {
-    border: 3px solid; /* Cor da raridade injetada pelo JS */
-    /* Garante que o tamanho pequeno seja mantido, mas com a borda de raridade */
-    width: 150px;
-    height: 225px;
-}
-
-/* Quantidade (Bolinha estilo notificação - Só aparece no Jogo) */
-.card-quantity {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background-color: #e74c3c; /* Vermelho */
-    color: white;
-    border: 2px solid #1a1a2e;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 12px;
-    font-weight: bold;
-    z-index: 20;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-
-.card-action-btn {
-    position: absolute;
-    bottom: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: var(--primary-color); /* Botão de ação azul */
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 0.8em;
-    cursor: pointer;
-    z-index: 20;
-    white-space: nowrap; /* Evita quebras de linha */
-}
-
-/* === ESTILOS DA LOJA (SHOP) === */
-
-.pack-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px;
-    padding: 20px 0;
-}
-
-.pack-item {
-    background-color: var(--box-bg);
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    border-top: 5px solid var(--primary-color);
-    transition: transform 0.2s;
-}
-
-.pack-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-}
-
-.pack-item h4 {
-    color: var(--primary-color);
-    margin-top: 0;
-    font-size: 1.5em;
-    font-family: 'Bungee', cursive;
-}
-
-.pack-item p {
-    font-size: 0.95em;
-    line-height: 1.6;
-}
-
-.pack-item .buy-pack-btn {
-    width: auto; /* Sobrescreve a largura 100% dos inputs/buttons do CSS Admin */
-    background-color: var(--secondary-color); /* Verde para comprar */
-    color: white;
-    border: none;
-    padding: 12px 25px;
-    border-radius: 50px;
-    cursor: pointer;
-    font-size: 1.1em;
-    font-weight: bold;
-    margin-top: 15px;
-    transition: background-color 0.2s, transform 0.1s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.pack-item .buy-pack-btn:hover {
-    background-color: #43a047;
-    transform: translateY(-2px);
-}
-
-/* Classe utilitária para esconder coisas */
-.hidden {
-    display: none !important;
-}
-
-/* Estilo da Tela de Login */
-.login-container {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); /* Fundo escuro */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000; /* Fica na frente de tudo */
-}
-
-.login-box {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    text-align: center;
-    width: 300px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.login-box input {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-.login-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.login-actions button {
-    flex: 1;
-    padding: 10px;
-    cursor: pointer;
-}
-.btn-logout {
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    
-    /* O truque para não esticar: */
-    flex-grow: 0; 
-    width: auto; 
-    margin-left: auto; /* Empurra para a direita se estiver num flex container */
-}
-
-.error-msg { color: red; font-size: 0.9em; }
-
-/* Modal (Fundo Escuro) */
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.9); /* Bem escuro */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 20000; /* Na frente de tudo */
-    animation: fadeIn 0.3s;
-}
-
-/* Caixa do Modal */
-.modal-content {
-    background: linear-gradient(to bottom, #2c3e50, #000000);
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    border: 2px solid #f1c40f; /* Borda dourada */
-    box-shadow: 0 0 50px rgba(241, 196, 15, 0.5);
-    max-width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-/* Grid das Cartas Novas */
-.new-cards-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    margin: 20px 0;
-}
-
-/* Animação de entrada */
-@keyframes popIn {
-    0% { transform: scale(0); opacity: 0; }
-    80% { transform: scale(1.1); opacity: 1; }
-    100% { transform: scale(1); }
-}
-
-/* Aplica a animação nas cartas dentro do modal */
-.new-cards-grid .card-preview {
-    animation: popIn 0.5s ease-out backwards;
-}
-
-/* Stagger (atraso) para elas aparecerem uma por uma */
-.new-cards-grid .card-preview:nth-child(1) { animation-delay: 0.1s; }
-.new-cards-grid .card-preview:nth-child(2) { animation-delay: 0.3s; }
-.new-cards-grid .card-preview:nth-child(3) { animation-delay: 0.5s; }
-.new-cards-grid .card-preview:nth-child(4) { animation-delay: 0.7s; }
-.new-cards-grid .card-preview:nth-child(5) { animation-delay: 0.9s; }
-
-/* Carta que o jogador NÃO tem (Bloqueada) */
-.card-missing {
-    filter: grayscale(100%) brightness(0.5);
-    opacity: 0.6;
-    border-style: dashed !important;
-    cursor: not-allowed;
-}
-
-.card-missing::after {
-    content: '\f023'; /* Cadeado */
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    position: absolute;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 30px;
-    color: rgba(255, 255, 255, 0.5);
-}
-
-/* Esconde detalhes da carta bloqueada, mas mantém o nome */
-.card-missing .card-force-circle,
-.card-missing .rarity-badge,
-.card-missing .card-quantity,
-.card-missing .card-element-badge {
-    display: none; 
-}
-
-/* === ORGANIZAÇÃO DO ÁLBUM POR ORIGEM === */
-
-.origin-section {
-    margin-bottom: 40px;
-    background: rgba(255,255,255,0.05); /* Fundo sutil */
-    padding: 15px;
-    border-radius: 15px;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.origin-title {
-    font-size: 1.5em;
-    color: #FFD700; /* Dourado */
-    border-bottom: 2px solid #FFD700;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-family: 'Bungee', cursive;
-}
-
-.character-row {
-    margin-bottom: 25px;
-    padding-left: 10px;
-}
-
-/* Contêiner flex para as cartas ficarem alinhadas */
-.card-evolution-line {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: flex-start; /* Alinha à esquerda */
 }
