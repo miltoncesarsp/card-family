@@ -84,6 +84,29 @@
     </div>
 </div>
 
+    <div id="daily-reward-modal" class="modal-overlay hidden">
+    <div class="modal-content daily-content">
+        <h2 style="color: #FFD700; text-shadow: 0 0 10px orange;">☀️ Bônus Diário!</h2>
+        
+        <div class="daily-icon-container">
+            <i class="fas fa-calendar-check daily-icon"></i>
+            <div class="daily-coin-display">
+                <i class="fas fa-coins spin-coin"></i>
+                <span id="daily-amount">0</span>
+            </div>
+        </div>
+
+        <p id="daily-message" style="color: white; margin: 15px 0;">Volte amanhã para ganhar mais!</p>
+        
+        <div class="streak-container">
+            <span>Dias Seguidos:</span>
+            <strong id="daily-streak" style="color: #2ecc71; font-size: 1.2em;">1</strong> 🔥
+        </div>
+
+        <button id="collectDailyBtn" class="btn-primary" style="margin-top: 20px; width: 100%;">RECEBER MOEDAS</button>
+    </div>
+</div>
+
     <div id="notification-area" class="notification-area"></div>
 
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
