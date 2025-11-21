@@ -79,34 +79,49 @@ async function handleAuth() {
 }
 
 async function loginOrSignup() {
-    const email = prompt("Digite seu e-mail para Entrar ou Cadastrar:");
+    // Pergunta qual ação o usuário quer
+    const opcao = prompt("Digite o número da opção:\n1. ENTRAR (Já tenho conta)\n2. CRIAR NOVA CONTA");
+    
+    if (opcao !== "1" && opcao !== "2") return;
+
+    const email = prompt("Digite seu e-mail:");
     if (!email) return;
 
-    // AQUI ESTÁ A CORREÇÃO MÁGICA:
-    const { error } = await supabase.auth.signInWithOtp({ 
-        email: email,
-        options: {
-            emailRedirectTo: 'https://miltoncesarsp.github.io/card-family/'
+    const password = prompt("Crie uma senha (mínimo 6 letras/números):");
+    if (!password) return;
+
+    if (opcao === "1") {
+        // --- LOGIN ---
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) {
+            alert("Erro ao entrar: " + error.message);
+        } else {
+            // O listener no app.js vai detectar o login e atualizar a tela sozinho
+            console.log("Logado com sucesso!");
         }
-    });
 
-    if (error) {
-        alert(`Erro: ${error.message}`); // Usar alert é melhor que showNotification se o DOM não carregou
-    } else {
-        alert("Link enviado! Verifique seu e-mail (inclusive Spam).");
-    }
-}
+    } else if (opcao === "2") {
+        // --- CADASTRO ---
+        const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    full_name: email.split('@')[0] // Usa o começo do email como nome
+                }
+            }
+        });
 
-async function logout() {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-        showNotification(`Erro ao sair: ${error.message}`, true);
-    } else {
-        player = null;
-        cardsInAlbum = [];
-        updateUIForLoggedOut();
-        // Recarrega o álbum para mostrar o estado inicial/vazio
-        renderAlbum(); 
+        if (error) {
+            alert("Erro ao criar conta: " + error.message);
+        } else {
+            alert("Conta criada com sucesso! Você já está logado.");
+            // O listener no app.js vai detectar o login automaticamente
+        }
     }
 }
 
