@@ -110,6 +110,7 @@ async function loadPlayerData(userId) {
     }
 
     if (packsAvailable.length === 0) await loadPacks();
+    await loadOriginCovers();
     renderAlbum(); 
 }
 
@@ -237,18 +238,27 @@ function renderAlbum() {
     for (const [key, data] of Object.entries(originsData)) {
         const percentage = Math.round((data.owned / data.total) * 100);
         const barColor = percentage === 100 ? '#2ecc71' : '#007bff';
-        let icon = '<i class="fas fa-folder-open"></i>';
-        if(data.name.toLowerCase().includes('marvel')) icon = '<i class="fas fa-shield-alt"></i>';
         
+        // Tenta pegar a capa do banco. Se não tiver, usa null.
+        const coverImage = originCovers[data.name]; 
+        
+        // Se tiver imagem, põe no background. Se não, usa gradiente padrão.
+        const bgStyle = coverImage 
+            ? `background-image: url('${coverImage}'); background-size: cover; background-position: center;` 
+            : `background: linear-gradient(145deg, #2c3e50, #000000);`;
+            
+        const overlayClass = coverImage ? 'has-cover' : '';
+
         html += `
-            <div class="origin-folder" onclick="openOriginView('${data.name}')">
-                <div class="origin-icon">${icon}</div>
-                <div class="origin-name">${data.name}</div>
-                <div class="origin-stats">${data.owned} / ${data.total} Cartas</div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill" style="width: ${percentage}%; background-color: ${barColor};"></div>
+            <div class="origin-folder ${overlayClass}" onclick="openOriginView('${data.name}')" style="${bgStyle}">
+                <div class="origin-content-overlay">
+                    <div class="origin-name">${data.name}</div>
+                    <div class="origin-stats">${data.owned} / ${data.total} Cartas</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: ${percentage}%; background-color: ${barColor};"></div>
+                    </div>
+                    <div style="margin-top:5px; font-size: 0.8em; color: ${barColor}; font-weight:bold;">${percentage}%</div>
                 </div>
-                <div style="margin-top:5px; font-size: 0.8em; color: ${barColor};">${percentage}%</div>
             </div>
         `;
     }
@@ -457,6 +467,16 @@ function setupNavigation() {
     });
 }
 
+async function loadOriginCovers() {
+    const { data } = await supabase.from('capas_origens').select('*');
+    if (data) {
+        originCovers = data.reduce((acc, item) => {
+            acc[item.origem] = item.image_url; // Mapeia "Marvel" -> URL
+            return acc;
+        }, {});
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const btnLogin = document.getElementById('btnLogin');
     const btnRegister = document.getElementById('btnRegister');
@@ -472,3 +492,5 @@ document.addEventListener("DOMContentLoaded", () => {
         updateUIState(session);
     });
 });
+
+
