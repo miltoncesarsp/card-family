@@ -1022,69 +1022,73 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     cursor: pointer;
 }
 
-/* 1. O Grid dentro da Janela */
+/* =====================================================
+   CORREÇÃO DE TROCAS E MODAL (PC + CELULAR UNIFICADOS)
+   ===================================================== */
+
+/* --- ÁREA DE "MEUS ANÚNCIOS" (Página de Trocas) --- */
+.trade-slots-row {
+    display: grid !important;
+    /* PC: Colunas automáticas de 160px (Tamanho normal) */
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap: 20px;
+    justify-items: center;
+    width: 100%;
+}
+
+/* --- MODAL DE ESCOLHER CARTA (Janela Branca) --- */
 #my-offer-grid {
     display: grid !important;
-    /* No PC, cria colunas de no mínimo 120px */
+    /* PC: Colunas menores (120px) para caber mais na janelinha */
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
-    gap: 10px;
-    padding: 5px;
+    gap: 15px;
+    padding: 10px;
     width: 100%;
-    box-sizing: border-box;
-    justify-items: center; /* Centraliza */
+    max-height: 400px; /* Limita altura no PC */
+    overflow-y: auto;
 }
 
-/* 2. A Carta dentro do Modal (Regra Geral) */
+/* Estilo da carta DENTRO do Modal (PC) */
 #my-offer-grid .card-preview.card-small {
-    /* Garante que a carta tenha proporção, não importa o que aconteça */
     width: 100% !important;
+    max-width: 140px; /* Limita largura no PC */
     height: auto !important;
-    aspect-ratio: 220 / 308 !important; /* Mantém o formato retangular */
-    background-size: cover !important;
-    background-repeat: no-repeat !important;
-    background-position: center !important;
-    border: 2px solid #fff; /* Borda um pouco mais fina pra caber melhor */
+    aspect-ratio: 220 / 308;
+    margin: 0 auto;
 }
 
-/* 3. Regras Específicas para Celular (Tela pequena) */
+/* --- REGRAS ESPECÍFICAS PARA CELULAR (Tela < 600px) --- */
 @media (max-width: 600px) {
-    /* Ajusta a janela do modal para aproveitar mais espaço */
-.card-grid {
-        gap: 10px;
-        padding: 10px;
-    }
-    /* No celular, força 2 colunas exatas */
-    .card-preview.card-small {
-        width: 45%; /* Quase metade da tela */
-        flex-grow: 1;
-        max-width: 170px;
-    }
-   .trade-slots-row {
-        grid-template-columns: 1fr 1fr !important; 
-        gap: 10px;
-        padding: 5px;
-    }
-
-    /* O Grid no celular */
-    #my-offer-grid {
-        /* Força 2 colunas ou 3 dependendo do tamanho do celular, mas nunca 1 gigante */
-        grid-template-columns: repeat(2, 1fr) !important; 
-        gap: 8px;
-    }
-
-    /* Trava de Segurança anti-quadradinho */
-    #my-offer-grid .card-preview.card-small {
-        min-height: 140px !important; /* <--- O SEGREDO: Obriga a ter altura */
-        max-width: 100% !important;   /* Ocupa a coluna toda */
-    }
-
-       /* Ajuste de fontes no mobile */
-    .card-preview.card-small .card-name-footer { font-size: 10px; }
-    .card-preview.card-small .card-force-circle { width: 30px; height: 30px; font-size: 12px; }
     
-    /* Diminui fontes para caber */
-    #my-offer-grid .card-name-footer { font-size: 9px; padding: 4px 0; }
-    #my-offer-grid .card-force-circle { width: 25px; height: 25px; font-size: 10px; bottom: 25px; }
-    #my-offer-grid .card-quantity { width: 20px; height: 20px; font-size: 10px; top: -5px; left: 50%; }
-}
+    /* 1. Ajuste da Janela do Modal no Celular */
+    #trade-offer-modal .modal-content {
+        width: 95% !important;
+        padding: 15px !important;
+    }
 
+    /* 2. Grid de "Meus Anúncios" no Celular */
+    .trade-slots-row {
+        grid-template-columns: 1fr 1fr !important; /* 2 Colunas fixas */
+        gap: 10px;
+    }
+
+    /* 3. Grid do Modal de Escolha no Celular */
+    #my-offer-grid {
+        grid-template-columns: repeat(2, 1fr) !important; /* 2 Colunas fixas */
+        gap: 8px;
+        max-height: 300px;
+    }
+
+    /* 4. Carta dentro do Modal (Celular) - Anti-Esmagamento */
+    #my-offer-grid .card-preview.card-small {
+        width: 100% !important;
+        min-height: 130px !important; /* Força altura mínima */
+        max-width: 100%;
+        font-size: 0.8em; /* Fonte menor */
+    }
+
+    /* Ajustes finos de fonte no celular */
+    #my-offer-grid .card-name-footer { font-size: 9px; padding: 3px 0; }
+    #my-offer-grid .card-quantity { width: 20px; height: 20px; font-size: 10px; }
+    #my-offer-grid .card-force-circle { width: 25px; height: 25px; font-size: 10px; bottom: 25px; }
+}
