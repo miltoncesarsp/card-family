@@ -281,15 +281,22 @@ async function handleEvolution(cardId, rarity) {
 function renderShop() {
     const container = document.getElementById('packs-list-container');
     if (!container || !player) return;
+
     let html = '';
     packsAvailable.forEach(pack => {
+        // Define uma imagem padrão caso o pacote não tenha capa
+        const bgImage = pack.imagem_url ? `url('${pack.imagem_url}')` : 'none';
+        const bgClass = pack.imagem_url ? 'has-image' : 'no-image';
+
         html += `
-            <div class="pack-item">
-                <h4>${pack.nome}</h4>
-                <p>Contém <strong>${pack.cartas_total} cartas</strong>.</p>
-                <button class="buy-pack-btn" data-id="${pack.id}" data-price="${pack.preco_moedas}">
-                    Comprar por <i class="fas fa-coins"></i> ${pack.preco_moedas}
-                </button>
+            <div class="pack-item ${bgClass}" style="background-image: ${bgImage}">
+                <div class="pack-content-overlay">
+                    <h4>${pack.nome}</h4>
+                    <p class="pack-info">Contém <strong>${pack.cartas_total} cartas</strong></p>
+                    <button class="buy-pack-btn" data-id="${pack.id}" data-price="${pack.preco_moedas}">
+                        <i class="fas fa-coins"></i> ${pack.preco_moedas}
+                    </button>
+                </div>
             </div>
         `;
     });
