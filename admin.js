@@ -474,16 +474,25 @@ async function handleEditPack(event) {
     const id = event.currentTarget.dataset.id;
     currentEditPackId = id;
     const { data: pack } = await supabase.from('pacotes').select('*').eq('id', id).single();
+    
     if(pack) {
         document.getElementById('packNameInput').value = pack.nome;
         document.getElementById('packPriceInput').value = pack.preco_moedas;
         document.getElementById('packTotalCardsInput').value = pack.cartas_total;
-        document.getElementById('chanceComumInput').value = pack.chance_comum * 100;
-        document.getElementById('chanceRaraInput').value = pack.chance_rara * 100;
-        document.getElementById('chanceEpicaInput').value = pack.chance_epica * 100;
-        document.getElementById('chanceLendariaInput').value = pack.chance_lendaria * 100;
-        document.getElementById('chanceMiticaInput').value = pack.chance_mitica * 100;
+        
+        // Chances
+        document.getElementById('chanceComumInput').value = (pack.chance_comum * 100).toFixed(1);
+        document.getElementById('chanceRaraInput').value = (pack.chance_rara * 100).toFixed(1);
+        document.getElementById('chanceEpicaInput').value = (pack.chance_epica * 100).toFixed(1);
+        document.getElementById('chanceLendariaInput').value = (pack.chance_lendaria * 100).toFixed(1);
+        document.getElementById('chanceMiticaInput').value = (pack.chance_mitica * 100).toFixed(1);
+        
+        // Imagem (Novo)
+        document.getElementById('packCurrentImageUrl').value = pack.imagem_url || "";
+        
+        document.getElementById('savePackBtn').textContent = `Atualizar Pacote ${pack.nome}`;
         document.getElementById('packFormContainer').style.display = 'block';
+        document.getElementById('packFormContainer').scrollIntoView({ behavior: 'smooth' });
     }
 }
 
@@ -491,6 +500,30 @@ async function saveOrUpdatePack() {
     const nome = document.getElementById('packNameInput').value;
     const preco = parseInt(document.getElementById('packPriceInput').value);
     const total = parseInt(document.getElementById('packTotalCardsInput').value);
+    
+    // Pegando a imagem
+    const fileInput = document.getElementById("packFileInput");
+    const file = fileInput.files[0];
+    let imageUrlToSave = document.getElementById('packCurrentImageUrl').value; // Mantém a antiga por padrão
+
+    // Lógica de Upload (Se tiver arquivo novo)
+    if (file) {
+        const compressed = await compressImage(file); // Usa a mesma função de compressão das cartas
+        const fileName = `packs/pack_${Date.now()}.jpeg`; // Salva numa pasta "packs" (opcional) ou na raiz
+        
+        const { error: uploadError } = await supabase.storage
+            .from(BUCKET_NAME)
+            .upload(fileName, compressed, { upsert: true });
+
+        if (uploadError) {
+            alert("Erro ao subir imagem do pacote: " + uploadError.message);
+            return;
+        }
+
+        const { data: publicUrlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(fileName);
+        imageUrlToSave = publicUrlData.publicUrl;
+    }
+
     const chances = {
         chance_comum: parseFloat(document.getElementById('chanceComumInput').value) / 100,
         chance_rara: parseFloat(document.getElementById('chanceRaraInput').value) / 100,
@@ -499,16 +532,25 @@ async function saveOrUpdatePack() {
         chance_mitica: parseFloat(document.getElementById('chanceMiticaInput').value) / 100
     };
 
-    const packData = { nome, preco_moedas: preco, cartas_total: total, ...chances };
+    // Adiciona imagem_url no objeto para salvar
+    const packData = { 
+        nome, 
+        preco_moedas: preco, 
+        cartas_total: total, 
+        imagem_url: imageUrlToSave, 
+        ...chances 
+    };
     
     if (currentEditPackId) {
         await supabase.from("pacotes").update(packData).eq('id', currentEditPackId);
     } else {
         await supabase.from("pacotes").insert([packData]);
     }
-    alert("Pacote salvo!");
+    
+    alert("Pacote salvo com sucesso!");
     loadPacks();
     resetPackForm();
+    document.getElementById('packFileInput').value = ""; // Limpa o input
 }
 
 async function handleDeletePack(event) {
