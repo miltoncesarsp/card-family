@@ -575,42 +575,53 @@ h1, h2, h3, h4 {
 }
 
 .origin-folder {
-    background: linear-gradient(145deg, #2c3e50, #000000);
+    /* O background é definido via JS inline, mantemos o resto */
     border: 1px solid #444;
     border-radius: 15px;
-    padding: 15px;
+    padding: 0; /* Remove padding para a imagem ir até a borda */
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    
-    /* FIXANDO O TAMANHO */
     width: 100%;
-    height: 180px; /* Altura fixa para todas ficarem iguais */
-    justify-content: space-between; /* Espalha o conteúdo */
+    height: 180px;
+    justify-content: flex-end; /* Joga o conteúdo para baixo */
     box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid transparent;
 }
 
 .origin-folder:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,123,255,0.3);
     border-color: var(--primary-color);
+    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+}
+
+/* Overlay Escuro (Para o texto aparecer sobre a foto) */
+.origin-content-overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.6) 80%, transparent 100%);
+    width: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%; /* Ocupa tudo para escurecer a imagem */
+    justify-content: flex-end; /* Texto no final */
+}
+
+.origin-folder.has-cover .origin-icon {
+    display: none; /* Esconde o ícone se tiver foto */
 }
 
 .origin-icon { font-size: 40px; color: var(--coin-color); margin-bottom: 10px; }
 .origin-name {
-    font-family: 'Bungee', cursive;
-    font-size: 1.2em; /* Fonte um pouco menor para caber */
-    color: white;
-    margin: 5px 0;
-    
-    /* TRATAMENTO DE NOMES LONGOS */
-    width: 100%;
-    white-space: nowrap; /* Não quebra linha */
-    overflow: hidden;    /* Corta o que passar */
-    text-overflow: ellipsis; /* Adiciona "..." */
+    text-shadow: 2px 2px 4px #000;
+    margin-bottom: 5px;
+    z-index: 2;
 }
 .origin-stats { font-size: 0.9em; color: #aaa; margin-bottom: 10px; }
 
