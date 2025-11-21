@@ -102,13 +102,18 @@ async function loadPlayerData(userId) {
     const { data: playerCardData } = await supabase.from('cartas_do_jogador').select(`quantidade, card_id`).eq('jogador_id', userId);
 
     // 5. Cruza os dados
-    if (allGameCards.length > 0) {
+if (allGameCards.length > 0) {
         cardsInAlbum = allGameCards.map(gameCard => {
             const userHas = playerCardData?.find(item => item.card_id === gameCard.id);
+            
+            // Pega a quantidade (se não tiver registro, é 0)
+            const qtd = userHas ? userHas.quantidade : 0;
+
             return {
                 ...gameCard,
-                quantidade: userHas ? userHas.quantidade : 0,
-                owned: !!userHas
+                quantidade: qtd,
+                // CORREÇÃO AQUI: Só considera "owned" (dono) se a quantidade for maior que 0
+                owned: qtd > 0 
             };
         });
     }
