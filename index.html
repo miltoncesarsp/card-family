@@ -71,6 +71,30 @@
                 </div>
             </section>
 
+            <section id="trade-section" class="game-section hidden">
+                <div class="section-header">
+                    <h2>🤝 Mercado de Trocas</h2>
+                </div>
+
+                <div class="my-trades-area">
+                    <h3>Meus Anúncios (Máx 3)</h3>
+                    <div id="my-trades-container" class="trade-slots-row">
+                        </div>
+                    <button id="btnCreateTrade" class="btn-secondary" style="margin-top:10px; width:100%;">
+                        + Anunciar Carta da Minha Coleção
+                    </button>
+                </div>
+
+                <hr style="border-color: #444; margin: 30px 0;">
+
+                <div class="global-market-area">
+                    <h3>Disponível para Troca</h3>
+                    <p style="font-size: 0.8em; color: #aaa;">Clique em uma carta para oferecer uma troca.</p>
+                    <div id="market-grid" class="card-grid">
+                        </div>
+                </div>
+            </section>
+
         </main>
 
     </div>
@@ -104,6 +128,15 @@
         </div>
 
         <button id="collectDailyBtn" class="btn-primary" style="margin-top: 20px; width: 100%;">RECEBER MOEDAS</button>
+    </div>
+</div>
+
+    <div id="trade-offer-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h3>O que você oferece em troca?</h3>
+        <p>Escolha uma carta sua para dar:</p>
+        <div id="my-offer-grid" class="card-grid" style="max-height: 300px; overflow-y: auto;"></div>
+        <button onclick="closeTradeModal()" class="btn-logout" style="margin-top:10px;">Cancelar</button>
     </div>
 </div>
 
