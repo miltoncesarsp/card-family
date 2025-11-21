@@ -556,6 +556,18 @@ h1, h2, h3, h4 {
         flex-grow: 1;
         max-width: 170px;
     }
+   .trade-slots-row {
+        grid-template-columns: 1fr 1fr !important; 
+        gap: 10px;
+        padding: 5px;
+    }
+   /* Garante que a carta dentro do wrapper de troca obedeça o tamanho */
+    .market-card-wrapper .card-preview.card-small {
+        width: 100% !important;
+        max-width: 170px;
+        height: auto !important;
+        aspect-ratio: 220 / 308;
+    }
     
     /* Ajuste de fontes no mobile */
     .card-preview.card-small .card-name-footer { font-size: 10px; }
@@ -986,17 +998,20 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     border: 1px solid #444;
 }
 
+/* 1. Força a área "Meus Anúncios" a usar o mesmo GRID do álbum */
 .trade-slots-row {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    min-height: 150px;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap: 20px;
+    justify-items: center;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-/* Card no Mercado */
 .market-card-wrapper {
-    position: relative;
-    cursor: pointer;
+    width: 100%;
+    display: flex;
+    justify-content: center; /* Centraliza a carta na célula */
 }
 
 .market-card-wrapper:hover .card-preview {
