@@ -3,6 +3,7 @@
 // Variáveis Globais
 let player = null;
 let cardsInAlbum = [];
+let allGameCards = []; // TODAS as cartas que existem no jogo (Novo!)
 let packsAvailable = [];
 const BUCKET_NAME = 'cards';
 
@@ -137,19 +138,33 @@ async function loadPlayerData(userId) {
     player = playerData;
     updateHeaderInfo();
 
-    // 4. Carrega as Cartas
-    const { data: playerCardData, error: cardError } = await supabase
+// 1. Busca TODAS as cartas do jogo (Para saber os buracos do álbum)
+    const { data: allCardsData } = await supabase
+        .from('cards')
+        .select('*, personagens_base(origem)')
+        .order('power', { ascending: true });
+        
+    if (allCardsData) allGameCards = allCardsData;
+
+    // 2. Busca as cartas que o JOGADOR TEM
+    const { data: playerCardData } = await supabase
         .from('cartas_do_jogador')
-        .select(`quantidade, card_id, cards (*)`)
+        .select(`quantidade, card_id`)
         .eq('jogador_id', userId);
 
-    if (!cardError && playerCardData) {
-        cardsInAlbum = playerCardData.map(item => {
-             if(!item.cards) return null;
-             return { ...item.cards, quantidade: item.quantidade };
-        }).filter(i => i !== null);
-    } else {
-        cardsInAlbum = [];
+    // 3. Cruzamento de Dados (Merge)
+    // Vamos criar uma lista que contém TUDO, mas marcando o que é "owned" (possuído)
+    if (allGameCards.length > 0) {
+        cardsInAlbum = allGameCards.map(gameCard => {
+            // Verifica se o jogador tem essa carta específica
+            const userHas = playerCardData?.find(item => item.card_id === gameCard.id);
+            
+            return {
+                ...gameCard,
+                quantidade: userHas ? userHas.quantidade : 0, // Se tem, põe a qtd. Se não, 0.
+                owned: !!userHas // True se tem, False se não tem
+            };
+        });
     }
 
     // 5. Finaliza
@@ -235,23 +250,22 @@ function showNotification(message, isError = false) {
 // --- Renderização ---
 function renderAlbum() {
     const container = document.getElementById('album-cards-container');
-    if (!container) return;
-    
-    if (!player) return; // Não renderiza se não estiver logado
+    if (!container || !player) return;
     
     if (cardsInAlbum.length === 0) {
-        container.innerHTML = `<p style="color: white; text-align: center; width: 100%;">Seu álbum está vazio! Compre seu primeiro pacote na Loja.</p>`;
+        container.innerHTML = `<p style="color: white;">Carregando álbum...</p>`;
         return;
     }
 
     let html = '';
-    // Agrupar as cartas por Personagem Base (id_base)
+    
+    // Agrupa por Personagem Base
     const groupedCards = cardsInAlbum.reduce((acc, card) => {
         const baseId = card.id_base;
         if (!acc[baseId]) {
             acc[baseId] = {
-                name: card.name,
-                origin: card.personagens_base ? card.personagens_base.origem : 'Desconhecido',
+                name: card.personagens_base ? card.name.split(' ')[0] : card.name, // Tenta pegar só o primeiro nome ou usa o nome da carta
+                origin: card.personagens_base ? card.personagens_base.origem : 'Geral',
                 element: card.element,
                 cards: []
             };
@@ -264,24 +278,42 @@ function renderAlbum() {
 
     for (const baseId in groupedCards) {
         const base = groupedCards[baseId];
+        // Ordena: Primeiro por Raridade, depois se tem ou não
         base.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
         const baseElementStyles = getElementStyles(base.element);
         
         html += `<div class="album-group">
-            <h3 style="color: ${baseElementStyles.primary}; border-left-color: ${baseElementStyles.primary};">${base.name} (${base.origin})</h3>
+            <h3 style="color: ${baseElementStyles.primary}; border-left-color: ${baseElementStyles.primary};">
+                ${base.origin} <small style="color:white; font-size:0.6em;">(Personagem ID: ${baseId})</small>
+            </h3>
             <div class="card-evolution-line">`;
             
         base.cards.forEach(card => {
             const rarityStyles = getRarityColors(card.rarity);
-            html += `
-                <div class="card-preview card-small card-collected" style="background-image: url('${card.image_url}'); border: 2px solid ${rarityStyles.primary};" title="${card.name} (${card.rarity})">
-                    <span class="card-quantity">x${card.quantidade}</span>
-                    <div class="card-content-wrapper">
-                        <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity}</div>
-                        <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
+            
+            // SE O JOGADOR TIVER A CARTA (owned = true)
+            if (card.owned) {
+                html += `
+                    <div class="card-preview card-small card-collected" 
+                         style="background-image: url('${card.image_url}'); border: 2px solid ${rarityStyles.primary};" 
+                         title="${card.name}">
+                        <span class="card-quantity">x${card.quantidade}</span>
+                        <div class="card-content-wrapper">
+                            <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity}</div>
+                            <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            } 
+            // SE O JOGADOR NÃO TIVER (owned = false) - MOSTRA O FANTASMA
+            else {
+                html += `
+                    <div class="card-preview card-small card-missing" 
+                         style="background-image: url('${card.image_url}'); border: 2px dashed #555;" 
+                         title="Carta Bloqueada: ${card.rarity}">
+                         </div>
+                `;
+            }
         });
         
         html += `</div></div>`;
