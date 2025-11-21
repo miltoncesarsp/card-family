@@ -308,8 +308,22 @@ h1, h2, h3, h4 {
     top: 5px; left: 5px;
 }
 
+/* Reativar o Ícone do Elemento na carta do álbum */
 .card-preview.card-small .card-element-badge {
-    display: none; /* Limpa o visual no álbum */
+    display: flex; /* Traz de volta! */
+    position: absolute;
+    top: 25px; /* Fica logo abaixo da bolinha de quantidade */
+    right: -5px; /* Alinhado com a quantidade */
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+    border-radius: 50%;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    border: 2px solid white;
+    z-index: 15; /* Fica acima da imagem */
+    background-color: rgba(0,0,0,0.5); /* Fundo escuro caso a cor falhe */
 }
 
 .card-preview.card-small .card-force-circle {
@@ -675,3 +689,16 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     border: 1px solid #ddd;
     margin-top: 0;
 }
+
+/* Garante que as cartas fiquem lado a lado e quebrem linha se precisar */
+.card-evolution-line {
+    display: flex;
+    flex-direction: row; /* Força linha horizontal */
+    flex-wrap: wrap; /* Permite ir para baixo se acabar o espaço */
+    gap: 15px;
+    justify-content: center; /* Centraliza o grupo */
+    width: 100%;
+    padding-bottom: 10px;
+}
+
+
