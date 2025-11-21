@@ -209,20 +209,33 @@ h1, h2, h3, h4 {
     z-index: 10;
 }
 
-/* Badge de Raridade */
+/* 1. RARIDADE (Correção do Esticado) */
 .card-preview .rarity-badge {
     position: absolute;
-    top: 8px;
+    bottom: 45px; /* Fica acima da barra de nome */
     left: 8px;
-    padding: 4px 10px;
+    
+    /* FORÇA O TAMANHO (Isso resolve o esticado) */
+    width: 28px !important;
+    height: 28px !important;
+    
+    /* Centraliza o texto (C, R, E) */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    border-radius: 6px; /* Bordas levemente arredondadas */
+    font-size: 14px;
     font-weight: 800;
     color: #fff; 
-    border-radius: 6px;
     text-transform: uppercase;
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    font-size: 14px;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
     z-index: 10;
+    
+    /* Reseta qualquer herança estranha */
+    padding: 0;
+    margin: 0;
 }
 
 .rarity-badge {
@@ -253,19 +266,22 @@ h1, h2, h3, h4 {
 /* Ícone do Elemento */
 .card-preview .card-element-badge {
     position: absolute;
-    top: 40px; /* <--- AQUI: Desci ele para não ficar embaixo do botão de editar */
-    right: 5px;
-    width: 30px;
-    height: 30px;
+    top: 40px; /* <--- IMPORTANTE: Desce 40px para não ficar embaixo do botão Editar */
+    right: 8px;
+    
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.6);
-    border: 2px solid white;
-    color: white;
+    
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 16px;
-    z-index: 15;
+    
+    font-size: 18px;
+    color: white;
+    border: 2px solid white;
+    z-index: 15; /* Z-index alto para aparecer */
+    background-color: rgba(0,0,0,0.5); /* Fundo escuro para garantir contraste */
 }
 
 .card-element-badge {
@@ -395,21 +411,21 @@ h1, h2, h3, h4 {
     height: 210px;
 }
 
-/* Ajustes internos para o tamanho médio */
 .card-preview.card-small .rarity-badge {
-    font-size: 9px;
-    bottom: 35px; /* Ajuste proporcional */
-    padding: 2px 5px;
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 10px;
+    bottom: 35px;
+    left: 5px;
 }
 
 /* Garante que o ícone apareça na carta pequena */
 .card-preview.card-small .card-element-badge {
-    top: 5px;  /* Fica no topo direito */
-    right: 5px;
-    width: 24px; 
-    height: 24px;
-    font-size: 12px;
-    display: flex !important;
+    top: 25px; /* Mais para cima pois não tem botão editar */
+    right: -5px;
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
 }
 
 .card-preview.card-small .card-force-circle {
