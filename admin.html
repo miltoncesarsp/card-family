@@ -66,6 +66,32 @@
             <div id="cardPreviewContainer"></div>
         </div>
     </div>
+
+<hr>
+<section class="management-section">
+    <h2>🖼️ Capas das Origens (Álbum)</h2>
+    
+    <div class="main-forms-container">
+        <div class="form-section">
+            <h3>Adicionar/Editar Capa</h3>
+            <form class="card-form" id="originCoverForm">
+                <label>Nome da Origem (Ex: Marvel):</label>
+                <input id="originNameInput" type="text" placeholder="Digite exatamente igual ao cadastro" required>
+                
+                <label>Imagem da Capa:</label>
+                <input id="originFileInput" type="file" accept="image/*" required>
+                
+                <button type="button" id="saveOriginCoverBtn">Salvar Capa</button>
+            </form>
+        </div>
+        
+        <div class="form-section" style="flex: 2;">
+            <h3>Capas Cadastradas</h3>
+            <div id="originCoversList" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+        </div>
+    </div>
+</section>
+
     
     <hr>
     
