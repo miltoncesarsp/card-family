@@ -191,24 +191,23 @@ h1, h2, h3, h4 {
 
 /* --- CARTA PADRÃO (GRANDE - Usada no Admin) --- */
 .card-preview {
-    width: 260px;
-    height: 364px; /* Proporção 1.4 */
     position: relative;
+    /* Tamanho padrão (Admin) */
+    width: 220px; 
+    height: 308px;
     background-size: cover;
     background-position: center;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-    font-family: 'Poppins', sans-serif;
-    margin: 15px;
-    border: 5px solid #fff;
-    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    margin: 10px;
+    border: 4px solid white;
     transition: transform 0.2s;
-    background-color: #333; /* Cor de fundo se imagem falhar */
+    flex-shrink: 0; /* Impede a carta de ser esmagada */
 }
 
 .card-preview:hover {
     transform: translateY(-5px);
-    z-index: 5;
+    z-index: 10;
 }
 
 /* Badge de Raridade */
@@ -227,6 +226,21 @@ h1, h2, h3, h4 {
     z-index: 10;
 }
 
+.rarity-badge {
+    position: absolute;
+    bottom: 40px; /* Acima do nome */
+    left: 5px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    z-index: 10;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+}
+
 /* Ícone do Elemento */
 .card-preview .card-element-badge {
     position: absolute;
@@ -243,6 +257,24 @@ h1, h2, h3, h4 {
     border: 2px solid white;
     z-index: 9;
     background: rgba(0,0,0,0.3);
+}
+
+.card-element-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6); /* Fundo escuro pra contrastar */
+    border: 2px solid white;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    z-index: 15;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
 /* Círculo de Força */
@@ -265,6 +297,44 @@ h1, h2, h3, h4 {
     z-index: 15;
 }
 
+/* FORÇA: Canto Inferior Direito (Acima do nome) */
+.card-force-circle {
+    position: absolute;
+    bottom: 40px;
+    right: 5px;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    font-size: 14px;
+    font-family: 'Bungee', cursive;
+    border: 2px solid white; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    z-index: 15;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+/* NOME: Barra no Rodapé */
+.card-name-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 8px 0;
+    z-index: 10;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Nome da Carta (Rodapé) */
 .card-preview .card-name-footer {
     position: absolute;
@@ -284,21 +354,35 @@ h1, h2, h3, h4 {
     text-overflow: ellipsis;
 }
 
-/* Bolinha de Quantidade (Padrão oculta no Admin, visível no Jogo) */
+/* QUANTIDADE: Canto Superior ESQUERDO (Estilo Notificação) */
 .card-quantity {
-    display: none; /* No admin não precisa */
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    background-color: #e74c3c; /* Vermelho */
+    color: white;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 20;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
 
 /* --- CARTA MÉDIA (JOGO/ÁLBUM) --- */
 /* Esta classe sobrescreve os tamanhos para o jogo */
 
+/* --- AJUSTES PARA CARTA PEQUENA (JOGO) --- */
 .card-preview.card-small {
-    width: 170px;
-    height: 238px;
-    font-size: 1em;
-    margin: 0; /* Margem controlada pelo Grid */
-    border: 3px solid #fff;
+    width: 150px; /* Largura fixa menor */
+    height: 210px;
+    margin: 0; /* O Grid controla o espaço */
 }
 
 /* Ajustes internos para o tamanho médio */
@@ -308,22 +392,14 @@ h1, h2, h3, h4 {
     top: 5px; left: 5px;
 }
 
-/* Reativar o Ícone do Elemento na carta do álbum */
+/* Garante que o ícone apareça na carta pequena */
 .card-preview.card-small .card-element-badge {
-    display: flex; /* Traz de volta! */
-    position: absolute;
-    top: 25px; /* Fica logo abaixo da bolinha de quantidade */
-    right: -5px; /* Alinhado com a quantidade */
-    width: 26px;
-    height: 26px;
-    font-size: 14px;
-    border-radius: 50%;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    border: 2px solid white;
-    z-index: 15; /* Fica acima da imagem */
-    background-color: rgba(0,0,0,0.5); /* Fundo escuro caso a cor falhe */
+    display: flex !important; /* FORÇA APARECER */
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    top: 5px;
+    right: 5px;
 }
 
 .card-preview.card-small .card-force-circle {
@@ -429,30 +505,28 @@ h1, h2, h3, h4 {
    ========================================= */
 
 /* Grid Inteligente das Cartas */
+/* Container das Cartas (Álbum) */
 .card-grid {
-    display: grid;
-    /* PC: Colunas automáticas, mínimo 160px */
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 20px;
+    display: flex; /* Mudamos para Flex para garantir quebra de linha */
+    flex-wrap: wrap; /* Permite quebrar linha */
+    gap: 15px; /* Espaço entre cartas */
+    justify-content: center; /* Centraliza no meio da tela */
     padding: 20px;
-    justify-items: center;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Responsividade para Celular */
 @media (max-width: 600px) {
-    .card-grid {
-        /* Celular: 2 colunas fixas */
-        grid-template-columns: 1fr 1fr; 
+.card-grid {
         gap: 10px;
         padding: 10px;
     }
-
-    /* Ajusta a carta para caber no grid do celular */
+    /* No celular, força 2 colunas exatas */
     .card-preview.card-small {
-        width: 100%; 
+        width: 45%; /* Quase metade da tela */
+        flex-grow: 1;
         max-width: 170px;
-        height: auto;
-        aspect-ratio: 2.5 / 3.5;
     }
     
     /* Ajuste de fontes no mobile */
@@ -461,12 +535,15 @@ h1, h2, h3, h4 {
 }
 
 
-/* Grid das Pastas de Origem */
+/* Container das Pastas (Origens) */
 .origin-hub-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 25px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
     padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .origin-folder {
@@ -701,12 +778,3 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     padding-bottom: 10px;
 }
 
-/* Grid das Pastas de Origem */
-.origin-hub-grid {
-    display: grid;
-    /* Cria colunas automáticas de no mínimo 250px. Se a tela for grande, cabem várias. */
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
-    gap: 25px;
-    padding: 20px;
-    justify-content: center; /* Centraliza o bloco se sobrar espaço */
-}
