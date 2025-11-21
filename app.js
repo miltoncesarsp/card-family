@@ -235,29 +235,31 @@ function renderAlbum() {
 
     // VISÃO 2: MENU PRINCIPAL (PASTAS)
     let html = `<div class="origin-hub-grid">`;
-    for (const [key, data] of Object.entries(originsData)) {
+for (const [key, data] of Object.entries(originsData)) {
         const percentage = Math.round((data.owned / data.total) * 100);
-        const barColor = percentage === 100 ? '#2ecc71' : '#007bff';
-        
-        // Tenta pegar a capa do banco. Se não tiver, usa null.
         const coverImage = originCovers[data.name]; 
         
-        // Se tiver imagem, põe no background. Se não, usa gradiente padrão.
+        // Define o estilo do background
         const bgStyle = coverImage 
-            ? `background-image: url('${coverImage}'); background-size: cover; background-position: center;` 
-            : `background: linear-gradient(145deg, #2c3e50, #000000);`;
-            
-        const overlayClass = coverImage ? 'has-cover' : '';
+            ? `background-image: url('${coverImage}');` 
+            : `background: linear-gradient(135deg, #1a1a2e, #16213e);`; // Fundo padrão bonito se não tiver imagem
+
+        // Se não tiver imagem, mostra um ícone grande no meio pra não ficar vazio
+        const iconFallback = !coverImage ? `<i class="fas fa-layer-group" style="font-size: 60px; color: rgba(255,255,255,0.1); position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);"></i>` : '';
 
         html += `
-            <div class="origin-folder ${overlayClass}" onclick="openOriginView('${data.name}')" style="${bgStyle}">
+            <div class="origin-folder" onclick="openOriginView('${data.name}')" style="${bgStyle}">
+                ${iconFallback}
                 <div class="origin-content-overlay">
                     <div class="origin-name">${data.name}</div>
-                    <div class="origin-stats">${data.owned} / ${data.total} Cartas</div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar-fill" style="width: ${percentage}%; background-color: ${barColor};"></div>
+                    <div class="origin-stats">
+                        <i class="fas fa-clone"></i> ${data.owned}/${data.total}
                     </div>
-                    <div style="margin-top:5px; font-size: 0.8em; color: ${barColor}; font-weight:bold;">${percentage}%</div>
+                    
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: ${percentage}%;"></div>
+                    </div>
+                    <div class="percent-text">${percentage}% Completo</div>
                 </div>
             </div>
         `;
