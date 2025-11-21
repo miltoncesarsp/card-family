@@ -647,12 +647,27 @@ function createCardHTML(card, isMine, tradeId = null) {
         btnCancel = `<button class="cancel-trade-btn" onclick="cancelTrade('${tradeId}')">Cancelar</button>`;
     }
 
+    // --- NOVO: Lógica para mostrar quantidade ---
+    // Só mostra a bolinha se a propriedade 'quantidade' existir e for maior que 0
+    let quantityHTML = '';
+    if (card.quantidade) {
+        quantityHTML = `<div class="card-quantity">x${card.quantidade}</div>`;
+    }
+    // -------------------------------------------
+
     return `
         <div class="card-preview card-small" style="background-image: url('${card.image_url}'); border-color: ${rarityStyles.primary}; position: relative;">
-            <div class="card-element-badge" style="background: ${elementStyles.background};">${getElementIcon(card.element)}</div>
+            
+            ${quantityHTML}
+
+            <div class="card-element-badge" style="background: ${elementStyles.background};">
+                ${getElementIcon(card.element)}
+            </div>
+            
             <div class="rarity-badge" style="background-color: ${rarityStyles.primary};">${card.rarity.substring(0,1)}</div>
             <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
             <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+            
             ${btnCancel}
         </div>
     `;
