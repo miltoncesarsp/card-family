@@ -318,9 +318,31 @@ async function handleBuyPack(event) {
     showPackOpeningModal(newCards);
 }
 
-// (Mantenha aqui suas funções auxiliares: generateCardsForPack, updatePlayerCards, getRarityColors, getElementStyles, showNotification...)
-// Para economizar espaço na resposta, use as mesmas funções auxiliares que já estavam no seu código anterior.
-// Se precisar delas novamente, me avise.
+function getElementStyles(element) {
+    switch (element.toLowerCase()) {
+        case "terra": return { primary: "#8B4513", background: "linear-gradient(135deg, #A0522D 0%, #6B8E23 100%)" };
+        case "fogo": return { primary: "#FF4500", background: "linear-gradient(135deg, #FF4500 0%, #FFD700 100%)" };
+        case "água": return { primary: "#1E90FF", background: "linear-gradient(135deg, #1E90FF 0%, #87CEEB 100%)" };
+        case "ar": return { primary: "#5F9EA0", background: "linear-gradient(135deg, #708090 0%, #B0C4DE 100%)" };
+        case "tecnologia": return { primary: "#00CED1", background: "linear-gradient(135deg, #00CED1 0%, #191970 100%)" };
+        case "luz": return { primary: "#DAA520", background: "linear-gradient(135deg, #FFD700 0%, #DAA520 100%)" };
+        case "sombra": return { primary: "#4B0082", background: "linear-gradient(135deg, #4B0082 0%, #000000 100%)" };
+        default: return { primary: "#A9A9A9", background: "#A9A9A9" };
+    }
+}
+
+function getElementIcon(element) {
+    switch (element.toLowerCase()) {
+        case "terra": return '<i class="fas fa-leaf"></i>';
+        case "fogo": return '<i class="fas fa-fire"></i>';
+        case "água": return '<i class="fas fa-tint"></i>';
+        case "ar": return '<i class="fas fa-wind"></i>';
+        case "tecnologia": return '<i class="fas fa-microchip"></i>';
+        case "luz": return '<i class="fas fa-sun"></i>';
+        case "sombra": return '<i class="fas fa-moon"></i>';
+        default: return '<i class="fas fa-question"></i>';
+    }
+}
 
 function showPackOpeningModal(newCards) {
     const modal = document.getElementById('pack-opening-modal');
