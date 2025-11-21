@@ -977,3 +977,63 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     color: #ccc;
 }
 
+/* === ÁREA DE TROCAS === */
+
+.my-trades-area {
+    background: rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #444;
+}
+
+.trade-slots-row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    min-height: 150px;
+}
+
+/* Card no Mercado */
+.market-card-wrapper {
+    position: relative;
+    cursor: pointer;
+}
+
+.market-card-wrapper:hover .card-preview {
+    border-color: #2ecc71 !important; /* Fica verde ao passar o mouse */
+    transform: scale(1.05);
+}
+
+.trade-badge {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8);
+    color: #2ecc71;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    opacity: 0;
+    transition: 0.2s;
+    z-index: 20;
+    pointer-events: none;
+}
+
+.market-card-wrapper:hover .trade-badge {
+    opacity: 1;
+}
+
+/* Botão de Cancelar meu anúncio */
+.cancel-trade-btn {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 0.8em;
+    cursor: pointer;
+}
