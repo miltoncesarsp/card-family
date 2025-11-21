@@ -585,9 +585,6 @@ async function checkDailyReward() {
 // SISTEMA DE TROCAS
 // =================================================
 
-let marketCards = [];
-let pendingTradeId = null; // Guarda qual troca o usuário clicou
-
 async function renderTrade() {
     const container = document.getElementById('market-grid');
     const myContainer = document.getElementById('my-trades-container');
