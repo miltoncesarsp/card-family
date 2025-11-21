@@ -397,60 +397,92 @@ function getElementIcon(element) {
     }
 }
 
-function showPackOpeningModal(newCards, title = "🎁 Pacote Aberto!") {
+function showPackOpeningModal(newCards, titleOverride = null) {
     const modal = document.getElementById('pack-opening-modal');
+    const modalContent = modal.querySelector('.modal-content'); // A caixa branca/escura
     const container = document.getElementById('new-cards-display');
     const closeBtn = document.getElementById('closeModalBtn');
     const titleEl = modal.querySelector('h2');
     
-    titleEl.textContent = title;
     container.innerHTML = ''; 
 
+    // --- 1. DETECTOR DE SORTE (Para brilhar a janela) ---
+    // Remove classes antigas de sorte
+    modalContent.classList.remove('luck-legendary', 'luck-mythic');
+    titleEl.classList.remove('lucky-title');
+    titleEl.style.color = ''; // Reseta cor
+
+    // Verifica se tem cartas raras no pacote
+    const hasMythic = newCards.some(c => c.rarity === 'Mítica');
+    const hasLegendary = newCards.some(c => c.rarity === 'Lendária');
+
+    // Define Título e Efeito do Modal
+    if (hasMythic) {
+        modalContent.classList.add('luck-mythic');
+        titleEl.textContent = "✨ SORTE MÍTICA! ✨";
+        titleEl.style.color = "#FFD700";
+        titleEl.classList.add('lucky-title');
+    } else if (hasLegendary) {
+        modalContent.classList.add('luck-legendary');
+        titleEl.textContent = "🔥 SORTE LENDÁRIA! 🔥";
+        titleEl.style.color = "#FF8C00";
+        titleEl.classList.add('lucky-title');
+    } else {
+        // Padrão (ou usa o título passado pela evolução)
+        titleEl.textContent = titleOverride || "🎁 Pacote Aberto!";
+    }
+
+    // --- 2. RENDERIZA AS CARTAS (Com efeitos individuais) ---
     newCards.forEach(card => {
         const rarityStyles = getRarityColors(card.rarity);
+        const elementStyles = getElementStyles(card.element);
         const r = card.rarity.toLowerCase();
         
-        // Define se tem efeitos especiais
+        // Efeitos individuais (Raios)
         let backgroundEffect = '';
         let animationClass = '';
 
-        // Lógica de Efeitos visuais por Raridade
         if (r === 'mítica') {
-            // Mítica ganha raios dourados rápidos e explosão
             backgroundEffect = `<div class="god-rays mythic"></div>`;
-            animationClass = 'effect-pulse'; // Pulsa também
-        } else if (r === 'lendária') {
-            // Lendária ganha raios brancos
-            backgroundEffect = `<div class="god-rays"></div>`;
             animationClass = 'effect-pulse';
-        } else if (r === 'épica') {
-            // Épica só pulsa forte
+        } else if (r === 'lendária') {
+            backgroundEffect = `<div class="god-rays"></div>`;
             animationClass = 'effect-pulse';
         }
 
-        // Cria o container que segura a carta e os efeitos
         const wrapper = document.createElement('div');
         wrapper.className = 'modal-card-container';
         
-        // HTML da Carta
         wrapper.innerHTML = `
-            ${backgroundEffect} <div class="card-preview card-small ${animationClass}" 
+            ${backgroundEffect}
+            
+            <div class="card-preview card-small ${animationClass}" 
                  style="background-image: url('${card.image_url}'); 
                         border: 3px solid ${rarityStyles.primary}; 
-                        color: ${rarityStyles.primary}; /* Para o box-shadow usar currentColor */">
+                        color: ${rarityStyles.primary};">
                 
+                <div class="card-element-badge" style="background: ${elementStyles.background};">
+                    ${getElementIcon(card.element)}
+                </div>
+
                 <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity.substring(0,1)}</div>
+                
                 <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white;">${card.power}</div>
+                
                 <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
             </div>
         `;
         container.appendChild(wrapper);
     });
 
+    // Abre o modal
     modal.classList.remove('hidden');
     
+    // Fecha
     closeBtn.onclick = () => { 
         modal.classList.add('hidden'); 
+        // Limpa efeitos ao fechar para não piscar na próxima
+        modalContent.classList.remove('luck-legendary', 'luck-mythic');
         renderAlbum(); 
     };
 }
