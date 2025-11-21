@@ -815,3 +815,39 @@ table button {
 .new-cards-grid .card-preview:nth-child(3) { animation-delay: 0.5s; }
 .new-cards-grid .card-preview:nth-child(4) { animation-delay: 0.7s; }
 .new-cards-grid .card-preview:nth-child(5) { animation-delay: 0.9s; }
+
+/* Estilo para carta que o jogador NÃO tem (Bloqueada) */
+.card-missing {
+    filter: grayscale(100%) brightness(0.5); /* Preto e branco e escura */
+    opacity: 0.6;
+    border-style: dashed !important; /* Borda tracejada */
+    position: relative;
+    cursor: not-allowed;
+}
+
+/* Ícone de cadeado para carta bloqueada */
+.card-missing::after {
+    content: '\f023'; /* Código do ícone de cadeado (FontAwesome) */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
+    color: rgba(255, 255, 255, 0.5);
+    z-index: 10;
+}
+
+/* Remove os badges de força e raridade se a carta estiver bloqueada (opcional) */
+.card-missing .card-force-circle,
+.card-missing .rarity-badge,
+.card-missing .card-quantity {
+    display: none; 
+}
+
+/* Tooltip simples ao passar o mouse */
+.card-missing:hover::after {
+    color: white;
+    transform: translate(-50%, -50%) scale(1.2);
+    transition: 0.3s;
+}
