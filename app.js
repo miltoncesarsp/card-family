@@ -94,39 +94,71 @@ function updateUIState(session) {
 // ------------------------------------
 
 async function loadPlayerData(userId) {
-    // Tenta buscar o jogador
+    console.log("Carregando dados para o ID:", userId);
+
+    // 1. Tenta buscar o jogador
     let { data: playerData, error: playerError } = await supabase
         .from('jogadores')
         .select('*')
         .eq('id', userId)
         .single();
 
-    // Se der erro ou não achar (pode acontecer se o trigger demorar milissegundos)
+    // 2. REDE DE SEGURANÇA: Se não existir, cria MANUALMENTE agora
     if (!playerData) {
-        console.log("Aguardando criação do jogador...");
-        // Tenta de novo em 1 segundo (fallback para o trigger)
-        setTimeout(() => loadPlayerData(userId), 1000);
-        return;
+        console.log("Jogador não encontrado no banco. Criando manualmente...");
+        
+        // Pega o e-mail da sessão atual para preencher
+        const { data: { session } } = await supabase.auth.getSession();
+        const userEmail = session?.user?.email || "usuario@email.com";
+
+        const { error: insertError } = await supabase
+            .from('jogadores')
+            .insert([{
+                id: userId,
+                email: userEmail,
+                nome: userEmail.split('@')[0],
+                nivel: 1,
+                moedas: 500,
+                total_cartas: 0
+            }]);
+
+        if (insertError) {
+            console.error("Erro fatal ao criar jogador:", insertError);
+            alert("Erro ao criar seu perfil de jogador. Verifique o console.");
+            return;
+        }
+
+        console.log("Jogador criado manualmente com sucesso!");
+        // Tenta buscar de novo agora que criamos
+        return loadPlayerData(userId);
     }
     
+    // 3. Sucesso! Carrega os dados na tela
     player = playerData;
     updateHeaderInfo();
 
-    // Carrega Cartas
+    // 4. Carrega as Cartas
     const { data: playerCardData, error: cardError } = await supabase
         .from('cartas_do_jogador')
         .select(`quantidade, card_id, cards (*)`)
         .eq('jogador_id', userId);
 
     if (!cardError && playerCardData) {
-        cardsInAlbum = playerCardData.map(item => ({
-            ...item.cards,
-            quantidade: item.quantidade
-        }));
+        cardsInAlbum = playerCardData.map(item => {
+             if(!item.cards) return null;
+             return { ...item.cards, quantidade: item.quantidade };
+        }).filter(i => i !== null);
+    } else {
+        cardsInAlbum = [];
     }
 
+    // 5. Finaliza
     if (packsAvailable.length === 0) await loadPacks();
-    renderAlbum(); 
+    renderAlbum();
+    
+    // Remove a tela de login se ela ainda estiver lá
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('game-content').classList.remove('hidden');
 }
 
 async function loadPacks() {
