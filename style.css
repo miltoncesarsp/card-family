@@ -192,8 +192,7 @@ h1, h2, h3, h4 {
 /* --- CARTA PADRÃO (GRANDE - Usada no Admin) --- */
 .card-preview {
     position: relative;
-    /* Tamanho padrão (Admin) */
-    width: 220px; 
+    width: 220px;  /* Admin */
     height: 308px;
     background-size: cover;
     background-position: center;
@@ -202,7 +201,7 @@ h1, h2, h3, h4 {
     margin: 10px;
     border: 4px solid white;
     transition: transform 0.2s;
-    flex-shrink: 0; /* Impede a carta de ser esmagada */
+    flex-shrink: 0;
 }
 
 .card-preview:hover {
@@ -228,35 +227,45 @@ h1, h2, h3, h4 {
 
 .rarity-badge {
     position: absolute;
-    bottom: 40px; /* Acima do nome */
+    /* Jogamos para baixo para limpar o topo */
+    bottom: 45px; 
     left: 5px;
+    
+    /* Tamanho controlado */
     padding: 2px 8px;
+    min-width: 20px; /* Mínimo para caber uma letra */
+    height: auto;
+    
     border-radius: 4px;
-    font-size: 10px;
-    font-weight: bold;
+    font-size: 10px; /* Fonte pequena */
+    font-weight: 800;
     color: white;
     text-transform: uppercase;
     box-shadow: 0 2px 4px rgba(0,0,0,0.5);
     z-index: 10;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+    
+    /* Garante que não estique */
+    display: inline-block;
+    width: auto; 
 }
 
 /* Ícone do Elemento */
 .card-preview .card-element-badge {
     position: absolute;
-    top: 45px;
-    right: 8px;
-    width: 35px;
-    height: 35px;
+    top: 40px; /* <--- AQUI: Desci ele para não ficar embaixo do botão de editar */
+    right: 5px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid white;
+    color: white;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 18px;
-    color: white;
-    border: 2px solid white;
-    z-index: 9;
-    background: rgba(0,0,0,0.3);
+    font-size: 16px;
+    z-index: 15;
 }
 
 .card-element-badge {
@@ -357,9 +366,11 @@ h1, h2, h3, h4 {
 /* QUANTIDADE: Canto Superior ESQUERDO (Estilo Notificação) */
 .card-quantity {
     position: absolute;
-    top: -10px;
-    left: -10px;
-    background-color: #e74c3c; /* Vermelho */
+    top: -12px;
+    left: 50%; /* Meio da carta */
+    transform: translateX(-50%); /* Centraliza exato */
+    
+    background-color: #e74c3c;
     color: white;
     border: 2px solid #fff;
     border-radius: 50%;
@@ -380,26 +391,25 @@ h1, h2, h3, h4 {
 
 /* --- AJUSTES PARA CARTA PEQUENA (JOGO) --- */
 .card-preview.card-small {
-    width: 150px; /* Largura fixa menor */
+    width: 150px;
     height: 210px;
-    margin: 0; /* O Grid controla o espaço */
 }
 
 /* Ajustes internos para o tamanho médio */
 .card-preview.card-small .rarity-badge {
-    font-size: 11px;
-    padding: 3px 6px;
-    top: 5px; left: 5px;
+    font-size: 9px;
+    bottom: 35px; /* Ajuste proporcional */
+    padding: 2px 5px;
 }
 
 /* Garante que o ícone apareça na carta pequena */
 .card-preview.card-small .card-element-badge {
-    display: flex !important; /* FORÇA APARECER */
-    width: 24px;
+    top: 5px;  /* Fica no topo direito */
+    right: 5px;
+    width: 24px; 
     height: 24px;
     font-size: 12px;
-    top: 5px;
-    right: 5px;
+    display: flex !important;
 }
 
 .card-preview.card-small .card-force-circle {
@@ -550,13 +560,19 @@ h1, h2, h3, h4 {
     background: linear-gradient(145deg, #2c3e50, #000000);
     border: 1px solid #444;
     border-radius: 15px;
-    padding: 20px;
+    padding: 15px;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
+    
+    /* FIXANDO O TAMANHO */
+    width: 100%;
+    height: 180px; /* Altura fixa para todas ficarem iguais */
+    justify-content: space-between; /* Espalha o conteúdo */
+    box-sizing: border-box;
 }
 
 .origin-folder:hover {
@@ -566,7 +582,18 @@ h1, h2, h3, h4 {
 }
 
 .origin-icon { font-size: 40px; color: var(--coin-color); margin-bottom: 10px; }
-.origin-name { font-family: 'Bungee', cursive; font-size: 1.5em; color: white; margin: 5px 0; }
+.origin-name {
+    font-family: 'Bungee', cursive;
+    font-size: 1.2em; /* Fonte um pouco menor para caber */
+    color: white;
+    margin: 5px 0;
+    
+    /* TRATAMENTO DE NOMES LONGOS */
+    width: 100%;
+    white-space: nowrap; /* Não quebra linha */
+    overflow: hidden;    /* Corta o que passar */
+    text-overflow: ellipsis; /* Adiciona "..." */
+}
 .origin-stats { font-size: 0.9em; color: #aaa; margin-bottom: 10px; }
 
 /* Barra de Progresso */
