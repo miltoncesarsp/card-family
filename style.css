@@ -1092,3 +1092,77 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     #my-offer-grid .card-quantity { width: 20px; height: 20px; font-size: 10px; }
     #my-offer-grid .card-force-circle { width: 25px; height: 25px; font-size: 10px; bottom: 25px; }
 }
+
+/* Container da carta no modal (para centralizar os efeitos) */
+.modal-card-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px;
+}
+
+/* --- 1. EFEITO DE "GOD RAYS" (Raios de Luz Giratórios) --- */
+/* Usado para Lendária e Mítica */
+.god-rays {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    background: repeating-conic-gradient(
+        from 0deg,
+        rgba(255, 255, 255, 0.1) 0deg,
+        rgba(255, 255, 255, 0.1) 10deg,
+        transparent 10deg,
+        transparent 20deg
+    );
+    border-radius: 50%;
+    animation: rotate-rays 10s linear infinite;
+    z-index: 0; /* Fica atrás da carta */
+    pointer-events: none;
+}
+
+/* Variação Dourada para Mítica */
+.god-rays.mythic {
+    background: repeating-conic-gradient(
+        from 0deg,
+        rgba(255, 215, 0, 0.4) 0deg,   /* Ouro */
+        rgba(255, 215, 0, 0.4) 10deg,
+        transparent 10deg,
+        transparent 20deg
+    );
+    width: 400px; height: 400px; /* Maior */
+    animation: rotate-rays 5s linear infinite; /* Mais rápido */
+}
+
+@keyframes rotate-rays {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* --- 2. ANIMAÇÃO DE IMPACTO (A carta chega com força) --- */
+@keyframes epic-entry {
+    0% { transform: scale(0) rotate(-360deg); opacity: 0; }
+    60% { transform: scale(1.2) rotate(10deg); opacity: 1; }
+    80% { transform: scale(0.9) rotate(-5deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+/* Aplica a animação na carta */
+.modal-card-container .card-preview {
+    z-index: 5; /* Fica na frente dos raios */
+    animation: epic-entry 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    box-shadow: 0 0 30px currentColor; /* Brilho intenso */
+}
+
+/* --- 3. BRILHO PULSANTE (Para cartas normais) --- */
+@keyframes pulse-glow {
+    0% { box-shadow: 0 0 10px currentColor; }
+    50% { box-shadow: 0 0 30px currentColor; transform: scale(1.02); }
+    100% { box-shadow: 0 0 10px currentColor; }
+}
+
+.effect-pulse {
+    animation: pulse-glow 2s infinite !important;
+}
