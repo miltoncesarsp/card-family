@@ -206,46 +206,36 @@ button:hover {
     margin-bottom: 20px;
 }
 
-/* Reduz o tamanho da carta na lista para não ocupar demais */
+/* === VERSÃO PEQUENA DA CARTA (PARA O ÁLBUM DO JOGO) === */
+
 .card-preview.card-small {
-    width: 150px; /* Largura menor */
-    height: 225px; /* Altura menor (proporcional) */
+    width: 120px; /* Largura ideal para celular e PC */
+    height: 160px;
     font-size: 0.9em;
-    
-    /* REMOVER DUPLICAÇÃO/CONFLITO DE BORDA: 
-       A borda de 4px será herdada do .card-preview, mas as dimensões serão desta classe. */
-    border: 4px solid #fff; /* Deixa esta borda de 4px para que o tamanho seja respeitado */
-    
-    /* Mantenha o restante das propriedades */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    position: relative; 
-    overflow: hidden; /* ESSENCIAL */
+    margin: 0; /* Remove margem externa pois usamos gap no grid */
 }
 
-/* Ajustes finos nos elementos internos para a versão pequena */
+/* Ajustes dos elementos internos para a versão pequena */
 .card-preview.card-small .rarity-badge {
     font-size: 10px;
-    padding: 2px 6px;
-    top: 3px;
-    left: 3px;
+    padding: 2px 5px;
 }
+
 .card-preview.card-small .card-element-badge {
+    display: none; /* Opcional: Esconde o elemento na carta pequena para limpar o visual (já tem no título) */
+}
+
+.card-preview.card-small .card-force-circle {
     width: 25px;
     height: 25px;
-    font-size: 14px;
-    top: 3px;
-    right: 3px;
-}
-.card-preview.card-small .card-name-footer {
     font-size: 12px;
-    padding: 5px 0;
+    bottom: 30px; /* Ajusta posição */
+    border-width: 2px;
 }
-.card-preview.card-small .card-force-circle {
-    width: 35px;
-    height: 35px;
-    font-size: 14px;
-    bottom: 25px; /* Ajuste para o rodapé menor */
-    right: 3px;
+
+.card-preview.card-small .card-name-footer {
+    font-size: 10px;
+    padding: 4px 0;
 }
 
 /* style.css (Adicionar ao final) */
@@ -820,38 +810,64 @@ table button {
 .new-cards-grid .card-preview:nth-child(4) { animation-delay: 0.7s; }
 .new-cards-grid .card-preview:nth-child(5) { animation-delay: 0.9s; }
 
-/* Estilo para carta que o jogador NÃO tem (Bloqueada) */
+/* Carta que o jogador NÃO tem (Bloqueada) */
 .card-missing {
-    filter: grayscale(100%) brightness(0.5); /* Preto e branco e escura */
+    filter: grayscale(100%) brightness(0.5);
     opacity: 0.6;
-    border-style: dashed !important; /* Borda tracejada */
-    position: relative;
+    border-style: dashed !important;
     cursor: not-allowed;
 }
 
-/* Ícone de cadeado para carta bloqueada */
 .card-missing::after {
-    content: '\f023'; /* Código do ícone de cadeado (FontAwesome) */
+    content: '\f023'; /* Cadeado */
     font-family: "Font Awesome 6 Free";
     font-weight: 900;
     position: absolute;
-    top: 50%; left: 50%;
+    top: 40%;
+    left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 40px;
+    font-size: 30px;
     color: rgba(255, 255, 255, 0.5);
-    z-index: 10;
 }
 
-/* Remove os badges de força e raridade se a carta estiver bloqueada (opcional) */
+/* Esconde detalhes da carta bloqueada, mas mantém o nome */
 .card-missing .card-force-circle,
 .card-missing .rarity-badge,
-.card-missing .card-quantity {
+.card-missing .card-quantity,
+.card-missing .card-element-badge {
     display: none; 
 }
 
-/* Tooltip simples ao passar o mouse */
-.card-missing:hover::after {
-    color: white;
-    transform: translate(-50%, -50%) scale(1.2);
-    transition: 0.3s;
+/* === ORGANIZAÇÃO DO ÁLBUM POR ORIGEM === */
+
+.origin-section {
+    margin-bottom: 40px;
+    background: rgba(255,255,255,0.05); /* Fundo sutil */
+    padding: 15px;
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.origin-title {
+    font-size: 1.5em;
+    color: #FFD700; /* Dourado */
+    border-bottom: 2px solid #FFD700;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: 'Bungee', cursive;
+}
+
+.character-row {
+    margin-bottom: 25px;
+    padding-left: 10px;
+}
+
+/* Contêiner flex para as cartas ficarem alinhadas */
+.card-evolution-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: flex-start; /* Alinha à esquerda */
 }
