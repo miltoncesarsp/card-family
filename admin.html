@@ -122,7 +122,9 @@
             <label>Lendária (%):</label><input id="chanceLendariaInput" type="number" min="0" max="100" step="0.1" required>
             <label>Mítica (%):</label><input id="chanceMiticaInput" type="number" min="0" max="100" step="0.1" required>
             
-            <button type="button" id="savePackBtn">Salvar Novo Pacote</button>
+            <label>Imagem da Capa do Pacote:</label>
+            <input id="packFileInput" type="file" accept="image/*">
+            <input type="hidden" id="packCurrentImageUrl"> <button type="button" id="savePackBtn">Salvar Novo Pacote</button>
         </form>
     </div>
 </section>
