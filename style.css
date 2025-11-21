@@ -86,99 +86,96 @@ button:hover {
 }
 
 .card-preview {
+    /* Tamanho PADRÃO (Usado no Admin) */
     width: 200px;
     height: 300px;
     position: relative;
     background-size: cover;
     background-position: center;
     border-radius: 12px;
-    overflow: hidden;
     box-shadow: 0 8px 20px rgba(0,0,0,0.5);
     font-family: 'Poppins', sans-serif;
     margin: 10px;
-    
-    /* RESTAURADO: Borda branca de 4px para o preview */
-    border: 4px solid #fff; 
+    border: 4px solid #fff;
+    overflow: hidden; /* Garante que o rodapé não saia da carta */
+    transition: transform 0.2s;
 }
 
-/* Banner de Raridade no topo */
+.card-preview:hover {
+    transform: translateY(-5px);
+    z-index: 10;
+}
+
+/* Badge de Raridade (Canto Superior Esquerdo) */
 .card-preview .rarity-badge {
     position: absolute;
     top: 5px;
     left: 5px;
-    padding: 3px 8px; /* Diminuindo um pouco o padding */
+    padding: 3px 8px;
     font-weight: 800;
     color: #fff; 
-    border-radius: 8px;
+    border-radius: 6px;
     text-transform: uppercase;
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-font-size: 11px; 
-text-shadow: 1px 1px 2px rgba(0,0,0,0.6); 
-    line-height: 1; 
+    font-size: 12px; /* Tamanho legível para Admin */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
     z-index: 10;
-    font-family: 'Poppins', sans-serif; 
 }
 
+/* Ícone do Elemento (Canto Superior Direito - Abaixo da Quantidade) */
 .card-preview .card-element-badge {
     position: absolute;
-    top: 5px;
+    top: 35px; /* Abaixei um pouco para não bater na quantidade */
     right: 5px;
-    width: 35px;
-    height: 35px;
-    /* BACKGROUND DEVE SER REMOVIDO OU PADRÃO, POIS O JS APLICA O GRADIENT */
-    /* Garante que o gradiente aplicado pelo JS será visível */
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 18px;
-    color: white; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
-    border: 2px solid white; 
-    overflow: hidden; /* Garante que o background fique dentro do círculo */
-    z-index: 10;
+    font-size: 16px;
+    color: white;
+    border: 2px solid white;
+    z-index: 9;
 }
 
-/* Barra de nome do personagem no rodapé */
+/* Círculo de Força (Canto Inferior Direito - Acima do nome) */
+.card-preview .card-force-circle {
+    position: absolute;
+    bottom: 35px; /* Fica logo acima da barra de nome */
+    right: 5px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    font-size: 18px;
+    font-family: 'Bungee', cursive;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+    border: 3px solid; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    z-index: 15;
+}
+
+/* Nome da Carta (Barra Fixa no Rodapé) */
 .card-preview .card-name-footer {
     position: absolute;
     bottom: 0;
-    width: 100%; /* Isso deveria funcionar, mas pode ser afetado pelo padding do pai */
-    left: 0; /* Adicionar para forçar a extensão total */
-    right: 0; /* Adicionar para forçar a extensão total */
-    text-align: center;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.85); /* Fundo escuro para leitura */
     color: white;
+    text-align: center;
     font-weight: bold;
-    box-shadow: 0 -5px 10px rgba(0,0,0,0.5);
-    text-shadow: 1px 1px 2px #000;
+    font-size: 14px;
+    padding: 8px 0;
     z-index: 10;
-    font-size: 16px;
     font-family: 'Bungee', cursive;
-    padding: 10px 0; /* Vertical padding para o texto */
-}
-
-/* Pílula de força no canto inferior direito */
-.card-preview .card-force-circle {
-    /* NOVO POSICIONAMENTO: Metade em cima do rodapé */
-    position: absolute;
-    right: 5px;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    /* O background-color e color são definidos no JS (para serem dinâmicos) */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-font-weight: 800;
-    font-size: 18px;
-    font-family: 'Bungee', cursive; /* Bungee para o número da força */
-    bottom: 35px;
-    /* A border-color é definida no JS (será branca) */
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.6); /* Adicionando sombra preta para profundidade */
-    border: 3px solid; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    z-index: 15; /* Maior z-index para garantir que fique sobre o rodapé */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Adiciona ... se o nome for longo */
 }
 
 #previewContainer {
@@ -615,17 +612,24 @@ table button {
     height: 225px;
 }
 
+/* Quantidade (Bolinha estilo notificação - Só aparece no Jogo) */
 .card-quantity {
     position: absolute;
-    top: 5px;
-    left: 5px;
-    background-color: var(--primary-color);
+    top: -5px;
+    right: -5px;
+    background-color: #e74c3c; /* Vermelho */
     color: white;
-    padding: 3px 8px;
-    border-radius: 5px;
-    font-size: 0.9em;
-    z-index: 10;
+    border: 2px solid #1a1a2e;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
     font-weight: bold;
+    z-index: 20;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .card-action-btn {
