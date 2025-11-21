@@ -412,20 +412,34 @@ h1, h2, h3, h4 {
 }
 
 .card-preview.card-small .rarity-badge {
-    width: 20px !important;
-    height: 20px !important;
-    font-size: 10px;
-    bottom: 35px;
-    left: 5px;
+    top: 5px !important;      /* Encosta no topo */
+    left: 5px !important;     /* Encosta na esquerda */
+    bottom: auto !important;  /* Remove do rodapé */
+    
+    /* Tamanho fixo pequeno */
+    width: 22px !important;
+    height: 22px !important;
+    padding: 0 !important;
+    font-size: 11px !important;
+    
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Garante que o ícone apareça na carta pequena */
 .card-preview.card-small .card-element-badge {
-    top: 25px; /* Mais para cima pois não tem botão editar */
-    right: -5px;
-    width: 26px;
-    height: 26px;
-    font-size: 14px;
+    top: 5px !important;      /* Encosta no topo */
+    right: 5px !important;    /* Positivo joga para DENTRO */
+    
+    /* Tamanho fixo pequeno */
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 12px !important;
+    
+    /* Garante que aparece */
+    display: flex !important;
+    z-index: 15 !important;
 }
 
 .card-preview.card-small .card-force-circle {
@@ -443,22 +457,10 @@ h1, h2, h3, h4 {
 
 /* Quantidade (Estilo Notificação) */
 .card-preview.card-small .card-quantity {
-    display: flex;
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background-color: #e74c3c;
-    color: white;
-    border: 2px solid #1a1a2e;
-    border-radius: 50%;
-    width: 26px;
-    height: 26px;
-    justify-content: center;
-    align-items: center;
-    font-size: 12px;
-    font-weight: bold;
-    z-index: 20;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    top: -10px !important;
+    right: auto !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
 }
 
 /* --- ESTILO DA CARTA BLOQUEADA (MISSING) --- */
