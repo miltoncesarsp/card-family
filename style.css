@@ -1166,3 +1166,41 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
 .effect-pulse {
     animation: pulse-glow 2s infinite !important;
 }
+
+/* === EFEITOS DE SORTE NO MODAL (GLOW) === */
+
+/* Sorte Lendária (Laranja Intenso) */
+.modal-content.luck-legendary {
+    box-shadow: 0 0 60px rgba(255, 140, 0, 0.6);
+    border-color: #FF8C00;
+    animation: pulse-legendary 2s infinite;
+}
+
+/* Sorte Mítica (Dourado Divino) */
+.modal-content.luck-mythic {
+    box-shadow: 0 0 80px rgba(255, 215, 0, 0.8);
+    border-color: #FFD700;
+    background: linear-gradient(to bottom, #4b3b00, #000000); /* Fundo mais rico */
+    animation: pulse-mythic 1.5s infinite;
+}
+
+/* Animações de Pulso da Janela */
+@keyframes pulse-legendary {
+    0% { box-shadow: 0 0 40px rgba(255, 140, 0, 0.5); }
+    50% { box-shadow: 0 0 80px rgba(255, 140, 0, 0.8); }
+    100% { box-shadow: 0 0 40px rgba(255, 140, 0, 0.5); }
+}
+
+@keyframes pulse-mythic {
+    0% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.6); }
+    50% { box-shadow: 0 0 100px rgba(255, 215, 0, 1); border-color: white; }
+    100% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.6); }
+}
+
+/* Título Especial */
+.lucky-title {
+    font-size: 2em !important;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
