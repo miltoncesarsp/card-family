@@ -253,70 +253,99 @@ function renderAlbum() {
     if (!container || !player) return;
     
     if (cardsInAlbum.length === 0) {
-        container.innerHTML = `<p style="color: white;">Carregando álbum...</p>`;
+        container.innerHTML = `<p style="color: white; text-align: center;">Carregando álbum...</p>`;
         return;
     }
 
     let html = '';
     
-    // Agrupa por Personagem Base
-    const groupedCards = cardsInAlbum.reduce((acc, card) => {
+    // 1. Agrupamento Duplo: Origem -> Personagem Base
+    const groupedByOrigin = {};
+
+    cardsInAlbum.forEach(card => {
+        // Garante dados seguros
+        const origem = card.personagens_base ? card.personagens_base.origem : 'Outros';
         const baseId = card.id_base;
-        if (!acc[baseId]) {
-            acc[baseId] = {
-                name: card.personagens_base ? card.name.split(' ')[0] : card.name, // Tenta pegar só o primeiro nome ou usa o nome da carta
-                origin: card.personagens_base ? card.personagens_base.origem : 'Geral',
+        const charName = card.personagens_base ? card.personagens_base.personagem : card.name.split(' ')[0];
+
+        // Cria o grupo da Origem se não existir
+        if (!groupedByOrigin[origem]) {
+            groupedByOrigin[origem] = {};
+        }
+
+        // Cria o grupo do Personagem dentro da Origem
+        if (!groupedByOrigin[origem][baseId]) {
+            groupedByOrigin[origem][baseId] = {
+                name: charName,
                 element: card.element,
                 cards: []
             };
         }
-        acc[baseId].cards.push(card);
-        return acc;
-    }, {});
+
+        // Adiciona a carta
+        groupedByOrigin[origem][baseId].cards.push(card);
+    });
     
     const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
 
-    for (const baseId in groupedCards) {
-        const base = groupedCards[baseId];
-        // Ordena: Primeiro por Raridade, depois se tem ou não
-        base.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
-        const baseElementStyles = getElementStyles(base.element);
+    // 2. Construção do HTML
+    // Itera sobre cada Origem (Ex: Marvel, DC)
+    for (const [origemName, personagens] of Object.entries(groupedByOrigin)) {
         
-        html += `<div class="album-group">
-            <h3 style="color: ${baseElementStyles.primary}; border-left-color: ${baseElementStyles.primary};">
-                ${base.origin} <small style="color:white; font-size:0.6em;">(Personagem ID: ${baseId})</small>
-            </h3>
-            <div class="card-evolution-line">`;
+        html += `<div class="origin-section">`;
+        html += `<h2 class="origin-title"><i class="fas fa-globe"></i> ${origemName}</h2>`;
+
+        // Itera sobre cada Personagem dessa Origem (Ex: Hulk, Thor)
+        for (const [baseId, charData] of Object.entries(personagens)) {
             
-        base.cards.forEach(card => {
-            const rarityStyles = getRarityColors(card.rarity);
+            // Ordena as cartas do personagem por raridade
+            charData.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
             
-            // SE O JOGADOR TIVER A CARTA (owned = true)
-            if (card.owned) {
-                html += `
-                    <div class="card-preview card-small card-collected" 
-                         style="background-image: url('${card.image_url}'); border: 2px solid ${rarityStyles.primary};" 
-                         title="${card.name}">
-                        <span class="card-quantity">x${card.quantidade}</span>
-                        <div class="card-content-wrapper">
-                            <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity}</div>
+            const elementStyles = getElementStyles(charData.element);
+            
+            html += `
+                <div class="character-row">
+                    <h4 style="color: white; margin-bottom: 10px;">
+                        <span style="color: ${elementStyles.primary}">${getElementIcon(charData.element)}</span> 
+                        ${charData.name}
+                    </h4>
+                    <div class="card-evolution-line" style="display: flex; flex-wrap: wrap; gap: 15px;">
+            `;
+
+            // Renderiza as Cartas
+            charData.cards.forEach(card => {
+                const rarityStyles = getRarityColors(card.rarity);
+                
+                if (card.owned) {
+                    // CARTA POSSUÍDA
+                    html += `
+                        <div class="card-preview card-collected" 
+                             style="background-image: url('${card.image_url}'); border: 2px solid ${rarityStyles.primary};" 
+                             title="${card.name}">
+                            
+                            <div class="card-quantity">x${card.quantidade}</div>
+
+                            <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity.substring(0,1)}</div>
                             <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
+                            
+                            <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
                         </div>
-                    </div>
-                `;
-            } 
-            // SE O JOGADOR NÃO TIVER (owned = false) - MOSTRA O FANTASMA
-            else {
-                html += `
-                    <div class="card-preview card-small card-missing" 
-                         style="background-image: url('${card.image_url}'); border: 2px dashed #555;" 
-                         title="Carta Bloqueada: ${card.rarity}">
-                         </div>
-                `;
-            }
-        });
-        
-        html += `</div></div>`;
+                    `;
+                } else {
+                    // CARTA FALTANTE (Bloqueada)
+                    html += `
+                        <div class="card-preview card-missing" 
+                             style="background-image: url('${card.image_url}'); border: 2px dashed #555;">
+                             
+                             <div class="card-name-footer">${card.name}</div>
+                        </div>
+                    `;
+                }
+            });
+
+            html += `</div></div>`; // Fecha character-row e linha de cartas
+        }
+        html += `</div>`; // Fecha origin-section
     }
 
     container.innerHTML = html;
