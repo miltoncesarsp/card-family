@@ -14,8 +14,8 @@
             <h1>Card Collector</h1>
             <p>Entre para jogar!</p>
             
-            <input type="email" id="emailInput" placeholder="Seu E-mail" required>
-            <input type="password" id="passwordInput" placeholder="Sua Senha" required>
+            <input type="email" id="emailInput" placeholder="Seu E-mail">
+            <input type="password" id="passwordInput" placeholder="Sua Senha">
             
             <div class="login-actions">
                 <button id="btnLogin" class="btn-primary">Entrar</button>
@@ -26,37 +26,23 @@
     </div>
 
     <div id="game-content" class="hidden">
+        
         <header class="game-header">
-            <h1 class="game-title">Card Game</h1>
-            <div class="user-info">
-                <span id="player-name">Jogador</span> | 
-                <span id="player-coins"><i class="fas fa-coins"></i> 0</span>
-            </div>
-            <button id="logoutBtn" class="btn-logout">Sair</button>
+           <button id="logoutBtn" style="float: right; background: red; color: white;">Sair</button>
         </header>
 
         <nav class="main-navigation">
-            <button data-section="album" class="nav-btn active"><i class="fas fa-book"></i> Álbum</button>
-            <button data-section="shop" class="nav-btn"><i class="fas fa-store"></i> Loja</button>
-            </nav>
+           </nav>
 
         <main id="main-content">
-            <section id="album-section" class="game-section active">
-                <h2>Meu Álbum</h2>
-                <div id="album-cards-container" class="card-grid"></div>
-            </section>
+           </main>
 
-            <section id="shop-section" class="game-section hidden">
-                <h2>Loja de Pacotes</h2>
-                <div id="packs-list-container" class="pack-list"></div>
-            </section>
-        </main>
     </div>
-    
+
     <div id="notification-area" class="notification-area"></div>
 
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <script src="supabaseClient-v2.js?v=2"></script>
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=5"></script>
 </body>
 </html>
