@@ -8,6 +8,8 @@ let packsAvailable = [];
 let evolutionRules = {}; // Regras de evolução (ex: {Comum: 5})
 let currentOriginView = null; // Controla em qual pasta estamos
 const BUCKET_NAME = 'cards';
+let marketCards = [];
+let pendingTradeId = null; // Guarda qual troca o usuário clicou
 
 // Elementos da Tela de Login
 const loginScreen = document.getElementById('login-screen');
@@ -577,6 +579,170 @@ async function checkDailyReward() {
         }
     });
 }
+
+// =================================================
+// SISTEMA DE TROCAS
+// =================================================
+
+let marketCards = [];
+let pendingTradeId = null; // Guarda qual troca o usuário clicou
+
+async function renderTrade() {
+    const container = document.getElementById('market-grid');
+    const myContainer = document.getElementById('my-trades-container');
+    
+    container.innerHTML = "Carregando mercado...";
+    myContainer.innerHTML = "Carregando...";
+
+    // 1. Busca todos os anúncios do mercado com os dados da carta
+    const { data: marketData, error } = await supabase
+        .from('mercado')
+        .select(`id, vendedor_id, cards (*)`);
+
+    if (error) { console.error(error); return; }
+
+    marketCards = marketData;
+    const myId = player.id;
+
+    // Separar o que é meu e o que é dos outros
+    const myTrades = marketCards.filter(item => item.vendedor_id === myId);
+    const othersTrades = marketCards.filter(item => item.vendedor_id !== myId);
+
+    // --- RENDERIZA MEUS ANÚNCIOS ---
+    myContainer.innerHTML = '';
+    if (myTrades.length === 0) {
+        myContainer.innerHTML = '<p style="color:#aaa">Você não tem cartas anunciadas.</p>';
+    } else {
+        myTrades.forEach(trade => {
+            myContainer.innerHTML += createCardHTML(trade.cards, true, trade.id);
+        });
+    }
+
+    // --- RENDERIZA MERCADO GLOBAL ---
+    container.innerHTML = '';
+    if (othersTrades.length === 0) {
+        container.innerHTML = '<p style="color:#aaa; width:100%; text-align:center;">Nenhuma oferta no momento.</p>';
+    } else {
+        othersTrades.forEach(trade => {
+            // Envolve num wrapper clicável para trocar
+            const cardHTML = createCardHTML(trade.cards, false);
+            const wrapper = document.createElement('div');
+            wrapper.className = 'market-card-wrapper';
+            wrapper.onclick = () => openTradeModal(trade.id);
+            wrapper.innerHTML = cardHTML + `<div class="trade-badge">TROCAR</div>`;
+            container.appendChild(wrapper);
+        });
+    }
+}
+
+// Função auxiliar para desenhar a carta (reaproveitando estilo)
+function createCardHTML(card, isMine, tradeId = null) {
+    const rarityStyles = getRarityColors(card.rarity);
+    const elementStyles = getElementStyles(card.element);
+    
+    let btnCancel = '';
+    if (isMine && tradeId) {
+        btnCancel = `<button class="cancel-trade-btn" onclick="cancelTrade('${tradeId}')">Cancelar</button>`;
+    }
+
+    return `
+        <div class="card-preview card-small" style="background-image: url('${card.image_url}'); border-color: ${rarityStyles.primary}; position: relative;">
+            <div class="card-element-badge" style="background: ${elementStyles.background};">${getElementIcon(card.element)}</div>
+            <div class="rarity-badge" style="background-color: ${rarityStyles.primary};">${card.rarity.substring(0,1)}</div>
+            <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
+            <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+            ${btnCancel}
+        </div>
+    `;
+}
+
+// --- AÇÕES DE TROCA ---
+
+// 1. Anunciar (Abre prompt simples por enquanto, ideal seria um modal)
+document.getElementById('btnCreateTrade')?.addEventListener('click', async () => {
+    // Pega cartas que o jogador tem (carregadas no loadPlayerData)
+    // Filtra só as que tem quantidade > 0
+    const myAvailableCards = cardsInAlbum.filter(c => c.quantidade > 0);
+    
+    if (myAvailableCards.length === 0) {
+        alert("Você não tem cartas para trocar!");
+        return;
+    }
+
+    // Abre o modal de oferta, mas configurado para "ANUNCIAR"
+    openSelectionModal(myAvailableCards, async (selectedCardId) => {
+        if(!confirm("Anunciar esta carta? Ela sairá da sua coleção até alguém trocar ou você cancelar.")) return;
+        
+        const { error } = await supabase.rpc('anunciar_carta', { carta_id_para_venda: selectedCardId });
+        
+        if (error) alert("Erro: " + error.message);
+        else {
+            alert("Carta anunciada!");
+            await loadPlayerData(player.id); // Recarrega inventário
+            renderTrade(); // Recarrega tela de trocas
+        }
+    });
+});
+
+// 2. Cancelar Anúncio
+async function cancelTrade(tradeId) {
+    if(!confirm("Remover anúncio e pegar carta de volta?")) return;
+    
+    const { error } = await supabase.rpc('cancelar_anuncio', { anuncio_id: tradeId });
+    
+    if(error) alert("Erro: " + error.message);
+    else {
+        await loadPlayerData(player.id);
+        renderTrade();
+    }
+}
+
+// 3. Abrir Modal para TROCAR (Eu quero a carta X, dou a Y)
+function openTradeModal(tradeId) {
+    pendingTradeId = tradeId;
+    const myAvailableCards = cardsInAlbum.filter(c => c.quantidade > 0);
+    
+    openSelectionModal(myAvailableCards, async (myCardId) => {
+        if(!confirm("Trocar sua carta selecionada pela carta do mercado?")) return;
+        
+        const { error } = await supabase.rpc('realizar_troca', { 
+            anuncio_id: pendingTradeId, 
+            minha_carta_oferta_id: myCardId 
+        });
+
+        if(error) alert("Erro na troca: " + error.message);
+        else {
+            showNotification("Troca realizada com sucesso! 🎉");
+            await loadPlayerData(player.id);
+            renderTrade();
+        }
+    });
+}
+
+// Função genérica para mostrar modal de seleção de cartas
+function openSelectionModal(cardsList, callback) {
+    const modal = document.getElementById('trade-offer-modal');
+    const grid = document.getElementById('my-offer-grid');
+    grid.innerHTML = '';
+
+    cardsList.forEach(card => {
+        const div = document.createElement('div');
+        div.innerHTML = createCardHTML(card, false);
+        div.style.cursor = 'pointer';
+        div.onclick = () => {
+            modal.classList.add('hidden');
+            callback(card.id);
+        };
+        grid.appendChild(div);
+    });
+
+    modal.classList.remove('hidden');
+}
+
+function closeTradeModal() {
+    document.getElementById('trade-offer-modal').classList.add('hidden');
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
     const btnLogin = document.getElementById('btnLogin');
