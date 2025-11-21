@@ -9,46 +9,54 @@
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
-
-    <header class="game-header">
-        <h1 class="game-title">Card Collector Game</h1>
-        <div class="user-info" id="userInfo">
-            <span id="player-name">Visitante</span> | 
-            <span id="player-level"><i class="fas fa-star"></i> Nível 1</span> | 
-            <span id="player-coins"><i class="fas fa-coins"></i> 0</span>
-        </div>
-        <div class="auth-buttons" id="authButtons">
-            <button id="loginBtn">Entrar / Cadastrar</button>
+    <div id="login-screen" class="login-container">
+        <div class="login-box">
+            <h1>Card Collector</h1>
+            <p>Entre para jogar!</p>
+            
+            <input type="email" id="emailInput" placeholder="Seu E-mail" required>
+            <input type="password" id="passwordInput" placeholder="Sua Senha" required>
+            
+            <div class="login-actions">
+                <button id="btnLogin" class="btn-primary">Entrar</button>
+                <button id="btnRegister" class="btn-secondary">Criar Conta</button>
             </div>
-    </header>
+            <p id="loginError" class="error-msg"></p>
+        </div>
+    </div>
 
-    <nav class="main-navigation">
-        <button data-section="album" class="nav-btn active"><i class="fas fa-book"></i> Álbum</button>
-        <button data-section="shop" class="nav-btn"><i class="fas fa-store"></i> Loja de Pacotes</button>
-        <button data-section="trade" class="nav-btn"><i class="fas fa-handshake"></i> Trocas</button>
-        <button data-section="minigames" class="nav-btn"><i class="fas fa-dice"></i> Minigames</button>
-    </nav>
+    <div id="game-content" class="hidden">
+        <header class="game-header">
+            <h1 class="game-title">Card Game</h1>
+            <div class="user-info">
+                <span id="player-name">Jogador</span> | 
+                <span id="player-coins"><i class="fas fa-coins"></i> 0</span>
+            </div>
+            <button id="logoutBtn" class="btn-logout">Sair</button>
+        </header>
 
-    <main id="main-content">
-        <section id="album-section" class="game-section active">
-            <h2>🖼️ Meu Álbum de Cartas</h2>
-            <div id="album-cards-container" class="card-grid">
-                </div>
-        </section>
+        <nav class="main-navigation">
+            <button data-section="album" class="nav-btn active"><i class="fas fa-book"></i> Álbum</button>
+            <button data-section="shop" class="nav-btn"><i class="fas fa-store"></i> Loja</button>
+            </nav>
 
-        <section id="shop-section" class="game-section hidden">
-            <h2>🛍️ Loja de Pacotes</h2>
-            <div id="packs-list-container" class="pack-list">
-                </div>
-        </section>
-        
+        <main id="main-content">
+            <section id="album-section" class="game-section active">
+                <h2>Meu Álbum</h2>
+                <div id="album-cards-container" class="card-grid"></div>
+            </section>
+
+            <section id="shop-section" class="game-section hidden">
+                <h2>Loja de Pacotes</h2>
+                <div id="packs-list-container" class="pack-list"></div>
+            </section>
         </main>
-
+    </div>
+    
     <div id="notification-area" class="notification-area"></div>
 
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <script src="supabaseClient-v2.js?v=2"></script>
-    <script src="app.js?v=1"></script>
-    <script src="service-worker.js"></script>
+    <script src="app.js?v=4"></script>
 </body>
 </html>
