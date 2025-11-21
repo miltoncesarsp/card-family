@@ -746,5 +746,19 @@ table button {
     padding: 10px;
     cursor: pointer;
 }
+.btn-logout {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    
+    /* O truque para não esticar: */
+    flex-grow: 0; 
+    width: auto; 
+    margin-left: auto; /* Empurra para a direita se estiver num flex container */
+}
 
 .error-msg { color: red; font-size: 0.9em; }
