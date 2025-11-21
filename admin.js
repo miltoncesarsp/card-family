@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Se logado, carrega o resto
     await loadEvolutionCosts(); 
     loadUnifiedView(); 
+    loadOriginCovers();
     loadRarityRules(); 
     loadPacks(); 
     loadPlayers();
@@ -677,3 +678,4 @@ document.getElementById("saveRarityBtn").addEventListener("click", saveRarityRul
 document.getElementById("savePackBtn").addEventListener("click", saveOrUpdatePack);
 document.getElementById("newPackBtn").addEventListener("click", resetPackForm); 
 document.getElementById("savePlayerEditBtn").addEventListener("click", savePlayerEdit);
+document.getElementById('saveOriginCoverBtn')?.addEventListener('click', saveOriginCover);
