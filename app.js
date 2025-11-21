@@ -210,8 +210,10 @@ function renderAlbum() {
                         <div class="card-element-badge" style="background: ${elementStyles.background};">
                             ${getElementIcon(card.element)}
                         </div>
+
                         <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity.substring(0,1)}</div>
                         <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
+                        
                         <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
                     </div>
                 `;
