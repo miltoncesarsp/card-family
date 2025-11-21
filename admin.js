@@ -604,6 +604,67 @@ async function savePlayerEdit() {
     loadPlayers();
 }
 
+/* === GESTÃO DE CAPAS DE ORIGEM === */
+
+async function loadOriginCovers() {
+    const container = document.getElementById('originCoversList');
+    if(!container) return;
+    container.innerHTML = "Carregando...";
+    
+    const { data } = await supabase.from('capas_origens').select('*');
+    
+    if(!data || data.length === 0) {
+        container.innerHTML = "<p>Nenhuma capa cadastrada.</p>";
+        return;
+    }
+    
+    let html = '';
+    data.forEach(item => {
+        html += `
+            <div style="position: relative; width: 100px; height: 60px; background-image: url('${item.image_url}'); background-size: cover; border-radius: 8px; border: 2px solid #ccc;">
+                <div style="position: absolute; bottom: 0; background: rgba(0,0,0,0.7); color: white; width: 100%; font-size: 10px; text-align: center;">${item.origem}</div>
+                <button onclick="deleteOriginCover(${item.id})" style="position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; background: red; color: white; border: none; border-radius: 50%; cursor: pointer; padding: 0; font-size: 10px;">X</button>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+async function saveOriginCover() {
+    const origem = document.getElementById('originNameInput').value.trim();
+    const fileInput = document.getElementById('originFileInput');
+    const file = fileInput.files[0];
+    
+    if (!origem || !file) { alert("Preencha nome e imagem!"); return; }
+    
+    // 1. Upload da Imagem
+    const compressed = await compressImage(file);
+    const fileName = `origins/${slugify(origem)}_${Date.now()}.jpeg`;
+    
+    const { error: uploadError } = await supabase.storage.from(BUCKET_NAME).upload(fileName, compressed, { upsert: true });
+    if (uploadError) { alert("Erro upload: " + uploadError.message); return; }
+    
+    const { data: publicUrlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(fileName);
+    const imageUrl = publicUrlData.publicUrl;
+    
+    // 2. Salvar no Banco (Upsert: Se já existe a origem, atualiza a foto)
+    const { error } = await supabase.from('capas_origens').upsert({ origem, image_url: imageUrl }, { onConflict: 'origem' });
+    
+    if (error) alert("Erro ao salvar: " + error.message);
+    else {
+        alert("Capa salva com sucesso!");
+        loadOriginCovers();
+        document.getElementById('originCoverForm').reset();
+    }
+}
+
+async function deleteOriginCover(id) {
+    if(confirm("Deletar essa capa?")) {
+        await supabase.from('capas_origens').delete().eq('id', id);
+        loadOriginCovers();
+    }
+}
+
 // --- LISTENERS ---
 document.getElementById("fileInput").addEventListener("change", previewCard);
 document.getElementById("cardName").addEventListener("input", previewCard);
