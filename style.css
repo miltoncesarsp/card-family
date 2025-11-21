@@ -920,3 +920,60 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     padding-bottom: 10px;
 }
 
+/* === BÔNUS DIÁRIO === */
+
+.daily-content {
+    background: linear-gradient(135deg, #2c3e50, #4a148c); /* Roxo Místico */
+    border: 3px solid #FFD700;
+    min-width: 300px;
+}
+
+.daily-icon-container {
+    margin: 20px 0;
+    position: relative;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.daily-icon {
+    font-size: 80px;
+    color: rgba(255, 255, 255, 0.1);
+    position: absolute;
+}
+
+.daily-coin-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+}
+
+.daily-coin-display span {
+    font-family: 'Bungee', cursive;
+    font-size: 3em;
+    color: #FFD700;
+    text-shadow: 2px 2px 0px #d35400;
+}
+
+/* Animação da Moeda Girando */
+.spin-coin {
+    font-size: 50px;
+    color: #FFD700;
+    animation: spin 2s infinite linear;
+    margin-bottom: 5px;
+}
+
+@keyframes spin {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+}
+
+.streak-container {
+    background: rgba(0,0,0,0.3);
+    padding: 10px;
+    border-radius: 10px;
+    color: #ccc;
+}
+
