@@ -133,72 +133,107 @@ function updateUIForLoggedOut() {
 // ------------------------------------
 
 async function loadPlayerData(userId) {
-    // 1. Carrega dados do jogador (jogadores)
+    // 1. Carrega dados do jogador
     let { data: playerData, error: playerError } = await supabase
         .from('jogadores')
         .select('*')
         .eq('id', userId)
         .single();
 
-    if (playerError && playerError.code === 'PGRST116') { // Não encontrado - Insere
-        // Este é um novo jogador. Cria um registro inicial.
+    if (playerError && playerError.code === 'PGRST116') {
+        // Cria novo jogador se não existir
         const { data: newPlayer, error: insertError } = await supabase
             .from('jogadores')
-            .insert([{ id: userId, nome: 'Novo Jogador', email: '...', nivel: 1, moedas: 100 }]) // Moedas iniciais
+            .insert([{ id: userId, nome: 'Iniciante', email: 'user@email.com', nivel: 1, moedas: 500 }])
             .select('*')
             .single();
-
-        if (insertError) {
-            console.error("Erro ao criar novo jogador:", insertError);
-            showNotification("Erro ao criar novo perfil. Tente novamente.", true);
-            return;
-        }
+            
+        if (insertError) { console.error(insertError); return; }
         playerData = newPlayer;
-    } else if (playerError) {
-        console.error("Erro ao carregar jogador:", playerError);
-        showNotification("Erro ao carregar seu perfil. Tente recarregar a página.", true);
-        return;
     }
     
     player = playerData;
 
-    // 2. Carrega as cartas do jogador (cartas_do_jogador)
+    // 2. Carrega as cartas (Nota: agora usamos card_id referenciando cards)
     const { data: playerCardData, error: cardError } = await supabase
         .from('cartas_do_jogador')
         .select(`
             quantidade,
+            card_id,
             cards ( id, name, rarity, power, image_url, element, id_base, personagens_base (origem) )
         `)
         .eq('jogador_id', userId);
 
     if (cardError) {
-        console.error("Erro ao carregar cartas do jogador:", cardError);
-        showNotification("Erro ao carregar suas cartas.", true);
+        console.error("Erro cartas:", cardError);
         cardsInAlbum = [];
     } else {
-        cardsInAlbum = playerCardData.map(item => ({
-            ...item.cards,
-            quantidade: item.quantidade
-        }));
+        // Mapeamento para facilitar o uso no front
+        cardsInAlbum = playerCardData.map(item => {
+            if (!item.cards) return null; // Proteção contra carta deletada
+            return {
+                ...item.cards,
+                quantidade: item.quantidade
+            };
+        }).filter(item => item !== null);
     }
 
-    // 3. Carrega Pacotes (uma vez)
-    if (packsAvailable.length === 0) {
-        await loadPacks();
-    }
-    
-    // Atualiza a visualização inicial
+    if (packsAvailable.length === 0) await loadPacks();
     renderAlbum(); 
 }
 
-async function loadPacks() {
-    const { data, error } = await supabase.from('pacotes').select('*').order("preco_moedas", { ascending: true });
-    if (error) {
-        console.error("Erro ao carregar pacotes:", error);
-    } else {
-        packsAvailable = data;
-        renderShop();
+// Função corrigida para salvar cartas respeitando o RLS e UUIDs
+async function updatePlayerCards(newCards) {
+    if (!player || newCards.length === 0) return;
+    
+    // Agrupa por ID da carta (UUID)
+    const updates = newCards.reduce((acc, card) => {
+        acc[card.id] = (acc[card.id] || 0) + 1;
+        return acc;
+    }, {});
+    
+    for (const cardId in updates) {
+        const quantityGained = updates[cardId];
+        
+        // Verifica no array local se já tem
+        const existingCard = cardsInAlbum.find(c => c.id === cardId);
+        
+        if (existingCard) {
+            // UPDATE
+            const novaQtd = existingCard.quantidade + quantityGained;
+            const { error } = await supabase
+                .from('cartas_do_jogador')
+                .update({ quantidade: novaQtd })
+                .eq('jogador_id', player.id)
+                .eq('card_id', cardId); // Note: card_id, não id_carta
+            
+            if (!error) existingCard.quantidade = novaQtd;
+            else console.error("Erro update:", error);
+
+        } else {
+            // INSERT
+            const { error } = await supabase
+                .from('cartas_do_jogador')
+                .insert([{
+                    card_id: cardId,
+                    jogador_id: player.id,
+                    quantidade: quantityGained
+                }]);
+                
+            if (!error) {
+                const newCardObj = newCards.find(c => c.id === cardId);
+                cardsInAlbum.push({ ...newCardObj, quantidade: quantityGained });
+            } else console.error("Erro insert:", error);
+        }
     }
+    
+    // Atualiza moedas e total no banco
+    await supabase.from('jogadores')
+        .update({ 
+            moedas: player.moedas, // Já foi descontado localmente antes
+            total_cartas: cardsInAlbum.reduce((a, b) => a + b.quantidade, 0) 
+        })
+        .eq('id', player.id);
 }
 
 // ------------------------------------
