@@ -87,6 +87,8 @@ async function loadPlayerData(userId) {
     player = playerData;
     updateHeaderInfo();
 
+    await checkDailyReward(); // Verifica se tem prêmio assim que carrega os dados
+
     // 2. Carrega Regras de Evolução
     await loadEvolutionRules();
 
@@ -477,6 +479,103 @@ async function loadOriginCovers() {
             return acc;
         }, {});
     }
+}
+
+// ------------------------------------
+// SISTEMA DE RECOMPENSA DIÁRIA
+// ------------------------------------
+
+async function checkDailyReward() {
+    if (!player) return;
+
+    const hoje = new Date();
+    const ultimoLogin = new Date(player.ultimo_login);
+    
+    // Zera as horas para comparar apenas o DIA (Data Local)
+    const dataHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    const dataUltimo = new Date(ultimoLogin.getFullYear(), ultimoLogin.getMonth(), ultimoLogin.getDate());
+
+    // Calcula a diferença em milissegundos e converte para dias
+    const diffTempo = dataHoje - dataUltimo;
+    const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24));
+
+    console.log(`Diferença de dias: ${diffDias}`);
+
+    // Se a diferença for 0, já pegou hoje.
+    if (diffDias === 0) {
+        console.log("Bônus diário já coletado hoje.");
+        return;
+    }
+
+    // CALCULA O PRÊMIO
+    let novosDiasConsecutivos = player.dias_consecutivos;
+    let premio = 100; // Valor base
+
+    if (diffDias === 1) {
+        // Entrou em dias seguidos! Aumenta o streak
+        novosDiasConsecutivos++;
+    } else {
+        // Pulou um dia ou mais (reset)
+        novosDiasConsecutivos = 1;
+    }
+
+    // Lógica de Progressão: Base + (Dias * 50). Máximo de 7 dias (combo).
+    // Ex: Dia 1=150, Dia 2=200, Dia 7=450...
+    const bonusStreak = Math.min(novosDiasConsecutivos, 7) * 50;
+    premio += bonusStreak;
+
+    // MOSTRA O MODAL
+    const modal = document.getElementById('daily-reward-modal');
+    document.getElementById('daily-amount').textContent = `+${premio}`;
+    document.getElementById('daily-streak').textContent = novosDiasConsecutivos;
+    
+    // Mensagem motivacional
+    const msgEl = document.getElementById('daily-message');
+    if (novosDiasConsecutivos > 1) {
+        msgEl.textContent = `Incrível! ${novosDiasConsecutivos} dias seguidos!`;
+    } else {
+        msgEl.textContent = "Volte amanhã para aumentar seu bônus!";
+    }
+
+    modal.classList.remove('hidden');
+
+    // Configura o botão de receber
+    const btnCollect = document.getElementById('collectDailyBtn');
+    
+    // Remove listeners antigos para não duplicar (cloneNode truque)
+    const newBtn = btnCollect.cloneNode(true);
+    btnCollect.parentNode.replaceChild(newBtn, btnCollect);
+    
+    newBtn.addEventListener('click', async () => {
+        // Efeito visual simples
+        newBtn.textContent = "Recebido!";
+        
+        // Atualiza no Banco
+        const novasMoedas = player.moedas + premio;
+        
+        const { error } = await supabase
+            .from('jogadores')
+            .update({ 
+                moedas: novasMoedas,
+                ultimo_login: new Date().toISOString(), // Salva data/hora atual com fuso
+                dias_consecutivos: novosDiasConsecutivos
+            })
+            .eq('id', player.id);
+
+        if (error) {
+            console.error("Erro ao salvar bônus:", error);
+            showNotification("Erro ao salvar bônus.", true);
+        } else {
+            // Atualiza localmente
+            player.moedas = novasMoedas;
+            player.dias_consecutivos = novosDiasConsecutivos;
+            player.ultimo_login = new Date().toISOString();
+            
+            updateHeaderInfo();
+            showNotification(`Você ganhou ${premio} moedas!`);
+            modal.classList.add('hidden');
+        }
+    });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
