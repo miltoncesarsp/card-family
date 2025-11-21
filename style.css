@@ -568,6 +568,24 @@ h1, h2, h3, h4 {
         height: auto !important;
         aspect-ratio: 220 / 308;
     }
+   #my-offer-grid {
+        /* Força 2 colunas exatas */
+        grid-template-columns: 1fr 1fr !important; 
+        gap: 8px; /* Gap menor para caber */
+    }
+
+    /* Garante a proporção da carta DENTRO do modal */
+    #my-offer-grid .card-preview.card-small {
+        width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 220 / 308; /* Mantém o formato retangular perfeito */
+        max-width: 150px; /* Limite para não estourar */
+    }
+    
+    /* Diminui um pouco a fonte só nesse modal se precisar */
+    #my-offer-grid .card-name-footer {
+        font-size: 9px;
+    }
     
     /* Ajuste de fontes no mobile */
     .card-preview.card-small .card-name-footer { font-size: 10px; }
@@ -1052,3 +1070,15 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     font-size: 0.8em;
     cursor: pointer;
 }
+
+#my-offer-grid {
+    display: grid !important;
+    /* PC: Mantém flexível */
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+    gap: 10px;
+    padding: 5px;
+    width: 100%;
+    box-sizing: border-box;
+    justify-items: center;
+}
+
