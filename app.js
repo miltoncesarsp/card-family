@@ -403,36 +403,55 @@ function showPackOpeningModal(newCards, title = "🎁 Pacote Aberto!") {
     const closeBtn = document.getElementById('closeModalBtn');
     const titleEl = modal.querySelector('h2');
     
-    // Define o título (Se for 1 carta só e vier da evolução, podemos mudar o texto)
     titleEl.textContent = title;
-    
     container.innerHTML = ''; 
 
     newCards.forEach(card => {
         const rarityStyles = getRarityColors(card.rarity);
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'card-preview card-small'; // Tamanho pequeno para caber no modal
+        const r = card.rarity.toLowerCase();
         
-        // Garante que a imagem apareça
-        cardDiv.style.backgroundImage = `url('${card.image_url}')`;
-        cardDiv.style.borderColor = rarityStyles.primary;
+        // Define se tem efeitos especiais
+        let backgroundEffect = '';
+        let animationClass = '';
+
+        // Lógica de Efeitos visuais por Raridade
+        if (r === 'mítica') {
+            // Mítica ganha raios dourados rápidos e explosão
+            backgroundEffect = `<div class="god-rays mythic"></div>`;
+            animationClass = 'effect-pulse'; // Pulsa também
+        } else if (r === 'lendária') {
+            // Lendária ganha raios brancos
+            backgroundEffect = `<div class="god-rays"></div>`;
+            animationClass = 'effect-pulse';
+        } else if (r === 'épica') {
+            // Épica só pulsa forte
+            animationClass = 'effect-pulse';
+        }
+
+        // Cria o container que segura a carta e os efeitos
+        const wrapper = document.createElement('div');
+        wrapper.className = 'modal-card-container';
         
-        // Efeito de brilho na carta nova
-        cardDiv.style.boxShadow = `0 0 30px ${rarityStyles.primary}`;
-        
-        cardDiv.innerHTML = `
-            <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity.substring(0,1)}</div>
-            <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white;">${card.power}</div>
-            <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+        // HTML da Carta
+        wrapper.innerHTML = `
+            ${backgroundEffect} <div class="card-preview card-small ${animationClass}" 
+                 style="background-image: url('${card.image_url}'); 
+                        border: 3px solid ${rarityStyles.primary}; 
+                        color: ${rarityStyles.primary}; /* Para o box-shadow usar currentColor */">
+                
+                <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity.substring(0,1)}</div>
+                <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white;">${card.power}</div>
+                <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+            </div>
         `;
-        container.appendChild(cardDiv);
+        container.appendChild(wrapper);
     });
 
     modal.classList.remove('hidden');
     
     closeBtn.onclick = () => { 
         modal.classList.add('hidden'); 
-        renderAlbum(); // Garante atualização visual
+        renderAlbum(); 
     };
 }
 
