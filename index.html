@@ -89,5 +89,14 @@
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <script src="supabaseClient-v2.js?v=2"></script>
     <script src="app.js?v=5"></script>
+    <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('PWA registrado!', reg))
+        .catch(err => console.log('Erro no PWA:', err));
+    });
+  }
+</script>
 </body>
 </html>
