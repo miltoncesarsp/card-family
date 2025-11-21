@@ -75,18 +75,21 @@ async function handleAuth() {
 }
 
 async function loginOrSignup() {
-    // Exemplo Simples: Usar o método Magic Link ou Social Login
-    // Você pode usar o método que melhor se encaixa no seu projeto
     const email = prompt("Digite seu e-mail para Entrar ou Cadastrar:");
     if (!email) return;
 
-    // Supabase envia um Magic Link para o e-mail
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    // AQUI ESTÁ A CORREÇÃO MÁGICA:
+    const { error } = await supabase.auth.signInWithOtp({ 
+        email: email,
+        options: {
+            emailRedirectTo: 'https://miltoncesarsp.github.io/card-family/'
+        }
+    });
 
     if (error) {
-        showNotification(`Erro de autenticação: ${error.message}`, true);
+        alert(`Erro: ${error.message}`); // Usar alert é melhor que showNotification se o DOM não carregou
     } else {
-        showNotification("Link de acesso enviado para seu e-mail. Verifique a caixa de entrada!");
+        alert("Link enviado! Verifique seu e-mail (inclusive Spam).");
     }
 }
 
