@@ -138,10 +138,15 @@ function previewCard(imageUrl = null) {
     }
 
     // Estrutura HTML limpa (sem wrappers desnecessários) para bater com o novo CSS
-    div.innerHTML = `
-        <div class="rarity-badge" style="background-color: ${rarityStyles.primary};">${rarity}</div>
-        <div class="card-element-badge" style="background: ${elementStyles.background};">${getElementIcon(element)}</div>
+div.innerHTML = `
+        <div class="card-element-badge" style="background: ${elementStyles.background};">
+            ${getElementIcon(element)}
+        </div>
+
+        <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${rarity}</div>
+        
         <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${power}</div>
+        
         <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${name}</div>
     `;
     container.appendChild(div);
