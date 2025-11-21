@@ -143,7 +143,7 @@ div.innerHTML = `
             ${getElementIcon(element)}
         </div>
 
-        <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${rarity}</div>
+        <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: ${rarityTextColor};">${rarity}</div>
         
         <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${power}</div>
         
