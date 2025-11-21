@@ -63,13 +63,17 @@ function showNotification(message, isError = false) {
 // ------------------------------------
 
 async function handleAuth() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-        // Usuário logado
-        await loadPlayerData(user.id);
+    // getSession é mais rápido e eficiente para checar se já tem sessão ativa ou URL de login
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session && session.user) {
+        // Usuário logado!
+        console.log("Usuário logado encontrado:", session.user.email);
+        await loadPlayerData(session.user.id);
         updateUIForLoggedIn();
     } else {
         // Usuário deslogado
+        console.log("Nenhum usuário logado.");
         updateUIForLoggedOut();
     }
 }
@@ -577,23 +581,33 @@ function setupNavigation() {
 // ------------------------------------
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Configura a navegação entre as abas
+    // 1. Configura a navegação
     setupNavigation();
-    
-    // 2. Verifica a sessão do usuário e carrega os dados
-    await handleAuth();
-    
-    // 3. O Supabase tem um listener para eventos de autenticação
-    supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-            if (session) {
-                loadPlayerData(session.user.id);
-            }
+
+    // 2. OTIMIZAÇÃO CRUCIAL: Configura o "escutador" do Supabase ANTES de checar o Auth
+    // Isso garante que se o login vier pelo Link (URL), o código pegue o evento.
+    supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log("Evento de Auth disparado:", event);
+        
+        if (event === 'SIGNED_IN' && session) {
+            // Login detectado (inclusive pelo link mágico)
+            await loadPlayerData(session.user.id);
+            updateUIForLoggedIn();
+            
+            // Opcional: Limpa a URL feia cheia de códigos
+            window.history.replaceState({}, document.title, "/card-family/");
+            
         } else if (event === 'SIGNED_OUT') {
-            handleAuth(); // Chama para reverter a UI para o estado deslogado
+            player = null;
+            cardsInAlbum = [];
+            updateUIForLoggedOut();
+            renderAlbum();
         }
     });
 
-    // Certifique-se de que a seção inicial (Álbum) é visível
+    // 3. Verifica o estado inicial (caso o usuário já estivesse logado de antes)
+    await handleAuth();
+
+    // Certifique-se de que a seção inicial é visível
     document.getElementById('album-section').classList.remove('hidden');
 });
