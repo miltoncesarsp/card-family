@@ -1718,21 +1718,34 @@ async function endTargetGame(survived) {
         message = "💥 ESTOUROU! O tubo quebrou.";
         showNotification("Você passou do limite!", true);
     } else {
-        // Calcula distância do alvo
+        // 1. Calcula a diferença absoluta
         const diff = targetState.goal - targetState.current;
         
-        if (diff === 0) {
-            prize = 100; // Perfeito
+        // 2. Calcula a porcentagem de erro (Quanto % faltou para encher)
+        // Fórmula: (Diferença / Alvo) * 100
+        const errorPercentage = (diff / targetState.goal) * 100;
+
+        // --- TABELA DE PRÊMIOS POR PORCENTAGEM ---
+        
+        if (diff === 0) { 
+            // Perfeito (0% de erro)
+            prize = 100; 
             message = "🎯 NA MOSCA! Prêmio Máximo!";
-        } else if (diff <= 3) {
-            prize = 60; // Muito perto
-            message = "🔥 Quase perfeito! Muito bom!";
-        } else if (diff <= 7) {
-            prize = 30; // OK
-            message = "👍 Seguro. Prêmio básico.";
-        } else {
-            prize = 5; // Muito longe (Covarde!)
-            message = "😐 Muito longe... Arrisque mais na próxima.";
+            
+        } else if (errorPercentage <= 5) { 
+            // Erro de até 5% (Ex: Alvo 100, chegou em 95)
+            prize = 60;  
+            message = "🔥 Incrível! Muito perto!";
+            
+        } else if (errorPercentage <= 15) { 
+            // Erro de até 15% (Ex: Alvo 100, chegou em 85)
+            prize = 30; 
+            message = "👍 Boa! Jogou seguro.";
+            
+        } else { 
+            // Erro maior que 15%
+            prize = 5; 
+            message = "😐 Muito longe... Faltou coragem.";
         }
 
         if (prize > 0) {
