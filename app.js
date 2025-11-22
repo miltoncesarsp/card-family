@@ -313,25 +313,33 @@ function renderAlbum() {
     container.innerHTML = html;
 }
 
-async function openOriginView(originName, cardIds = []) {
+async function openOriginView(originName) {
     currentOriginView = originName;
-    renderAlbum(); // Renderiza imediatamente para o usuário não esperar
+    renderAlbum(); // Abre a pasta imediatamente
     window.scrollTo(0,0);
 
-    // Em segundo plano, marca as cartas como vistas no banco
-    if (cardIds && cardIds.length > 0) {
-        // Atualiza no banco
+    // Lógica Inteligente: Descobre os IDs das cartas desta pasta
+    // Filtra as cartas globais que pertencem a esta origem e que são NOVAS
+    const cardsInThisFolder = cardsInAlbum.filter(c => {
+        const cOrigin = c.personagens_base ? c.personagens_base.origem : 'Outros';
+        return cOrigin === originName && c.isNew === true;
+    });
+
+    const cardIdsToUpdate = cardsInThisFolder.map(c => c.id);
+
+    // Se tiver cartas novas para limpar o aviso
+    if (cardIdsToUpdate.length > 0) {
+        // Atualiza no banco (silenciosamente)
         const { error } = await supabase
             .from('cartas_do_jogador')
             .update({ is_new: false })
-            .in('card_id', cardIds) // Filtra só as cartas dessa pasta
-            .eq('jogador_id', player.id)
-            .eq('is_new', true); // Só atualiza as que eram true
+            .in('card_id', cardIdsToUpdate)
+            .eq('jogador_id', player.id);
 
         if (!error) {
-            // Atualiza localmente para o selo sumir na próxima renderização
+            // Atualiza localmente para o selo sumir na próxima vez que renderizar
             cardsInAlbum.forEach(c => {
-                if (cardIds.includes(c.id)) c.isNew = false;
+                if (cardIdsToUpdate.includes(c.id)) c.isNew = false;
             });
         }
     }
