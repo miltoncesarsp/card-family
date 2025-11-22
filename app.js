@@ -1841,7 +1841,6 @@ function renderPuzzleBoard() {
     grid.innerHTML = '';
     grid.classList.remove('solved'); 
 
-    // Configura o CSS Grid
     grid.style.gridTemplateColumns = `repeat(${puzzleState.gridSize}, 1fr)`;
     grid.style.gridTemplateRows = `repeat(${puzzleState.gridSize}, 1fr)`;
 
@@ -1851,7 +1850,18 @@ function renderPuzzleBoard() {
         const piece = document.createElement('div');
         piece.className = 'puzzle-piece';
         
-        if (currentIndex === puzzleState.selectedPieceIndex) {
+        // 1. VERIFICA SE ESTÁ NO LUGAR CERTO
+        const isCorrect = originalIndex === currentIndex;
+
+        if (isCorrect) {
+            piece.classList.add('correct');
+            // Se acabou de ser trocada (opcional, mas legal visualmente)
+            // Adicionamos a classe de animação apenas se não estivermos iniciando o jogo
+            // Mas para simplificar, o estilo .correct já ajuda muito
+        }
+
+        // Se for a peça selecionada (e não estiver correta)
+        if (currentIndex === puzzleState.selectedPieceIndex && !isCorrect) {
             piece.classList.add('selected');
         }
 
@@ -1862,23 +1872,27 @@ function renderPuzzleBoard() {
         const yPercent = row * (100 / (size - 1));
 
         piece.style.backgroundImage = `url('${puzzleState.originalImage}')`;
-        
-        // 🚨 CORREÇÃO AQUI: Força o tamanho exato em X e Y e proíbe repetição
         piece.style.backgroundSize = `${size * 100}% ${size * 100}%`;
         piece.style.backgroundRepeat = 'no-repeat'; 
         piece.style.backgroundPosition = `${xPercent}% ${yPercent}%`;
 
-        piece.onclick = () => handlePieceClick(currentIndex);
+        // Só adiciona o clique se a peça NÃO estiver correta
+        if (!isCorrect) {
+            piece.onclick = () => handlePieceClick(currentIndex);
+        }
 
         grid.appendChild(piece);
     });
 }
 
 function handlePieceClick(index) {
+    // Segurança: Se a peça já está certa, o clique não faz nada (já tratado no render, mas garante aqui)
+    if (puzzleState.pieces[index] === index) return;
+
     // Se não tem nada selecionado, seleciona este
     if (puzzleState.selectedPieceIndex === null) {
         puzzleState.selectedPieceIndex = index;
-        renderPuzzleBoard(); // Re-renderiza para mostrar a borda verde
+        renderPuzzleBoard(); 
         return;
     }
 
@@ -1889,20 +1903,34 @@ function handlePieceClick(index) {
         return;
     }
 
-    // Se clicou em outro, TROCA!
+    // TROCA AS PEÇAS
     const firstIndex = puzzleState.selectedPieceIndex;
     const secondIndex = index;
 
-    // Troca no array
     const temp = puzzleState.pieces[firstIndex];
     puzzleState.pieces[firstIndex] = puzzleState.pieces[secondIndex];
     puzzleState.pieces[secondIndex] = temp;
 
-    // Limpa seleção
     puzzleState.selectedPieceIndex = null;
 
+    // Renderiza o novo estado
     renderPuzzleBoard();
-    checkPuzzleWin();
+
+    // 🚨 EFEITO VISUAL DE ACERTO 🚨
+    // Verifica se a troca colocou alguém no lugar certo e aplica o flash
+    const piecesDom = document.querySelectorAll('.puzzle-piece');
+    
+    // Checa a primeira peça trocada
+    if (puzzleState.pieces[firstIndex] === firstIndex) {
+        piecesDom[firstIndex].classList.add('just-solved');
+    }
+    // Checa a segunda peça trocada
+    if (puzzleState.pieces[secondIndex] === secondIndex) {
+        piecesDom[secondIndex].classList.add('just-solved');
+    }
+
+    // Verifica Vitória
+    setTimeout(checkPuzzleWin, 200); // Pequeno delay para não travar a animação
 }
 
 async function checkPuzzleWin() {
