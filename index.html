@@ -327,7 +327,46 @@
         <button id="btn-jk-next" class="btn-primary hidden" onclick="nextJokenpoRound()">Próxima Rodada</button>
         <button class="back-btn" onclick="quitJokenpoGame()">Sair</button>
     </div>
-</div>               
+</div>         
+
+                <div id="dungeon-arena" class="hidden">
+    
+    <div class="dungeon-header">
+        <div class="dungeon-stat">
+            <span>VIDAS:</span>
+            <div id="dungeon-lives" class="hearts-container">❤️❤️❤️</div>
+        </div>
+        <div class="dungeon-stat">
+            <span>MOCHILA:</span>
+            <div class="loot-display">💰 <span id="dungeon-loot">0</span></div>
+        </div>
+    </div>
+
+    <div id="dungeon-grid" class="dungeon-grid-container">
+        </div>
+
+    <div class="battle-controls">
+        <button id="btn-dungeon-run" class="btn-secondary" onclick="escapeDungeon()">🏃 FUGIR COM O SAQUE</button>
+    </div>
+
+    <div id="dungeon-combat-overlay" class="modal-overlay hidden" style="background: rgba(0,0,0,0.95);">
+        <div class="dungeon-combat-content">
+            <h3 style="color: #e74c3c;">MONSTRO ENCONTRADO!</h3>
+            
+            <div class="combat-zone" style="height: 250px;">
+                <div id="dungeon-monster-card" class="card-preview card-small"></div>
+                <div class="vs-icon">VS</div>
+                <div id="dungeon-player-slot" class="card-slot empty">
+                    <div class="slot-placeholder">Sua Carta</div>
+                </div>
+            </div>
+
+            <p style="color: #ccc;">Escolha uma carta para vencer a Força <span id="monster-power-display" style="color:white; font-weight:bold;">0</span>!</p>
+            
+            <div id="dungeon-hand" class="hand-grid" style="justify-content: center;"></div>
+        </div>
+    </div>
+</div>
                 
             </section>
 
