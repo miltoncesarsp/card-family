@@ -1319,3 +1319,208 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-5px); }
 }
+
+/* === MINIGAMES === */
+
+/* Menu de Jogos */
+.games-list {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.game-card {
+    background: linear-gradient(145deg, #2c3e50, #1a252f);
+    border: 2px solid #007bff;
+    border-radius: 15px;
+    width: 160px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.game-card:hover { transform: translateY(-5px); border-color: #FFD700; }
+
+.game-card.locked { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); border-color: #555; }
+
+.game-icon { font-size: 40px; color: #FFD700; margin-bottom: 10px; }
+.game-cost { display: block; margin-top: 10px; font-size: 0.8em; color: #2ecc71; font-weight: bold; }
+
+/* Arena de Batalha */
+.arena-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin: 30px 0;
+    position: relative;
+}
+
+.fighter-box { text-align: center; width: 160px; }
+.fighter-box h3 { color: #aaa; margin-bottom: 10px; font-family: 'Bungee', cursive; }
+
+/* Placeholder da carta antes de virar */
+.card-placeholder {
+    width: 150px; height: 210px;
+    background-color: #333;
+    border: 2px dashed #555;
+    border-radius: 10px;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 50px; color: #555;
+    margin: 0 auto;
+    transition: 0.5s;
+}
+
+.vs-badge {
+    background: #e74c3c;
+    color: white;
+    font-family: 'Bungee', cursive;
+    padding: 10px;
+    border-radius: 50%;
+    font-size: 1.5em;
+    border: 3px solid white;
+    box-shadow: 0 0 20px rgba(231, 76, 60, 0.6);
+    z-index: 10;
+}
+
+.battle-controls { text-align: center; }
+.power-display { font-size: 1.5em; font-weight: bold; height: 30px; margin-top: 10px; text-shadow: 0 0 10px currentColor; }
+
+/* Animação de Dano/Batida */
+.shake-hit { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+/* === NOVA ARENA DE BATALHA === */
+
+.battle-header {
+    margin-bottom: 20px;
+}
+
+.score-board {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.5);
+    padding: 10px 20px;
+    border-radius: 50px;
+    border: 1px solid #444;
+}
+
+.score-box {
+    text-align: center;
+    color: white;
+}
+
+.score-box span {
+    font-family: 'Bungee', cursive;
+    font-size: 2em;
+    display: block;
+    line-height: 1;
+}
+
+.round-indicator {
+    text-align: center;
+    color: #FFD700;
+    font-weight: bold;
+}
+
+/* Zona de Combate */
+.combat-zone {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    height: 320px; /* Espaço para as cartas grandes */
+    perspective: 1000px; /* Para efeito 3D se quiser */
+}
+
+.card-slot {
+    width: 160px;
+    height: 224px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.3s;
+}
+
+.card-slot.empty {
+    border: 2px dashed #555;
+    background: rgba(255,255,255,0.05);
+}
+
+/* Verso da Carta Inimiga */
+.card-back-pattern {
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+      45deg,
+      #16213e,
+      #16213e 10px,
+      #0f3460 10px,
+      #0f3460 20px
+    );
+    border-radius: 10px;
+    border: 2px solid #444;
+}
+
+.vs-icon {
+    font-family: 'Bungee', cursive;
+    font-size: 2em;
+    color: #e74c3c;
+    text-shadow: 2px 2px 0 #fff;
+}
+
+/* Mão do Jogador */
+.player-hand-container {
+    margin-top: 20px;
+    background: rgba(0,0,0,0.3);
+    padding: 10px;
+    border-radius: 15px;
+    overflow-x: auto; /* Rolar se não couber */
+}
+
+.hand-grid {
+    display: flex;
+    gap: 10px;
+    justify-content: center; /* Centraliza */
+    padding-bottom: 10px;
+}
+
+/* Carta na mão (Clicável) */
+.hand-card {
+    width: 100px; /* Menor que a carta da arena */
+    height: 140px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    border: 2px solid white;
+    border-radius: 8px;
+    background-size: cover;
+    position: relative;
+}
+
+.hand-card:hover {
+    transform: translateY(-15px);
+    border-color: #FFD700;
+    z-index: 10;
+}
+
+.hand-card.selected {
+    opacity: 0.3;
+    pointer-events: none; /* Não pode clicar de novo */
+    filter: grayscale(1);
+}
+
+/* Ajuste Mobile */
+@media (max-width: 600px) {
+    .combat-zone { gap: 5px; transform: scale(0.9); }
+    .hand-grid { justify-content: flex-start; } /* Alinha à esquerda pra rolar */
+}
