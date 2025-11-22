@@ -107,16 +107,23 @@ async function loadPlayerData(userId) {
     // 5. Cruza os dados
 if (allGameCards.length > 0) {
         cardsInAlbum = allGameCards.map(gameCard => {
+            // Encontra a carta no inventário do jogador
             const userHas = playerCardData?.find(item => item.card_id === gameCard.id);
             
-            // Pega a quantidade (se não tiver registro, é 0)
+            // Define a quantidade (se não tiver registro, é 0)
             const qtd = userHas ? userHas.quantidade : 0;
 
-return {
+            return {
                 ...gameCard,
-                quantidade: userHas ? userHas.quantidade : 0,
-                owned: !!userHas,
-                isNew: userHas ? userHas.is_new : false // <--- NOVA PROPRIEDADE
+                quantidade: qtd,
+                
+                // AQUI ESTÁ A CORREÇÃO: 
+                // Só é dono se a quantidade for MAIOR que 0.
+                // Se for 0, vira false (carta bloqueada/cinza).
+                owned: qtd > 0, 
+                
+                // Mantém a lógica de novidade
+                isNew: userHas ? userHas.is_new : false 
             };
         });
     }
