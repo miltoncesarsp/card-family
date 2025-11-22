@@ -1056,6 +1056,82 @@ function renderPlayerHand() {
     });
 }
 
+async function resolveBattle(myCard, cpuCard, prize) {
+    const pPower = myCard.power;
+    const cPower = cpuCard.power;
+    const statusEl = document.getElementById('battle-status');
+    const pPowerEl = document.getElementById('player-battle-power');
+    const cPowerEl = document.getElementById('cpu-battle-power');
+    const playerSlot = document.getElementById('player-slot');
+    const enemySlot = document.getElementById('enemy-slot');
+
+    pPowerEl.textContent = pPower;
+    cPowerEl.textContent = cPower;
+    pPowerEl.style.color = 'white'; // Reset
+    cPowerEl.style.color = 'white'; // Reset
+
+    // Animação de impacto (Aplica o shake da arena)
+    document.querySelector('.arena-container').classList.add('shake-hit');
+    setTimeout(() => document.querySelector('.arena-container').classList.remove('shake-hit'), 500);
+
+    await new Promise(r => setTimeout(r, 600)); // Pausa para o shake
+
+    // --- LÓGICA DE VITÓRIA / DERROTA E APLICAÇÃO DO BRILHO ---
+    if (pPower > cPower) {
+        // VITÓRIA
+        statusEl.textContent = "RODADA VENCIDA!";
+        statusEl.style.color = "#2ecc71";
+        playerSlot.classList.add('win');
+        enemySlot.classList.add('lose');
+        pPowerEl.classList.add('winner');
+        battleState.playerScore++;
+
+    } else if (pPower < cPower) {
+        // DERROTA
+        statusEl.textContent = "RODADA PERDIDA!";
+        statusEl.style.color = "#e74c3c";
+        enemySlot.classList.add('win');
+        playerSlot.classList.add('lose');
+        cPowerEl.classList.add('winner');
+        battleState.enemyScore++;
+
+    } else {
+        // EMPATE
+        statusEl.textContent = "EMPATE!";
+        statusEl.style.color = "#f1c40f";
+    }
+
+    updateRoundDisplay();
+
+    // 5. Próxima Rodada ou Fim de Jogo
+    await new Promise(r => setTimeout(r, 1500)); // Tempo para ler o resultado
+    
+    // Remove Efeitos e Classes antes da próxima rodada
+    playerSlot.classList.remove('win', 'lose');
+    enemySlot.classList.remove('win', 'lose');
+    pPowerEl.classList.remove('winner');
+    cPowerEl.classList.remove('winner');
+
+    if (battleState.round < 3) {
+        battleState.round++;
+    } else {
+        finishBattle();
+        return; // Sai da função
+    }
+    
+    // Limpa a mesa para o próximo round
+    document.getElementById('player-slot').innerHTML = '<div class="slot-placeholder">Sua Carta</div>';
+    document.getElementById('player-slot').className = 'card-slot empty'; // Volta ao estado inicial
+    document.getElementById('player-slot').style = '';
+    
+    document.getElementById('enemy-slot').innerHTML = '<div class="card-back-pattern"></div>';
+    document.getElementById('enemy-slot').className = 'card-slot empty';
+    document.getElementById('enemy-slot').style = '';
+
+    statusEl.textContent = "Escolha sua próxima carta...";
+    document.getElementById('btnFight').disabled = true; // Mantém desabilitado até a próxima escolha
+}
+
 async function playRound(playerCard, cardElement) {
     if (cardElement.classList.contains('selected')) return; // Já jogou essa
     
