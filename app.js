@@ -1455,7 +1455,19 @@ async function attemptPlay(gameType) {
 // =================================================
 
 async function startMemoryGame() {
-    // 1. Prepara a Tela
+    // 1. Filtra APENAS cartas que o jogador tem
+    let pool = cardsInAlbum.filter(c => c.owned);
+
+    // 2. Verificação de Segurança
+    if (pool.length < 6) {
+        alert("Você precisa de pelo menos 6 cartas na coleção para jogar Memória!");
+        // Devolve a energia gasta (opcional, mas justo)
+        minigameStatus['memory'].energia++;
+        refreshMinigameEnergy();
+        return;
+    }
+
+    // 3. Prepara a Tela
     document.getElementById('games-menu').classList.add('hidden');
     document.getElementById('memory-arena').classList.remove('hidden');
     document.getElementById('memory-score').textContent = '0';
@@ -1463,7 +1475,7 @@ async function startMemoryGame() {
     const grid = document.getElementById('memory-grid');
     grid.innerHTML = 'Carregando...';
 
-    // 2. Reseta Estado
+    // 4. Reseta Estado
     memoryState = {
         cards: [],
         hasFlippedCard: false,
@@ -1473,37 +1485,27 @@ async function startMemoryGame() {
         matchesFound: 0
     };
 
-    // 3. Seleciona 6 cartas aleatórias da coleção (ou do jogo todo se tiver poucas)
-    // Usa cartas que o jogador TEM para ele ficar feliz vendo as dele
-    let pool = cardsInAlbum.filter(c => c.owned);
-    
-    // Se tiver menos de 6, completa com aleatórias do jogo
-    if (pool.length < 6) {
-        pool = [...pool, ...allGameCards].slice(0, 20); // Pega um mix
-    }
-
-    // Embaralha o pool e pega 6
+    // 5. Embaralha a coleção do jogador e pega 6 cartas
     pool.sort(() => 0.5 - Math.random());
     const selected = pool.slice(0, 6);
 
-    // 4. Duplica para criar os pares (6 x 2 = 12 cartas)
-    // Adicionamos um ID único 'tempId' para diferenciar as duas cartas iguais
+    // 6. Duplica para criar os pares (6 x 2 = 12 cartas)
     let gameCards = [...selected, ...selected].map((card, index) => ({
         ...card,
-        tempId: index // Identificador único para o DOM
+        tempId: index
     }));
 
-    // Embaralha as 12 cartas
+    // Embaralha as 12 cartas da mesa
     gameCards.sort(() => 0.5 - Math.random());
 
-    // 5. Renderiza na Tela
+    // 7. Renderiza na Tela
     grid.innerHTML = '';
     gameCards.forEach(card => {
         const cardEl = document.createElement('div');
         cardEl.classList.add('memory-card');
-        cardEl.dataset.cardId = card.id; // ID original para comparar
+        cardEl.dataset.cardId = card.id; 
         
-        // HTML interno (Frente e Verso)
+        // Usa a imagem e cor da carta do jogador
         cardEl.innerHTML = `
             <div class="memory-front" style="background-image: url('${card.image_url}'); border-color: ${getRarityColors(card.rarity).primary}"></div>
             <div class="memory-back"></div>
@@ -1639,36 +1641,44 @@ function startTargetGame() {
 function targetHit() {
     if (targetState.isGameOver) return;
 
-    // 1. Pega carta aleatória do baralho global (simulando compra)
-    const randomCard = allGameCards[Math.floor(Math.random() * allGameCards.length)];
+    // 1. Filtra APENAS cartas que o jogador tem
+    const myDeck = cardsInAlbum.filter(c => c.owned);
+
+    if (myDeck.length === 0) {
+        alert("Você não tem cartas para jogar! Compre um pacote.");
+        return;
+    }
+
+    // 2. Pega carta aleatória DA COLEÇÃO DO JOGADOR
+    const randomCard = myDeck[Math.floor(Math.random() * myDeck.length)];
     
-    // 2. Mostra a carta na tela
+    // 3. Mostra a carta na tela
     renderCardInSlot(randomCard, 'target-card-display');
 
-    // 3. Soma Força
+    // 4. Soma Força
     targetState.current += randomCard.power;
     document.getElementById('target-current').textContent = targetState.current;
 
-    // 4. Atualiza Visual do Tubo
-    const maxScale = 50; // Escala fixa visual
+    // 5. Atualiza Visual do Tubo
+    const maxScale = 50; 
     let fillPercent = (targetState.current / maxScale) * 100;
-    if (fillPercent > 100) fillPercent = 100; // Não sai do tubo
+    if (fillPercent > 100) fillPercent = 100; 
     
     const liquid = document.getElementById('target-liquid');
     liquid.style.height = `${fillPercent}%`;
 
-    // Muda cor se estiver perto (Alvo - 5)
+    // Muda cor se estiver perto
     if (targetState.current >= targetState.goal - 5) {
         liquid.classList.add('danger');
     }
 
-    // 5. Verifica se Estourou
+    // 6. Verifica se Estourou
     if (targetState.current > targetState.goal) {
         liquid.classList.remove('danger');
         liquid.classList.add('exploded');
         endTargetGame(false); // Perdeu
     } else if (targetState.current === targetState.goal) {
-        endTargetGame(true); // Cravou! (Vitória Automática)
+        endTargetGame(true); // Cravou!
     }
 }
 
