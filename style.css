@@ -1695,3 +1695,88 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     font-size: 10px;
     font-weight: bold;
 }
+
+/* === JOGO PUZZLE === */
+
+.difficulty-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.diff-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-diff {
+    background: #0f3460;
+    color: white;
+    border: 2px solid #007bff;
+    padding: 10px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.btn-diff:hover { background: #007bff; transform: scale(1.05); }
+
+/* Layout do Jogo */
+#puzzle-board-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+/* Imagem de referência pequena */
+.puzzle-preview {
+    text-align: center;
+    color: #aaa;
+    font-size: 0.8em;
+}
+
+.puzzle-preview img {
+    width: 60px;
+    height: auto;
+    border-radius: 5px;
+    border: 1px solid #555;
+    opacity: 0.7;
+}
+
+/* O Tabuleiro do Quebra-Cabeça */
+.puzzle-grid {
+    display: grid;
+    /* As colunas serão definidas pelo JS */
+    width: 300px; /* Largura fixa para o tabuleiro */
+    aspect-ratio: 220/308; /* Mesma proporção das cartas */
+    border: 2px solid #FFD700;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    background-color: #222;
+}
+
+/* A Peça Individual */
+.puzzle-piece {
+    background-repeat: no-repeat;
+    cursor: pointer;
+    box-sizing: border-box;
+    border: 1px solid rgba(0,0,0,0.3); /* Linha fina para separar */
+    transition: transform 0.2s, border 0.2s;
+}
+
+/* Peça Selecionada */
+.puzzle-piece.selected {
+    border: 2px solid #2ecc71;
+    z-index: 10;
+    transform: scale(0.95);
+    box-shadow: 0 0 10px #2ecc71;
+}
+
+/* Animação de Vitória (Peças se juntam) */
+.puzzle-grid.solved .puzzle-piece {
+    border: none; /* Remove as linhas */
+    animation: flash-result 0.5s;
+}
