@@ -697,18 +697,13 @@ async function loadOriginCovers() {
 async function checkDailyReward() {
     if (!player) return;
 
-    // Data de referência segura (1 de Janeiro de 2000)
     const SAFE_PAST_DATE = '2000-01-01T00:00:00Z'; 
-    
-    // Garante que ultimo_login tem um valor válido para não dar erro
-    const lastLoginTimestamp = player.ultimo_login && player.ultimo_login !== '0' 
-        ? player.ultimo_login 
-        : SAFE_PAST_DATE;
+    const lastLoginTimestamp = player.ultimo_login && player.ultimo_login !== '0' ? player.ultimo_login : SAFE_PAST_DATE;
 
     const hoje = new Date();
     const ultimoLogin = new Date(lastLoginTimestamp); 
     
-    // --- 1. CHECAGEM RÁPIDA: Já coletou hoje? ---
+    // --- 1. CHECAGEM RÁPIDA: Já coletou hoje? (CORRETO) ---
     const hojeString = hoje.toISOString().split('T')[0];
     const ultimoLoginString = ultimoLogin.toISOString().split('T')[0]; 
     
@@ -717,24 +712,29 @@ async function checkDailyReward() {
         return;
     }
 
-    // --- 2. CÁLCULO DE DIFERENÇA DE DIAS (para streak) ---
-    // Zera horas e calcula a diferença
-    const dataHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-    const dataUltimo = new Date(ultimoLogin.getFullYear(), ultimoLogin.getMonth(), ultimoLogin.getDate());
+    // --- 2. CÁLCULO DE DIAS (Para o STREAK) ---
+    // Zera as horas para evitar fuso na comparação. Usando Math.round para evitar números fracionados.
+    const dataHojeDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    const dataUltimoDia = new Date(ultimoLogin.getFullYear(), ultimoLogin.getMonth(), ultimoLogin.getDate());
     
-    const diffTempo = dataHoje - dataUltimo;
-    const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24)); // <--- ESTE CÁLCULO É O QUE FALTAVA NO LUGAR CERTO!
+    const diffTempo = dataHojeDia.getTime() - dataUltimoDia.getTime();
+    const diffDias = Math.round(diffTempo / (1000 * 60 * 60 * 24)); // Usa Math.round para maior tolerância
     
-    // --- 3. LÓGICA DO STREAK (INCREMENTO OU RESET) ---
+    // --- 3. LÓGICA DO STREAK (CORREÇÃO DE FLUXO) ---
     let novosDiasConsecutivos = player.dias_consecutivos;
     let premio = 100; // Valor base
 
     if (diffDias === 1) { 
-        // Se a diferença foi de EXATAMENTE 1 dia, a sequência continua
+        // Se a diferença foi de EXATAMENTE 1 dia (logou ontem), a sequência continua.
         novosDiasConsecutivos++;
-    } else if (diffDias > 1 || novosDiasConsecutivos === 0) {
-        // Se pulou um dia, ou se é a primeira vez (vem da data de 2000), o streak recomeça em 1
-        novosDiasConsecutivos = 1; 
+    } else if (diffDias <= 0) {
+        // Se o diffDias for 0 (que não deveria chegar aqui) ou negativo (futuro/fuso), 
+        // o prêmio é dado, mas o streak NÃO avança e reinicia para 1, evitando o bug de loop.
+        novosDiasConsecutivos = 1;
+    } 
+    else { // diffDias > 1
+        // Pulou um dia ou mais. Reseta o streak.
+        novosDiasConsecutivos = 1;
     }
 
     // Lógica de Progressão: Base + (Dias * 50). Máximo de 7 dias (combo).
