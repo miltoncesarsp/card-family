@@ -1557,3 +1557,13 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
 
 .clash-player { animation: clash-right 0.3s ease-in-out; }
 .clash-enemy { animation: clash-left 0.3s ease-in-out; }
+
+.energy-bar {
+    margin-top: 8px;
+    font-weight: bold;
+    font-size: 0.9em;
+    background: rgba(0,0,0,0.6);
+    padding: 4px 8px;
+    border-radius: 10px;
+    display: inline-block;
+}
