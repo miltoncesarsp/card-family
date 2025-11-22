@@ -166,20 +166,19 @@ async function loadEvolutionRules() {
 }
 
 function updateHeaderInfo() {
-    // ⚠️ Assumindo que você tem um elemento com ID 'player-id-display' no seu HTML
-    const userIdEl = document.getElementById('player-id-display'); 
-    const moedasEl = document.getElementById('player-moedas');
+    if (!player) return;
+    
+    // Alvo: O ID 'player-name' que você tem no HTML
+    const nameEl = document.getElementById('player-name'); 
+    const coinsEl = document.getElementById('player-coins');
 
-    if (player && userIdEl && moedasEl) {
-        // 🚨 CORREÇÃO PRINCIPAL AQUI: 
-        // Mostra o nome do jogador. Se não tiver, usa o email como fallback.
-        userIdEl.textContent = player.nome || player.email; 
+    if (nameEl && coinsEl) {
+        // CORREÇÃO: Usa o nome, com fallback para o e-mail (caso o nome esteja vazio)
+        nameEl.textContent = player.nome || player.email; 
         
-        moedasEl.textContent = player.moedas.toLocaleString('pt-BR');
-    } else {
-        // Lógica para quando não estiver logado (volta para o padrão)
-        if (userIdEl) userIdEl.textContent = "Visitante";
-        if (moedasEl) moedasEl.textContent = '0';
+        coinsEl.innerHTML = `<i class="fas fa-coins"></i> ${player.moedas}`;
+        
+        // Se precisar do nível, adicione aqui (você não tem o elemento no HTML)
     }
 }
 
