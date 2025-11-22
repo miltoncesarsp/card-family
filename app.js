@@ -2303,30 +2303,88 @@ function startDungeonCombat(monsterCard) {
     const overlay = document.getElementById('dungeon-combat-overlay');
     overlay.classList.remove('hidden');
 
-    // Mostra Monstro
+    // 1. MOSTRA O INIMIGO CLARAMENTE (Estratégia)
+    // Renderiza a carta do monstro para o jogador ver a arte e a raridade
     renderCardInSlot(monsterCard, 'dungeon-monster-card');
-    document.getElementById('monster-power-display').textContent = monsterCard.power;
+    
+    // Destaca o número da força do monstro em vermelho para ficar bem visível
+    const powerDisplay = document.getElementById('monster-power-display');
+    powerDisplay.textContent = monsterCard.power;
+    powerDisplay.style.color = "#e74c3c"; // Vermelho perigo
+    powerDisplay.style.fontSize = "1.5em"; // Maior
 
-    // Limpa slot do jogador
+    // Limpa slot do jogador (esperando escolha)
     const pSlot = document.getElementById('dungeon-player-slot');
-    pSlot.innerHTML = '<div class="slot-placeholder">Escolha...</div>';
+    pSlot.innerHTML = '<div class="slot-placeholder">Sua vez...</div>';
     pSlot.removeAttribute('style');
     pSlot.className = 'card-slot empty';
 
-    // Renderiza mão do jogador (Suas 5 melhores cartas para agilizar)
-    const myDeck = cardsInAlbum.filter(c => c.owned)
-        .sort((a, b) => b.power - a.power) // Mais fortes primeiro
-        .slice(0, 5);
+    // 2. PREPARA A MÃO TÁTICA (1 de cada Raridade)
+    const ownedCards = cardsInAlbum.filter(c => c.owned);
+    let tacticalHand = [];
+    
+    // Lista de prioridade para garantir variedade
+    const rarities = ['Comum', 'Rara', 'Épica', 'Lendária', 'Mítica'];
 
+    // Tenta pegar a MELHOR carta que você tem de CADA raridade
+    rarities.forEach(rarity => {
+        const bestOfRarity = ownedCards
+            .filter(c => c.rarity === rarity)
+            .sort((a, b) => b.power - a.power)[0]; // Pega a mais forte daquela raridade
+
+        if (bestOfRarity) {
+            tacticalHand.push(bestOfRarity);
+        }
+    });
+
+    // Se o jogador não tiver todas as raridades (ex: tem 3 cartas), 
+    // completa a mão até ter 5 cartas usando as mais fortes que sobraram
+    if (tacticalHand.length < 5) {
+        const remaining = ownedCards
+            .filter(c => !tacticalHand.includes(c)) // Não repete as que já escolheu
+            .sort((a, b) => b.power - a.power); // Ordena por força
+
+        const slotsNeeded = 5 - tacticalHand.length;
+        // Adiciona as que faltam
+        tacticalHand = [...tacticalHand, ...remaining.slice(0, slotsNeeded)];
+    }
+
+    // Ordena a mão final da Mais Fraca para a Mais Forte
+    // Isso ajuda o jogador a ver visualmente qual é a mínima necessária para vencer
+    tacticalHand.sort((a, b) => a.power - b.power);
+
+    // 3. Renderiza a Mão na Tela
     const handContainer = document.getElementById('dungeon-hand');
     handContainer.innerHTML = '';
 
-    myDeck.forEach(card => {
+    tacticalHand.forEach(card => {
         const div = document.createElement('div');
         div.className = 'hand-card';
         div.style.backgroundImage = `url('${card.image_url}')`;
         div.style.flexShrink = '0';
-        div.innerHTML = `<div style="position:absolute; bottom:2px; right:2px; background:white; border-radius:50%; width:20px; height:20px; text-align:center; font-size:12px; font-weight:bold; color:black;">${card.power}</div>`;
+        
+        // Mostra a força bem grande na carta para facilitar a conta
+        const rarityColor = getRarityColors(card.rarity).primary;
+        
+        div.innerHTML = `
+            <div style="
+                position: absolute; 
+                bottom: 5px; 
+                right: 5px; 
+                background: ${rarityColor}; 
+                color: white; 
+                border: 2px solid white; 
+                border-radius: 50%; 
+                width: 25px; 
+                height: 25px; 
+                display: flex; 
+                justify-content: center; 
+                align-items: center; 
+                font-weight: bold; 
+                font-size: 12px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            ">${card.power}</div>
+        `;
         
         div.onclick = () => resolveDungeonFight(card);
         handContainer.appendChild(div);
