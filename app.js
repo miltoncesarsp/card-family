@@ -721,13 +721,21 @@ async function checkDailyReward() {
     const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24)); 
     
     // Lógica do Streak
-    let novosDiasConsecutivos = player.dias_consecutivos;
+let novosDiasConsecutivos = player.dias_consecutivos;
     let premio = 100;
 
     if (diffDias === 1) { 
+        // Continua o streak: Logou ontem e hoje.
         novosDiasConsecutivos++;
-    } else if (diffDias > 1 || diffDias < 0) { // <--- Trata o caso -1 (fuso) como um prêmio de reset
-        novosDiasConsecutivos = 1; 
+    } else if (diffDias > 1) {
+        // Quebrou a sequência
+        novosDiasConsecutivos = 1;
+    } else if (diffDias < 0) {
+        // FUSO HORÁRIO: Se o banco estiver no futuro (-1 dia), reinicia o streak para dar o prêmio.
+        novosDiasConsecutivos = 1;
+    } else {
+        // diffDias = 0. Não deveria acontecer aqui. Apenas garante que inicia o streak.
+        novosDiasConsecutivos = 1;
     }
 
     // Lógica de Progressão (Continua igual)
