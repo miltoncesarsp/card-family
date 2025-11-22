@@ -698,64 +698,58 @@ async function checkDailyReward() {
     if (!player) return;
 
     const SAFE_PAST_DATE = '2000-01-01T00:00:00Z'; 
-    const lastLoginTimestamp = player.ultimo_login && player.ultimo_login !== '0' ? player.ultimo_login : SAFE_PAST_DATE;
+    const lastLoginTimestamp = player.ultimo_login && player.ultimo_login !== '0' 
+        ? player.ultimo_login 
+        : SAFE_PAST_DATE;
 
     const hoje = new Date();
     const ultimoLogin = new Date(lastLoginTimestamp); 
     
-    // 1. CHECAGEM RÁPIDA: Já coletou hoje? 
+    // --- 1. CHECAGEM RÁPIDA: Já coletou hoje? ---
     const hojeString = hoje.toISOString().split('T')[0];
     const ultimoLoginString = ultimoLogin.toISOString().split('T')[0]; 
     
     if (hojeString === ultimoLoginString) {
-        console.log("Bônus diário já coletado hoje. (Check String OK)");
+        // Se já coletou, para o processo aqui.
         return;
     }
 
-    // --- CÁLCULO DE STREAK ---
-    // Zera horas e calcula a diferença em dias
+    // --- 2. CÁLCULO DE DIFERENÇA DE DIAS (Para o STREAK) ---
+    // Zera horas e calcula a diferença de forma tolerante ao fuso
     const dataHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
     const dataUltimo = new Date(ultimoLogin.getFullYear(), ultimoLogin.getMonth(), ultimoLogin.getDate());
     
-    const diffTempo = dataHoje - dataUltimo;
+    const diffTempo = dataHoje.getTime() - dataUltimo.getTime(); // Pega a diferença em milissegundos
     const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24)); 
     
-    // Lógica do Streak
-let novosDiasConsecutivos = player.dias_consecutivos;
-    let premio = 100;
+    // --- 3. LÓGICA DO STREAK (INCREMENTO OU RESET) ---
+    let novosDiasConsecutivos = player.dias_consecutivos;
+    let premio = 100; // Valor base
 
     if (diffDias === 1) { 
-        // Continua o streak: Logou ontem e hoje.
+        // Logou ontem. Sequência continua.
         novosDiasConsecutivos++;
-    } else if (diffDias > 1) {
-        // Quebrou a sequência
-        novosDiasConsecutivos = 1;
-    } else if (diffDias < 0) {
-        // FUSO HORÁRIO: Se o banco estiver no futuro (-1 dia), reinicia o streak para dar o prêmio.
-        novosDiasConsecutivos = 1;
-    } else {
-        // diffDias = 0. Não deveria acontecer aqui. Apenas garante que inicia o streak.
-        novosDiasConsecutivos = 1;
+    } else if (diffDias > 1 || diffDias <= 0) { 
+        // Quebrou a sequência, fuso horário negativo, ou primeiro login. Reseta para 1.
+        novosDiasConsecutivos = 1; 
     }
 
     // Lógica de Progressão (Continua igual)
     const bonusStreak = Math.min(novosDiasConsecutivos, 7) * 50;
     premio += bonusStreak;
 
-// MOSTRA O MODAL
+    // --- 4. MOSTRA O MODAL E SALVA ---
     const modal = document.getElementById('daily-reward-modal');
-    
-    // Captura os elementos com checagem de NULL (Isso evita o crash!)
     const dailyAmountEl = document.getElementById('daily-amount');
     const dailyStreakEl = document.getElementById('daily-streak');
     const msgEl = document.getElementById('daily-message');
 
-    // 🚨 VERIFICAÇÃO CRÍTICA
+    // Verifica se os elementos existem antes de tentar escrever (Prevenção de TypeError)
     if (!dailyAmountEl || !dailyStreakEl || !modal) {
-        console.error("ERRO FATAL DE DOM: Um ou mais elementos do Modal Diário não foram encontrados. (Verifique se os IDs daily-amount e daily-streak estão no HTML)");
+        console.error("ERRO DOM: Elementos de modal não encontrados. Verifique IDs.");
         return; 
     }
-    
+
     dailyAmountEl.textContent = `+${premio}`;
     dailyStreakEl.textContent = novosDiasConsecutivos;
     
@@ -770,20 +764,22 @@ let novosDiasConsecutivos = player.dias_consecutivos;
 
     // Configura o botão de receber
     const btnCollect = document.getElementById('collectDailyBtn');
+    const newBtn = btnCollect.cloneNode(true);
+    btnCollect.parentNode.replaceChild(newBtn, btnCollect);
     
     newBtn.addEventListener('click', async () => {
         newBtn.textContent = "Recebido!";
+        
+        // --- LÓGICA DE SALVAMENTO (Fixando a data para evitar loops futuros) ---
+        const dataParaSalvar = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString(); // Meia-noite local, limpo
+
         const novasMoedas = player.moedas + premio;
         
-        // 🚨 O PONTO CHAVE: Salva a data como meia-noite local, mas no formato UTC.
-        // Isso garante que a string de comparação sempre funcione no próximo load.
-        const dataParaSalvar = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString();
-
         const { error } = await supabase
             .from('jogadores')
             .update({ 
                 moedas: novasMoedas,
-                ultimo_login: dataParaSalvar, // <--- SALVANDO O INÍCIO DO DIA ATUAL
+                ultimo_login: dataParaSalvar, 
                 dias_consecutivos: novosDiasConsecutivos
             })
             .eq('id', player.id);
@@ -792,10 +788,10 @@ let novosDiasConsecutivos = player.dias_consecutivos;
             console.error("Erro ao salvar bônus:", error);
             showNotification("Erro ao salvar bônus.", true);
         } else {
-            // Atualiza localmente
+            // Atualiza localmente e UI
             player.moedas = novasMoedas;
             player.dias_consecutivos = novosDiasConsecutivos;
-            player.ultimo_login = dataParaSalvar; // Atualiza com o valor limpo
+            player.ultimo_login = dataParaSalvar; 
             
             updateHeaderInfo();
             showNotification(`Você ganhou ${premio} moedas!`);
