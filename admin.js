@@ -584,25 +584,52 @@ async function loadPlayers() {
 
 async function handleEditPlayer(event) {
     const id = event.currentTarget.dataset.id;
-    const { data: player } = await supabase.from('jogadores').select('*').eq('id', id).single();
+    // Garanta que você busca o NOME no select abaixo se necessário,
+    // mas vamos assumir que o *.* já traz ele
+    const { data: player } = await supabase.from('jogadores').select('*').eq('id', id).single(); 
+    
     if(player) {
         document.getElementById('playerEditId').value = player.id;
-        document.getElementById('playerEditName').value = player.nome;
         document.getElementById('playerEditEmail').value = player.email;
+        
+        // 🚨 MUDANÇA 1: Carrega o nome do jogador para o input
+        document.getElementById('playerEditName').value = player.nome || ''; 
+        
         document.getElementById('playerEditMoedas').value = player.moedas;
         document.getElementById('playerEditNivel').value = player.nivel;
+        
         document.getElementById('playerEditFormSection').style.display = 'block';
+        document.getElementById('playerEditFormSection').scrollIntoView({ behavior: 'smooth' });
     }
 }
 
 async function savePlayerEdit() {
     const id = document.getElementById('playerEditId').value;
+    
+    // 🚨 MUDANÇA 2: Coleta o NOME do campo de input
+    const nome = document.getElementById('playerEditName').value.trim(); 
+    
     const moedas = parseInt(document.getElementById('playerEditMoedas').value);
     const nivel = parseInt(document.getElementById('playerEditNivel').value);
-    await supabase.from('jogadores').update({ moedas, nivel }).eq('id', id);
-    alert("Jogador atualizado!");
-    document.getElementById('playerEditFormSection').style.display = 'none';
-    loadPlayers();
+    
+    if (!id || !nome || isNaN(moedas) || isNaN(nivel)) {
+        alert("Preencha todos os campos corretamente (Nome, Moedas, Nível)!");
+        return;
+    }
+
+    const { error } = await supabase.from('jogadores')
+        // 🚨 MUDANÇA 3: Inclui o 'nome' no objeto de atualização
+        .update({ nome, moedas, nivel }) 
+        .eq('id', id);
+
+    if (error) {
+        console.error("Erro ao atualizar jogador:", error);
+        alert(`Erro ao atualizar jogador "${nome}": ${error.message}`);
+    } else {
+        alert(`Jogador "${nome}" atualizado com sucesso!`);
+        document.getElementById('playerEditFormSection').style.display = 'none';
+        await loadPlayers();
+    }
 }
 
 /* === GESTÃO DE CAPAS DE ORIGEM === */
