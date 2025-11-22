@@ -1482,7 +1482,7 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
 
 /* Carta na mão (Clicável) */
 .hand-card {
-    width: 100px; /* Menor que a carta da arena */
+    width: 100px; 
     height: 140px;
     cursor: pointer;
     transition: transform 0.2s;
@@ -1490,6 +1490,9 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     border-radius: 8px;
     background-size: cover;
     position: relative;
+    
+    /* 🚨 ADICIONE ISSO PARA NÃO ESMAGAR NO MOBILE */
+    flex-shrink: 0; 
 }
 
 .hand-card:hover {
@@ -1506,8 +1509,16 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
 
 /* Ajuste Mobile */
 @media (max-width: 600px) {
-    .combat-zone { gap: 5px; transform: scale(0.9); }
-    .hand-grid { justify-content: flex-start; } /* Alinha à esquerda pra rolar */
+.combat-zone { gap: 5px; transform: scale(0.9); }
+    
+    /* 🚨 MUDE ISTO: Alinha no começo para permitir rolagem correta */
+    .hand-grid { 
+        justify-content: flex-start; 
+        padding-left: 10px; /* Um respiro na esquerda */
+        padding-right: 10px;
+    }
+
+   
 }
 
 /* === EFEITOS DE RESULTADO NA BATALHA === */
