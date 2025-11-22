@@ -31,6 +31,12 @@ let memoryState = {
     matchesFound: 0
 };
 
+let targetState = {
+    goal: 0,
+    current: 0,
+    isGameOver: false
+};
+
 // Elementos da Tela de Login
 const loginScreen = document.getElementById('login-screen');
 const gameContent = document.getElementById('game-content');
@@ -1393,7 +1399,7 @@ async function refreshMinigameEnergy() {
 async function attemptPlay(gameType) {
     // --- 1. VERIFICAÇÃO SE O JOGO EXISTE ---
     // Lista aqui apenas os jogos que já funcionam
-    const jogosProntos = ['battle', 'memory']; 
+    const jogosProntos = ['battle', 'memory', 'target']; 
 
     if (!jogosProntos.includes(gameType)) {
         alert("🚧 Em breve! Guarde sua energia para quando lançar.");
@@ -1420,11 +1426,27 @@ async function attemptPlay(gameType) {
     minigameStatus[gameType].energia--; 
     refreshMinigameEnergy(); // Atualiza visual
 
-    // Inicia o jogo
-    if (gameType === 'battle') {
-        startBattleGame();
-    }else if (gameType === 'memory') {
-        startMemoryGame();
+    // ROTEADOR DE JOGOS (Switch Case)
+    switch (gameType) {
+        case 'battle':
+            startBattleGame();
+            break;
+        case 'memory':
+            startMemoryGame();
+            break;
+        case 'target':
+            startTargetGame();
+            break;
+        // Deixe os outros comentados ou sem ação até criar as funções
+        case 'dungeon':
+            // startDungeonGame();
+            break;
+        case 'puzzle':
+            // startPuzzleGame();
+            break;
+        case 'jokenpo':
+            // startJokenpoGame();
+            break;
     }
 }
 
@@ -1572,4 +1594,138 @@ function quitMemoryGame() {
     document.getElementById('memory-arena').classList.add('hidden');
     document.getElementById('games-menu').classList.remove('hidden');
     refreshMinigameEnergy(); // Atualiza energia visualmente
+}
+
+// =================================================
+// MINIGAME: O ALVO (BLACKJACK VISUAL)
+// =================================================
+
+function startTargetGame() {
+    // 1. UI Setup
+    document.getElementById('games-menu').classList.add('hidden');
+    document.getElementById('target-arena').classList.remove('hidden');
+    document.getElementById('btn-hit').classList.remove('hidden');
+    document.getElementById('btn-stand').classList.remove('hidden');
+    document.getElementById('btn-target-exit').classList.add('hidden');
+    
+    // Limpa a carta da mesa
+    const cardSlot = document.getElementById('target-card-display');
+    cardSlot.innerHTML = '<div class="card-back-pattern"></div>';
+    cardSlot.removeAttribute('style');
+    cardSlot.className = 'card-slot empty';
+
+    // 2. Define o Alvo (Entre 20 e 40)
+    targetState.goal = Math.floor(Math.random() * 21) + 20; 
+    targetState.current = 0;
+    targetState.isGameOver = false;
+
+    // 3. Renderiza Alvo
+    document.getElementById('target-goal').textContent = targetState.goal;
+    document.getElementById('target-current').textContent = '0';
+
+    // 4. Posiciona a linha vermelha visualmente
+    // O tubo tem "100%". Se o max possível fosse 50, calculamos a % da linha.
+    // Vamos assumir que o tubo cheio = 50 pontos (para ter margem de estourar)
+    const maxScale = 50;
+    const linePercent = (targetState.goal / maxScale) * 100;
+    document.getElementById('target-line').style.bottom = `${linePercent}%`;
+
+    // 5. Reseta Líquido
+    const liquid = document.getElementById('target-liquid');
+    liquid.style.height = '0%';
+    liquid.className = 'target-liquid-fill';
+}
+
+function targetHit() {
+    if (targetState.isGameOver) return;
+
+    // 1. Pega carta aleatória do baralho global (simulando compra)
+    const randomCard = allGameCards[Math.floor(Math.random() * allGameCards.length)];
+    
+    // 2. Mostra a carta na tela
+    renderCardInSlot(randomCard, 'target-card-display');
+
+    // 3. Soma Força
+    targetState.current += randomCard.power;
+    document.getElementById('target-current').textContent = targetState.current;
+
+    // 4. Atualiza Visual do Tubo
+    const maxScale = 50; // Escala fixa visual
+    let fillPercent = (targetState.current / maxScale) * 100;
+    if (fillPercent > 100) fillPercent = 100; // Não sai do tubo
+    
+    const liquid = document.getElementById('target-liquid');
+    liquid.style.height = `${fillPercent}%`;
+
+    // Muda cor se estiver perto (Alvo - 5)
+    if (targetState.current >= targetState.goal - 5) {
+        liquid.classList.add('danger');
+    }
+
+    // 5. Verifica se Estourou
+    if (targetState.current > targetState.goal) {
+        liquid.classList.remove('danger');
+        liquid.classList.add('exploded');
+        endTargetGame(false); // Perdeu
+    } else if (targetState.current === targetState.goal) {
+        endTargetGame(true); // Cravou! (Vitória Automática)
+    }
+}
+
+function targetStand() {
+    if (targetState.isGameOver) return;
+    // O jogador decidiu parar. Vamos ver quão perto chegou.
+    endTargetGame(true);
+}
+
+async function endTargetGame(survived) {
+    targetState.isGameOver = true;
+    
+    // Esconde botões de jogo
+    document.getElementById('btn-hit').classList.add('hidden');
+    document.getElementById('btn-stand').classList.add('hidden');
+    
+    // Lógica de Vitória/Derrota
+    let prize = 0;
+    let message = "";
+
+    if (!survived) {
+        message = "💥 ESTOUROU! O tubo quebrou.";
+        showNotification("Você passou do limite!", true);
+    } else {
+        // Calcula distância do alvo
+        const diff = targetState.goal - targetState.current;
+        
+        if (diff === 0) {
+            prize = 100; // Perfeito
+            message = "🎯 NA MOSCA! Prêmio Máximo!";
+        } else if (diff <= 3) {
+            prize = 60; // Muito perto
+            message = "🔥 Quase perfeito! Muito bom!";
+        } else if (diff <= 7) {
+            prize = 30; // OK
+            message = "👍 Seguro. Prêmio básico.";
+        } else {
+            prize = 5; // Muito longe (Covarde!)
+            message = "😐 Muito longe... Arrisque mais na próxima.";
+        }
+
+        if (prize > 0) {
+            await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
+            player.moedas += prize;
+            updateHeaderInfo();
+            showNotification(`Ganhou +${prize} moedas!`);
+        }
+    }
+
+    setTimeout(() => {
+        alert(message);
+        document.getElementById('btn-target-exit').classList.remove('hidden');
+    }, 500);
+}
+
+function quitTargetGame() {
+    document.getElementById('target-arena').classList.add('hidden');
+    document.getElementById('games-menu').classList.remove('hidden');
+    refreshMinigameEnergy();
 }
