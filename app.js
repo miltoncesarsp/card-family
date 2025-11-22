@@ -1946,16 +1946,21 @@ function quitPuzzleGame() {
 // =================================================
 
 async function startJokenpoGame() {
-    // 1. Verifica Cartas
-    const myDeck = cardsInAlbum.filter(c => c.owned);
-    if (myDeck.length < 3) {
-        alert("Você precisa de pelo menos 3 cartas para jogar!");
+    // 1. Verifica se o jogador tem cartas suficientes
+    // Filtra apenas as que ele tem (owned)
+    const allMyOwned = cardsInAlbum.filter(c => c.owned);
+    
+    if (allMyOwned.length < 5) {
+        alert("Você precisa de pelo menos 5 cartas para jogar Jo-Ken-Po!");
         return;
     }
 
     // 2. Prepara UI
     document.getElementById('games-menu').classList.add('hidden');
     document.getElementById('jokenpo-arena').classList.remove('hidden');
+    
+    // Mostra Loading enquanto busca rival
+    document.getElementById('jk-status').textContent = "Buscando Oponente...";
     
     // Reseta Placar
     jokenpoState.playerScore = 0;
@@ -1964,27 +1969,38 @@ async function startJokenpoGame() {
     jokenpoState.isProcessing = false;
     updateJokenpoScore();
 
-    // 3. Carrega Regras do Banco (Cache simples)
+    // 3. Carrega Regras (Cache)
     if (jokenpoState.rules.length === 0) {
         const { data } = await supabase.from('elementos').select('*');
         if (data) jokenpoState.rules = data;
     }
 
-    // 4. Prepara Mãos
-    // Jogador: Usa todas as cartas disponíveis (para ter variedade de elementos)
-    jokenpoState.myDeck = myDeck.sort((a, b) => b.power - a.power); // Mais fortes primeiro ajuda? Talvez.
+    // 4. PREPARA A SUA MÃO (5 Cartas Aleatórias)
+    // Embaralha todas as suas cartas e pega as 5 primeiras
+    jokenpoState.myDeck = [...allMyOwned]
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 5);
+
+    // 5. BUSCA OPONENTE REAL (Igual na Batalha)
+    const { data: enemyData, error } = await supabase.rpc('buscar_oponente_batalha');
     
-    // CPU: Gera 3 cartas aleatórias do jogo
-    const { data: allCards } = await supabase.from('cards').select('*');
-    jokenpoState.cpuDeck = [];
-    for(let i=0; i<5; i++) { // CPU tem 5 cartas pra escolher
-        jokenpoState.cpuDeck.push(allCards[Math.floor(Math.random() * allCards.length)]);
+    if (error || !enemyData) {
+        alert("Erro ao buscar oponente.");
+        quitJokenpoGame();
+        return;
     }
 
+    // Define o deck do inimigo com as cartas que vieram do banco
+    jokenpoState.cpuDeck = enemyData.cartas;
+
+    // Atualiza o nome da CPU na tela para o nome do Rival
+    const enemyLabel = document.querySelector('.enemy-score small');
+    if(enemyLabel) enemyLabel.textContent = enemyData.nome.toUpperCase();
+
+    // Renderiza
     renderJokenpoHand();
     resetJokenpoTable();
 }
-
 function renderJokenpoHand() {
     const container = document.getElementById('jk-hand');
     container.innerHTML = '';
