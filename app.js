@@ -763,41 +763,43 @@ async function checkDailyReward() {
     modal.classList.remove('hidden');
 
     // Configura o botão de receber
-    const btnCollect = document.getElementById('collectDailyBtn');
-    const newBtn = btnCollect.cloneNode(true);
-    btnCollect.parentNode.replaceChild(newBtn, btnCollect);
+const btnCollect = document.getElementById('collectDailyBtn');
+const newBtn = btnCollect.cloneNode(true);
+btnCollect.parentNode.replaceChild(newBtn, btnCollect);
+
+newBtn.addEventListener('click', async () => {
+    newBtn.textContent = "Recebido!";
     
-    newBtn.addEventListener('click', async () => {
-        newBtn.textContent = "Recebido!";
-        
-        // --- LÓGICA DE SALVAMENTO (Fixando a data para evitar loops futuros) ---
-        const dataParaSalvar = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString(); // Meia-noite local, limpo
+    // CORREÇÃO CRÍTICA: Salvar o momento atual (hoje) para garantir que a checagem diária funcione
+    // Ao invés de uma meia-noite 'limpa' que pode ter problemas de fuso, salva o instante de agora
+    const dataParaSalvar = (new Date()).toISOString(); // Usa o instante exato da coleta
 
-        const novasMoedas = player.moedas + premio;
-        
-        const { error } = await supabase
-            .from('jogadores')
-            .update({ 
-                moedas: novasMoedas,
-                ultimo_login: dataParaSalvar, 
-                dias_consecutivos: novosDiasConsecutivos
-            })
-            .eq('id', player.id);
+    const novasMoedas = player.moedas + premio;
+    
+    const { error } = await supabase
+        .from('jogadores')
+        .update({ 
+            moedas: novasMoedas,
+            // AQUI: Salva o instante real (toISOString)
+            ultimo_login: dataParaSalvar, 
+            dias_consecutivos: novosDiasConsecutivos
+        })
+        .eq('id', player.id);
 
-        if (error) {
-            console.error("Erro ao salvar bônus:", error);
-            showNotification("Erro ao salvar bônus.", true);
-        } else {
-            // Atualiza localmente e UI
-            player.moedas = novasMoedas;
-            player.dias_consecutivos = novosDiasConsecutivos;
-            player.ultimo_login = dataParaSalvar; 
-            
-            updateHeaderInfo();
-            showNotification(`Você ganhou ${premio} moedas!`);
-            modal.classList.add('hidden');
-        }
-    });
+    if (error) {
+        console.error("Erro ao salvar bônus:", error);
+        showNotification("Erro ao salvar bônus.", true);
+    } else {
+        // ATUALIZAÇÃO LOCAL IMEDIATA
+        player.moedas = novasMoedas;
+        player.dias_consecutivos = novosDiasConsecutivos;
+        player.ultimo_login = dataParaSalvar; // Atualiza a variável local para a próxima checagem
+        
+        updateHeaderInfo();
+        showNotification(`Você ganhou ${premio} moedas!`);
+        modal.classList.add('hidden');
+    }
+});
 }
 
 // =================================================
