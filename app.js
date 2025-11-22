@@ -1288,29 +1288,40 @@ async function finishBattle() {
     let prize = 0;
     const WIN_PRIZE = 150; // Prêmio fixo por vencer
 
+    // 1. Lógica de Resultado
     if (battleState.playerScore > battleState.enemyScore) {
         msg = "VITÓRIA! 🏆";
         prize = WIN_PRIZE;
         
+        // Entrega o prêmio
         await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
         player.moedas += prize;
         showNotification(`PARABÉNS! Você ganhou +${prize} moedas!`);
-    
+        
     } else if (battleState.playerScore < battleState.enemyScore) {
         msg = "DERROTA";
-        // REMOVIDA: Nenhuma penalidade ou perda de moedas.
         showNotification("Você perdeu a batalha. Tente novamente!", true);
 
     } else {
         msg = "EMPATE";
-        // REMOVIDA: Nenhuma devolução, pois a aposta foi removida.
         showNotification("Empate! Ninguém ganhou moedas desta vez.");
     }
     
-    updateHeaderInfo();
-    alert(`FIM DE JOGO!\n\n${msg}\nPlacar: ${battleState.playerScore} x ${battleState.enemyScore}`);
-    
-    resetUI();
+    updateHeaderInfo(); // Atualiza as moedas no topo
+
+    // 2. Feedback para o usuário
+    // Usamos um pequeno delay para o usuário ver o último resultado antes do alert
+    setTimeout(() => {
+        alert(`FIM DE JOGO!\n\n${msg}\nPlacar: ${battleState.playerScore} x ${battleState.enemyScore}`);
+        
+        // 3. Limpeza e Navegação (AQUI ESTÁ A MUDANÇA)
+        resetUI();          // Limpa a mesa (cartas, placar, etc)
+        exitGame();         // Esconde a arena e VOLTA PARA O MENU ARCADE
+        
+        // Garante que o estado de processamento seja liberado
+        battleState.isProcessing = false; 
+        
+    }, 500); // Espera meio segundo após o último round
 }
 
 // Helper para desenhar carta na arena
