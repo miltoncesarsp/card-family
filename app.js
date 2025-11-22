@@ -2182,7 +2182,7 @@ function updateJokenpoScore() {
     document.getElementById('jk-score-player').textContent = jokenpoState.playerScore;
     document.getElementById('jk-score-cpu').textContent = jokenpoState.cpuScore;
     
-    // Atualiza indicador de Rodada se existir
+    // Atualiza indicador de Rodada
     const roundCounter = document.getElementById('jk-round-counter');
     if(roundCounter) roundCounter.textContent = `${jokenpoState.round} / 3`;
 }
