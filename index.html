@@ -109,21 +109,53 @@
                 </div>
 
                 <div id="games-menu" class="games-list">
-                    
-                    <div class="game-card" onclick="startBattleGame()">
-                        <div class="game-icon"><i class="fas fa-fist-raised"></i></div>
-                        <h3>Duelo de Força</h3>
-                        <p>Sua melhor carta vs CPU.</p>
-                        <span class="game-cost">Grátis para jogar</span>
-                    </div>
+    
+    <div class="game-card" onclick="attemptPlay('battle')">
+        <div class="game-icon"><i class="fas fa-fist-raised"></i></div>
+        <h3>Duelo</h3>
+        <p>Sua melhor carta vs CPU.</p>
+        <div class="energy-bar">
+            <span id="energy-battle">⚡ ...</span>
+        </div>
+    </div>
 
-                    <div class="game-card locked">
-                        <div class="game-icon"><i class="fas fa-brain"></i></div>
-                        <h3>Memória</h3>
-                        <p>Encontre os pares.</p>
-                        <span class="game-cost">Em breve</span>
-                    </div>
-                </div>
+    <div class="game-card" onclick="attemptPlay('memory')">
+        <div class="game-icon"><i class="fas fa-brain"></i></div>
+        <h3>Memória</h3>
+        <p>Encontre os pares.</p>
+        <div class="energy-bar">
+            <span id="energy-memory">⚡ ...</span>
+        </div>
+    </div>
+
+    <div class="game-card" onclick="attemptPlay('target')">
+        <div class="game-icon"><i class="fas fa-bullseye"></i></div>
+        <h3>O Alvo</h3>
+        <p>Chegue perto sem estourar.</p>
+        <div class="energy-bar">
+            <span id="energy-target">⚡ ...</span>
+        </div>
+    </div>
+
+    <div class="game-card" onclick="attemptPlay('dungeon')">
+        <div class="game-icon"><i class="fas fa-dungeon"></i></div>
+        <h3>Masmorra</h3>
+        <p>Explore e ache tesouros.</p>
+        <div class="energy-bar">
+            <span id="energy-dungeon">⚡ ...</span>
+        </div>
+    </div>
+
+    <div class="game-card" onclick="attemptPlay('puzzle')">
+        <div class="game-icon"><i class="fas fa-puzzle-piece"></i></div>
+        <h3>Puzzle</h3>
+        <p>Monte a imagem.</p>
+        <div class="energy-bar">
+            <span id="energy-puzzle">⚡ ...</span>
+        </div>
+    </div>
+
+</div>
 
 <div id="battle-arena" class="hidden">
     
