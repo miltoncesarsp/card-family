@@ -511,7 +511,12 @@ async function handleBuyPack(event) {
     const packPrice = parseInt(event.currentTarget.dataset.price);
 
     if (player.moedas < packPrice) { showNotification("Moedas insuficientes!", true); return; }
-    if (!confirm(`Comprar este pacote?`)) return;
+    const confirmarCompra = await showGameAlert(
+        "CONFIRMAR COMPRA", 
+        `Deseja comprar este pacote por ${packPrice} moedas?`, 
+        true
+    );
+    if (!confirmarCompra) return;
 
     const newCoins = player.moedas - packPrice;
     const { error } = await supabase.from('jogadores').update({ moedas: newCoins }).eq('id', player.id);
@@ -966,7 +971,12 @@ document.getElementById('btnCreateTrade')?.addEventListener('click', async () =>
 
     // Abre o modal de oferta, mas configurado para "ANUNCIAR"
     openSelectionModal(myAvailableCards, async (selectedCardId) => {
-        if(!confirm("Anunciar esta carta? Ela sairá da sua coleção até alguém trocar ou você cancelar.")) return;
+        const confirmarVenda = await showGameAlert(
+            "ANUNCIAR CARTA?",
+            "Esta carta sairá da sua coleção até alguém trocar ou você cancelar.",
+            true
+        );
+        if(!confirmarVenda) return;
         
         const { error } = await supabase.rpc('anunciar_carta', { carta_id_para_venda: selectedCardId });
         
@@ -981,7 +991,12 @@ document.getElementById('btnCreateTrade')?.addEventListener('click', async () =>
 
 // 2. Cancelar Anúncio
 async function cancelTrade(tradeId) {
-    if(!confirm("Remover anúncio e pegar carta de volta?")) return;
+   const confirmarCancel = await showGameAlert(
+        "CANCELAR?",
+        "Deseja remover o anúncio e pegar a carta de volta?",
+        true
+    );
+    if(!confirmarCancel) return;
     
     const { error } = await supabase.rpc('cancelar_anuncio', { anuncio_id: tradeId });
     
@@ -998,7 +1013,12 @@ function openTradeModal(tradeId) {
     const myAvailableCards = cardsInAlbum.filter(c => c.quantidade > 0);
     
     openSelectionModal(myAvailableCards, async (myCardId) => {
-        if(!confirm("Trocar sua carta selecionada pela carta do mercado?")) return;
+        const confirmarTroca = await showGameAlert(
+            "TROCAR?",
+            "Trocar sua carta selecionada pela carta do mercado?",
+            true
+        );
+        if(!confirmarTroca) return;
         
         const { error } = await supabase.rpc('realizar_troca', { 
             anuncio_id: pendingTradeId, 
@@ -1417,9 +1437,9 @@ async function attemptPlay(gameType) {
     // Lista aqui apenas os jogos que já funcionam
 const jogosProntos = ['battle', 'memory', 'target', 'puzzle', 'jokenpo', 'dungeon'];
 
-    if (!jogosProntos.includes(gameType)) {
-        alert("🚧 Em breve! Guarde sua energia para quando lançar.");
-        return; // PARA AQUI: Não gasta energia
+if (!jogosProntos.includes(gameType)) {
+        await showGameAlert("EM BREVE 🚧", "Este jogo ainda está em construção.\nGuarde sua energia!");
+        return; 
     }
 
     // --- 2. VERIFICAÇÃO DE ENERGIA ---
@@ -1471,13 +1491,12 @@ const jogosProntos = ['battle', 'memory', 'target', 'puzzle', 'jokenpo', 'dungeo
 // =================================================
 
 async function startMemoryGame() {
-    // 1. Filtra APENAS cartas que o jogador tem
     let pool = cardsInAlbum.filter(c => c.owned);
 
-    // 2. Verificação de Segurança
+    // 🚨 SUBSTIUIÇÃO AQUI
     if (pool.length < 6) {
-        alert("Você precisa de pelo menos 6 cartas na coleção para jogar Memória!");
-        // Devolve a energia gasta (opcional, mas justo)
+        await showGameAlert("FALTAM CARTAS", "Você precisa de pelo menos 6 cartas na coleção para jogar Memória!");
+        
         minigameStatus['memory'].energia++;
         refreshMinigameEnergy();
         return;
@@ -1618,12 +1637,12 @@ function quitMemoryGame() {
 // MINIGAME: O ALVO (BLACKJACK VISUAL)
 // =================================================
 
-function startTargetGame() {
-    // 1. Filtra cartas do jogador para calcular a média
+async function startTargetGame() { // 🚨 Adicione 'async'
     const myDeck = cardsInAlbum.filter(c => c.owned);
     
+    // 🚨 SUBSTIUIÇÃO AQUI
     if (myDeck.length === 0) {
-        alert("Você precisa de cartas para jogar!");
+        await showGameAlert("SEM CARTAS", "Você precisa de cartas na coleção para jogar!");
         return;
     }
 
@@ -1762,11 +1781,12 @@ function quitTargetGame() {
 // MINIGAME: PUZZLE (QUEBRA-CABEÇA)
 // =================================================
 
-function startPuzzleGame() {
-    // 1. Verifica se tem cartas
+async function startPuzzleGame() { // 🚨 Adicione 'async'
     const myDeck = cardsInAlbum.filter(c => c.owned);
+    
+    // 🚨 SUBSTIUIÇÃO AQUI
     if (myDeck.length === 0) {
-        alert("Você precisa de cartas para jogar!");
+        await showGameAlert("SEM CARTAS", "Você precisa de cartas na coleção para jogar!");
         return;
     }
 
@@ -1947,8 +1967,8 @@ function quitPuzzleGame() {
 async function startJokenpoGame() {
     // 1. Verifica Cartas
     const allMyOwned = cardsInAlbum.filter(c => c.owned);
-    if (allMyOwned.length < 5) {
-        alert("Você precisa de pelo menos 5 cartas para jogar Jo-Ken-Po!");
+if (allMyOwned.length < 5) {
+        await showGameAlert("FALTAM CARTAS", "Você precisa de pelo menos 5 cartas para jogar Jo-Ken-Po!");
         return;
     }
 
@@ -1993,8 +2013,8 @@ async function startJokenpoGame() {
     // 5. Busca Oponente Real
     const { data: enemyData, error } = await supabase.rpc('buscar_oponente_batalha');
     
-    if (error || !enemyData) {
-        alert("Erro ao buscar oponente.");
+if (error || !enemyData) {
+        await showGameAlert("ERRO", "Não foi possível encontrar um oponente.");
         quitJokenpoGame();
         return;
     }
@@ -2216,8 +2236,8 @@ async function startDungeonGame() {
     // 1. Verifica e Seleciona as 5 Cartas
     const ownedCards = cardsInAlbum.filter(c => c.owned);
     
-    if (ownedCards.length < 5) {
-        alert("Você precisa de pelo menos 5 cartas para entrar na masmorra!");
+if (ownedCards.length < 5) {
+        await showGameAlert("PERIGO!", "Você precisa de pelo menos 5 cartas para entrar na masmorra!");
         return;
     }
 
@@ -2390,12 +2410,13 @@ async function forceDungeonExit() {
 }
 
 
-function startDungeonCombat(monsterCard) {
+async function startDungeonCombat(monsterCard) { // 🚨 Adicione 'async'
     // VERIFICAÇÃO DE MORTE SÚBITA
-    // Se acabou as cartas, você não pode lutar -> Game Over
     if (dungeonState.playerHand.length === 0) {
-        alert("VOCÊ ESTÁ SEM CARTAS! 😱\nO monstro te atacou e você não pode se defender.");
-        dungeonState.lives = 0; // Mata o jogador
+        // 🚨 SUBSTIUIÇÃO AQUI
+        await showGameAlert("SEM DEFESA! 😱", "O monstro te atacou e você não tem mais cartas para se defender.");
+        
+        dungeonState.lives = 0; 
         updateDungeonUI();
         gameOverDungeon();
         return;
