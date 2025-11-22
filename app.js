@@ -82,12 +82,12 @@ function updateUIState(session) {
 
 async function loadPlayerData(userId) {
     // 1. Busca jogador
-    const { data: playerData, error: playerError } = await supabase
-        .from('jogadores')
-        // ADICIONE 'nome' AQUI:
-        .select(`id, email, moedas, total_cartas, nome`) 
-        .eq('id', userId)
-        .single();
+const { data: playerData, error: playerError } = await supabase
+    .from('jogadores')
+    // GARANTA QUE ultimo_login está no SELECT (Você já está usando SELECT *)
+    .select(`id, email, moedas, total_cartas, nome, ultimo_login, dias_consecutivos`) // Adicionei 'ultimo_login' e 'dias_consecutivos' explicitamente para garantir
+    .eq('id', userId)
+    .single();
 
     // Rede de segurança se jogador não existir
     if (!playerData) {
