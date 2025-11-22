@@ -450,6 +450,18 @@
     </div>
 </div>
 
+    <div id="game-alert-modal" class="modal-overlay hidden" style="z-index: 99999;">
+    <div class="modal-content alert-content">
+        <h2 id="alert-title" style="color: #FFD700; text-shadow: 2px 2px 0 #000;">Aviso</h2>
+        <div id="alert-body" style="color: #eee; font-size: 1.1em; margin: 20px 0;">Mensagem aqui</div>
+        
+        <div class="modal-actions" style="display: flex; justify-content: center; gap: 15px;">
+            <button id="btn-alert-cancel" class="btn-secondary hidden">Cancelar</button>
+            <button id="btn-alert-ok" class="btn-primary">OK</button>
+        </div>
+    </div>
+</div>
+
     <div id="notification-area" class="notification-area"></div>
 
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
