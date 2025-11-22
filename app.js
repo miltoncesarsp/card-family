@@ -82,7 +82,12 @@ function updateUIState(session) {
 
 async function loadPlayerData(userId) {
     // 1. Busca jogador
-    let { data: playerData, error } = await supabase.from('jogadores').select('*').eq('id', userId).single();
+    const { data: playerData, error: playerError } = await supabase
+        .from('jogadores')
+        // ADICIONE 'nome' AQUI:
+        .select(`id, email, moedas, total_cartas, nome`) 
+        .eq('id', userId)
+        .single();
 
     // Rede de segurança se jogador não existir
     if (!playerData) {
@@ -161,9 +166,21 @@ async function loadEvolutionRules() {
 }
 
 function updateHeaderInfo() {
-    if (!player) return;
-    document.getElementById('player-name').textContent = player.nome;
-    document.getElementById('player-coins').innerHTML = `<i class="fas fa-coins"></i> ${player.moedas}`;
+    // ⚠️ Assumindo que você tem um elemento com ID 'player-id-display' no seu HTML
+    const userIdEl = document.getElementById('player-id-display'); 
+    const moedasEl = document.getElementById('player-moedas');
+
+    if (player && userIdEl && moedasEl) {
+        // 🚨 CORREÇÃO PRINCIPAL AQUI: 
+        // Mostra o nome do jogador. Se não tiver, usa o email como fallback.
+        userIdEl.textContent = player.nome || player.email; 
+        
+        moedasEl.textContent = player.moedas.toLocaleString('pt-BR');
+    } else {
+        // Lógica para quando não estiver logado (volta para o padrão)
+        if (userIdEl) userIdEl.textContent = "Visitante";
+        if (moedasEl) moedasEl.textContent = '0';
+    }
 }
 
 // ------------------------------------
