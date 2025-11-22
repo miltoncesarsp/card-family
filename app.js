@@ -1449,7 +1449,7 @@ async function attemptPlay(gameType) {
             // startDungeonGame();
             break;
         case 'puzzle':
-            // startPuzzleGame();
+             startPuzzleGame();
             break;
         case 'jokenpo':
             // startJokenpoGame();
