@@ -159,17 +159,19 @@
     
 <section class="management-section">
     <h2>👤 Gerenciar Jogadores</h2>
-    <p class="base-details">Edição de Moedas e Nível. Use com cautela.</p>
+    <p class="base-details">Edição de Nome, Moedas e Nível. Use com cautela.</p>
     <div id="playersContainer"></div>
     
     <div class="form-wrapper" id="playerEditFormSection" style="display:none; margin-top: 20px; border-left: 5px solid #ff9800;">
         <h3>Editar Saldo/Nível do Jogador</h3>
         <form class="card-form">
             <input type="hidden" id="playerEditId"> 
-            <label>Nome:</label>
-            <input id="playerEditName" type="text" disabled>
+            
             <label>Email:</label>
             <input id="playerEditEmail" type="text" disabled>
+            
+            <label>Nome do Jogador:</label>
+            <input id="playerEditName" type="text" required> 
             
             <label>Moedas:</label>
             <input id="playerEditMoedas" type="number" min="0" required>
