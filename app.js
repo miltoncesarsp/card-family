@@ -15,9 +15,10 @@ let battleState = {
     round: 1,
     playerScore: 0,
     enemyScore: 0,
-    myHand: [],     // As 5 cartas que escolhi
-    enemyDeck: [],  // As 3 cartas do inimigo
-    enemyName: "Rival"
+    myHand: [],
+    enemyDeck: [],
+    enemyName: "Rival",
+    isProcessing: false // <--- NOVO: Trava cliques duplos
 };
 
 // Elementos da Tela de Login
@@ -1125,43 +1126,88 @@ function renderPlayerHand() {
 }
 
 async function playRound(playerCard, cardElement) {
-    if (cardElement.classList.contains('selected')) return; 
-    cardElement.classList.add('selected');
+    // 1. BLOQUEIO DE SEGURANÇA
+    // Se já estiver batalhando OU a carta já foi usada, não faz nada.
+    if (battleState.isProcessing || cardElement.classList.contains('played')) return;
+    
+    battleState.isProcessing = true; // Trava o jogo
+    cardElement.classList.add('played'); // Marca visualmente que a carta foi usada
 
-    // 1. Mostra Carta do Jogador
+    // 2. Renderiza as cartas na mesa
     renderCardInSlot(playerCard, 'player-slot');
+    
+    // Mostra o verso da carta inimiga primeiro (suspense)
+    const enemySlot = document.getElementById('enemy-slot');
+    enemySlot.innerHTML = '<div class="card-back-pattern"></div>'; 
+    
+    // Pega a carta do inimigo correspondente ao round atual (Array começa em 0)
     const enemyCard = battleState.enemyDeck[battleState.round - 1];
-    
-    await new Promise(r => setTimeout(r, 500));
-    
-    // 2. Revela Carta do Inimigo
+
+    await new Promise(r => setTimeout(r, 600)); // Pequena pausa dramática
+
+    // 3. Revela Carta do Inimigo
     renderCardInSlot(enemyCard, 'enemy-slot');
 
-    // 3. Resolução da Rodada (Lógica de Placar e Efeitos)
+    // 4. EFEITO DE IMPACTO (CLASH)
+    const pSlot = document.getElementById('player-slot');
+    const eSlot = document.getElementById('enemy-slot');
+    
+    pSlot.classList.add('clash-player');
+    eSlot.classList.add('clash-enemy');
+    
+    await new Promise(r => setTimeout(r, 300)); // Espera o impacto
+
+    // 5. Resolve a lógica (Quem ganhou?)
     await resolveRound(playerCard, enemyCard);
 
-    // 4. Limpa e Avança
-    await new Promise(r => setTimeout(r, 1500)); // Tempo para resultado ser visto
-    
-    // Remove Efeitos e Classes de slot
-    document.getElementById('player-slot').classList.remove('win', 'lose');
-    document.getElementById('enemy-slot').classList.remove('win', 'lose');
-    document.getElementById('player-battle-power').classList.remove('winner');
-    document.getElementById('cpu-battle-power').classList.remove('winner');
-    
-    // Limpa a mesa
-    document.getElementById('player-slot').innerHTML = '';
-    document.getElementById('player-slot').className = 'card-slot empty';
-    document.getElementById('enemy-slot').innerHTML = '<div class="card-back-pattern"></div>';
-    document.getElementById('enemy-slot').className = 'card-slot empty';
+    // Remove classes de animação
+    pSlot.classList.remove('clash-player');
+    eSlot.classList.remove('clash-enemy');
 
-    // 5. Próxima Rodada ou Fim de Jogo
+    // 6. Limpeza e Preparação (COM PROTEÇÃO CONTRA O ERRO NULL)
+    await new Promise(r => setTimeout(r, 1500)); // Tempo para ver o resultado
+
+    // Limpa classes de vitória/derrota com segurança
+    if(pSlot) pSlot.classList.remove('win', 'lose');
+    if(eSlot) eSlot.classList.remove('win', 'lose');
+
+    const pPowerEl = document.getElementById('player-battle-power');
+    const cPowerEl = document.getElementById('cpu-battle-power');
+    
+    // AQUI ESTAVA O ERRO: Agora verificamos se existe antes de remover
+    if(pPowerEl) {
+        pPowerEl.classList.remove('winner');
+        pPowerEl.textContent = '?'; // Reseta o número
+    }
+    if(cPowerEl) {
+        cPowerEl.classList.remove('winner');
+        cPowerEl.textContent = '?'; // Reseta o número
+    }
+
+    // Limpa visualmente os slots para a próxima rodada
+    if(pSlot) {
+        pSlot.innerHTML = '<div class="slot-placeholder">Sua Carta</div>';
+        pSlot.className = 'card-slot empty';
+    }
+    if(eSlot) {
+        eSlot.innerHTML = '<div class="card-back-pattern"></div>';
+        eSlot.className = 'card-slot empty';
+    }
+
+    // 7. Lógica de Próxima Rodada
     if (battleState.round < 3) {
         battleState.round++;
         updateRoundDisplay();
-        document.getElementById('battle-status').textContent = "Escolha sua próxima carta...";
+        const statusEl = document.getElementById('battle-status');
+        if(statusEl) {
+            statusEl.textContent = "Escolha sua próxima carta...";
+            statusEl.style.color = "#FFD700";
+        }
+        // Libera para jogar de novo
+        battleState.isProcessing = false; 
     } else {
         finishBattle();
+        // Nota: Não liberamos battleState.isProcessing aqui para evitar cliques no final
     }
 }
 
