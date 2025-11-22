@@ -11,6 +11,15 @@ const BUCKET_NAME = 'cards';
 let marketCards = [];
 let pendingTradeId = null; // Guarda qual troca o usuário clicou
 
+let battleState = {
+    round: 1,
+    playerScore: 0,
+    enemyScore: 0,
+    myHand: [],     // As 5 cartas que escolhi
+    enemyDeck: [],  // As 3 cartas do inimigo
+    enemyName: "Rival"
+};
+
 // Elementos da Tela de Login
 const loginScreen = document.getElementById('login-screen');
 const gameContent = document.getElementById('game-content');
@@ -937,6 +946,212 @@ function closeTradeModal() {
     document.getElementById('trade-offer-modal').classList.add('hidden');
 }
 
+// =================================================
+// MINIGAMES: BATALHA (MELHOR DE 3)
+// =================================================
+
+function startBattleGame() {
+    document.getElementById('games-menu').classList.add('hidden');
+    document.getElementById('battle-arena').classList.remove('hidden');
+    resetUI();
+}
+
+function exitGame() {
+    document.getElementById('games-menu').classList.remove('hidden');
+    document.getElementById('battle-arena').classList.add('hidden');
+}
+
+function resetUI() {
+    document.getElementById('player-hand').innerHTML = '';
+    document.getElementById('player-slot').innerHTML = '';
+    document.getElementById('player-slot').className = 'card-slot empty';
+    document.getElementById('enemy-slot').innerHTML = '<div class="card-back-pattern"></div>';
+    
+    document.getElementById('score-player').textContent = '0';
+    document.getElementById('score-enemy').textContent = '0';
+    document.getElementById('current-round').textContent = '- / -';
+    document.getElementById('enemy-name-display').textContent = 'RIVAL';
+
+    document.getElementById('btnStartBattle').classList.remove('hidden');
+    document.querySelector('.player-hand-container').classList.add('hidden');
+}
+
+async function initBattleMatch() {
+    const COST = 50;
+    
+    // 1. Verifica se tem cartas suficientes (5)
+    const myPlayableCards = cardsInAlbum.filter(c => c.owned);
+    if (myPlayableCards.length < 5) {
+        showNotification("Você precisa de pelo menos 5 cartas para jogar!", true);
+        return;
+    }
+
+    // 2. Paga
+    if (player.moedas < COST) {
+        showNotification("Sem moedas!", true);
+        return;
+    }
+    
+    if(!confirm("Pagar 50 moedas para iniciar a batalha?")) return;
+
+    const { error } = await supabase.rpc('atualizar_moedas_jogo', { qtd: -COST });
+    if(error) return;
+    player.moedas -= COST;
+    updateHeaderInfo();
+
+    // 3. Prepara o Jogo
+    document.getElementById('btnStartBattle').classList.add('hidden');
+    document.querySelector('.player-hand-container').classList.remove('hidden');
+    showNotification("Buscando oponente...");
+
+    // A. Seleciona 5 cartas aleatórias do jogador para ser a "Mão"
+    // Embaralha e pega 5
+    const shuffled = [...myPlayableCards].sort(() => 0.5 - Math.random());
+    battleState.myHand = shuffled.slice(0, 5);
+
+    // B. Busca oponente no servidor
+    const { data: enemyData, error: enemyError } = await supabase.rpc('buscar_oponente_batalha');
+    
+    if (enemyError) {
+        showNotification("Erro ao achar oponente. Dinheiro devolvido.");
+        await supabase.rpc('atualizar_moedas_jogo', { qtd: COST }); // Reembolso
+        resetUI();
+        return;
+    }
+
+    // C. Configura Estado Inicial
+    battleState.enemyName = enemyData.nome;
+    battleState.enemyDeck = enemyData.cartas; // Já vem 3 cartas embaralhadas do banco
+    battleState.round = 1;
+    battleState.playerScore = 0;
+    battleState.enemyScore = 0;
+
+    // D. Renderiza a Tela
+    document.getElementById('enemy-name-display').textContent = battleState.enemyName.toUpperCase();
+    updateRoundDisplay();
+    renderPlayerHand();
+}
+
+function updateRoundDisplay() {
+    document.getElementById('current-round').textContent = `${battleState.round} / 3`;
+    document.getElementById('score-player').textContent = battleState.playerScore;
+    document.getElementById('score-enemy').textContent = battleState.enemyScore;
+}
+
+function renderPlayerHand() {
+    const handContainer = document.getElementById('player-hand');
+    handContainer.innerHTML = '';
+
+    battleState.myHand.forEach((card, index) => {
+        const div = document.createElement('div');
+        div.className = 'hand-card';
+        div.style.backgroundImage = `url('${card.image_url}')`;
+        div.dataset.index = index;
+        
+        // Badge de força na mão pra ajudar a escolher
+        div.innerHTML = `<div style="position:absolute; bottom:5px; right:5px; background:white; border-radius:50%; width:20px; height:20px; text-align:center; font-size:10px; line-height:20px; font-weight:bold; color:black;">${card.power}</div>`;
+
+        div.onclick = () => playRound(card, div);
+        handContainer.appendChild(div);
+    });
+}
+
+async function playRound(playerCard, cardElement) {
+    if (cardElement.classList.contains('selected')) return; // Já jogou essa
+    
+    // Marca carta como usada visualmente
+    cardElement.classList.add('selected');
+    
+    // 1. Mostra Carta do Jogador na Arena
+    renderCardInSlot(playerCard, 'player-slot');
+
+    // 2. Pega a carta do inimigo da rodada atual (0, 1 ou 2)
+    const enemyCard = battleState.enemyDeck[battleState.round - 1];
+    
+    // Efeito de suspense...
+    await new Promise(r => setTimeout(r, 500));
+    
+    // 3. Revela Carta do Inimigo
+    renderCardInSlot(enemyCard, 'enemy-slot');
+
+    // 4. Compara Força
+    await new Promise(r => setTimeout(r, 800)); // Pausa pra ver
+    
+    if (playerCard.power > enemyCard.power) {
+        battleState.playerScore++;
+        showNotification("Você venceu a rodada!", false);
+        document.getElementById('player-slot').style.boxShadow = "0 0 20px #2ecc71";
+    } else if (playerCard.power < enemyCard.power) {
+        battleState.enemyScore++;
+        showNotification("Rival venceu a rodada...", true);
+        document.getElementById('enemy-slot').style.boxShadow = "0 0 20px #e74c3c";
+    } else {
+        showNotification("Empate!", false);
+    }
+
+    updateRoundDisplay();
+
+    // 5. Próxima Rodada ou Fim de Jogo
+    await new Promise(r => setTimeout(r, 1500)); // Tempo pra ler o resultado
+    
+    // Limpa a mesa
+    document.getElementById('player-slot').innerHTML = '';
+    document.getElementById('player-slot').className = 'card-slot empty';
+    document.getElementById('player-slot').style = '';
+    
+    document.getElementById('enemy-slot').innerHTML = '<div class="card-back-pattern"></div>';
+    document.getElementById('enemy-slot').className = 'card-slot empty';
+    document.getElementById('enemy-slot').style = '';
+
+    if (battleState.round < 3) {
+        battleState.round++;
+        updateRoundDisplay();
+    } else {
+        finishBattle();
+    }
+}
+
+async function finishBattle() {
+    let msg = "";
+    let prize = 0;
+
+    if (battleState.playerScore > battleState.enemyScore) {
+        msg = "VITÓRIA! 🏆";
+        prize = 150; // 50 entrada + 100 lucro
+        await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
+        player.moedas += prize;
+        showNotification(`PARABÉNS! Você ganhou +${prize} moedas!`);
+    } else if (battleState.playerScore < battleState.enemyScore) {
+        msg = "DERROTA...";
+        showNotification("Você perdeu a batalha.", true);
+    } else {
+        msg = "EMPATE";
+        prize = 50; // Devolve
+        await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
+        player.moedas += prize;
+        showNotification("Empate! Moedas devolvidas.");
+    }
+    
+    updateHeaderInfo();
+    alert(`FIM DE JOGO!\n\n${msg}\nPlacar: ${battleState.playerScore} x ${battleState.enemyScore}`);
+    
+    resetUI();
+}
+
+// Helper para desenhar carta na arena
+function renderCardInSlot(card, slotId) {
+    const slot = document.getElementById(slotId);
+    const rarityStyles = getRarityColors(card.rarity);
+    
+    slot.className = 'card-preview card-small';
+    slot.style.backgroundImage = `url('${card.image_url}')`;
+    slot.style.border = `3px solid ${rarityStyles.primary}`;
+    
+    slot.innerHTML = `
+        <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white;">${card.power}</div>
+        <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+    `;
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     const btnLogin = document.getElementById('btnLogin');
