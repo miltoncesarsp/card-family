@@ -1371,13 +1371,24 @@ async function refreshMinigameEnergy() {
 
 // 2. Tenta Jogar (Hub Central)
 async function attemptPlay(gameType) {
-    // Verifica localmente primeiro pra não gastar chamada de rede a toa
+    // --- 1. VERIFICAÇÃO SE O JOGO EXISTE ---
+    // Lista aqui apenas os jogos que já funcionam
+    const jogosProntos = ['battle']; 
+
+    if (!jogosProntos.includes(gameType)) {
+        alert("🚧 Em breve! Guarde sua energia para quando lançar.");
+        return; // PARA AQUI: Não gasta energia
+    }
+
+    // --- 2. VERIFICAÇÃO DE ENERGIA ---
+    // Verifica localmente primeiro
     if (minigameStatus[gameType] && minigameStatus[gameType].energia <= 0) {
         showNotification("Sem energia! Espere regenerar (1 a cada 10h).", true);
         return;
     }
 
-    // Tenta gastar energia no Banco de Dados
+    // --- 3. COBRANÇA NO BANCO DE DADOS ---
+    // Só chega aqui se o jogo estiver na lista de 'jogosProntos'
     const { data: sucesso, error } = await supabase.rpc('gastar_energia_minigame', { tipo_jogo: gameType });
 
     if (!sucesso || error) {
@@ -1385,29 +1396,12 @@ async function attemptPlay(gameType) {
         return;
     }
 
-    // Se gastou com sucesso, atualiza local e inicia o jogo
+    // --- 4. SUCESSO: ATUALIZA E INICIA ---
     minigameStatus[gameType].energia--; 
     refreshMinigameEnergy(); // Atualiza visual
 
-    // ROTEADOR DE JOGOS
-    switch(gameType) {
-        case 'battle':
-            startBattleGame();
-            break;
-        case 'memory':
-            alert("Jogo da Memória: Em breve!"); // Aqui entra a função startMemoryGame()
-            break;
-        case 'target':
-            alert("O Alvo: Em breve!"); // Aqui entra a função startTargetGame()
-            break;
-        case 'dungeon':
-            alert("Masmorra: Em breve!"); // Aqui entra a função startDungeonGame()
-            break;
-case 'puzzle':
-        alert("Quebra-Cabeça: Em breve!");
-        break;
-    case 'jokenpo':
-        alert("Jo-Ken-Po: Em breve!"); // Aqui entra a função startJokenpoGame()
-        break;
+    // Inicia o jogo
+    if (gameType === 'battle') {
+        startBattleGame();
     }
 }
