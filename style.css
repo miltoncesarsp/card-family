@@ -1971,13 +1971,19 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     font-family: 'Bungee', cursive;
 }
 
-/* Grid 3x3 */
+/* Grid 4x4 (16 cartas) */
 .dungeon-grid-container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    max-width: 400px;
+    grid-template-columns: repeat(4, 1fr); /* MUDOU PARA 4 COLUNAS */
+    gap: 10px;
+    max-width: 450px; /* Um pouco mais largo */
     margin: 0 auto 20px auto;
+}
+
+.tile-back.potion { 
+    background: linear-gradient(135deg, #2ecc71, #27ae60); 
+    border: 2px solid #fff; 
+    color: white;
 }
 
 .dungeon-tile {
@@ -2040,8 +2046,15 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     text-align: center;
 }
 
+/* Ajuste Mobile */
 @media (max-width: 600px) {
-    .dungeon-grid-container { gap: 8px; width: 90%; }
+    .dungeon-grid-container { 
+        gap: 5px; 
+        width: 95%; 
+    }
+    /* Diminui um pouco a fonte/ícones no mobile para caber 4 colunas */
+    .tile-back i { font-size: 20px !important; }
+    .tile-back { font-size: 0.8em; }
 }
 
 /* Peça na posição CORRETA */
