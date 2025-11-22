@@ -2315,14 +2315,41 @@ async function handleDungeonClick(tile) {
         const amount = parseInt(tile.dataset.amount);
         dungeonState.currentLoot += amount;
         updateDungeonUI();
-        // Efeito sonoro mental: "Ca-ching!"
     } else {
         // --- ACHOU MONSTRO ---
         dungeonState.isLocked = true; // Trava o tabuleiro
         
-        // Gera um monstro aleatório do sistema
-        const { data: allCards } = await supabase.from('cards').select('*');
-        const randomMonster = allCards[Math.floor(Math.random() * allCards.length)];
+        // 1. CALCULA A FORÇA DO JOGADOR
+        const myDeck = cardsInAlbum.filter(c => c.owned);
+        
+        // Se não tiver cartas (segurança), assume força 10
+        let avgPower = 10; 
+        if (myDeck.length > 0) {
+            const totalPower = myDeck.reduce((sum, card) => sum + card.power, 0);
+            avgPower = totalPower / myDeck.length;
+        }
+
+        // 2. DEFINE A FAIXA DE PERIGO DO MONSTRO
+        // O monstro pode ser de 30% mais fraco até 40% mais forte que sua média
+        // Ex: Se sua média é 100, o monstro terá entre 70 e 140.
+        const minMonsterPower = Math.floor(avgPower * 0.7);
+        const maxMonsterPower = Math.ceil(avgPower * 1.4);
+
+        // 3. FILTRA OS CANDIDATOS (Usa a variável global allGameCards pra não chamar o banco)
+        let validMonsters = allGameCards.filter(c => 
+            c.power >= minMonsterPower && 
+            c.power <= maxMonsterPower
+        );
+
+        // Fallback: Se não achar nenhum monstro nessa faixa exata, pega qualquer um próximo
+        if (validMonsters.length === 0) {
+            validMonsters = allGameCards.filter(c => c.power <= maxMonsterPower + 20);
+        }
+        // Fallback final: Pega qualquer carta se der tudo errado
+        if (validMonsters.length === 0) validMonsters = allGameCards;
+
+        // 4. SORTEIA
+        const randomMonster = validMonsters[Math.floor(Math.random() * validMonsters.length)];
         
         // Abre combate após breve delay da animação de virar
         setTimeout(() => startDungeonCombat(randomMonster), 600);
