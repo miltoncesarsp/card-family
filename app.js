@@ -742,12 +742,24 @@ let novosDiasConsecutivos = player.dias_consecutivos;
     const bonusStreak = Math.min(novosDiasConsecutivos, 7) * 50;
     premio += bonusStreak;
 
-    // MOSTRA O MODAL
+// MOSTRA O MODAL
     const modal = document.getElementById('daily-reward-modal');
-    document.getElementById('daily-amount').textContent = `+${premio}`;
-    document.getElementById('daily-streak').textContent = novosDiasConsecutivos;
     
+    // Captura os elementos com checagem de NULL (Isso evita o crash!)
+    const dailyAmountEl = document.getElementById('daily-amount');
+    const dailyStreakEl = document.getElementById('daily-streak');
     const msgEl = document.getElementById('daily-message');
+
+    // 🚨 VERIFICAÇÃO CRÍTICA
+    if (!dailyAmountEl || !dailyStreakEl || !modal) {
+        console.error("ERRO FATAL DE DOM: Um ou mais elementos do Modal Diário não foram encontrados. (Verifique se os IDs daily-amount e daily-streak estão no HTML)");
+        return; 
+    }
+    
+    dailyAmountEl.textContent = `+${premio}`;
+    dailyStreakEl.textContent = novosDiasConsecutivos;
+    
+    // Mensagem motivacional
     if (novosDiasConsecutivos > 1) {
         msgEl.textContent = `Incrível! ${novosDiasConsecutivos} dias seguidos!`;
     } else {
@@ -758,8 +770,6 @@ let novosDiasConsecutivos = player.dias_consecutivos;
 
     // Configura o botão de receber
     const btnCollect = document.getElementById('collectDailyBtn');
-    const newBtn = btnCollect.cloneNode(true);
-    btnCollect.parentNode.replaceChild(newBtn, btnCollect);
     
     newBtn.addEventListener('click', async () => {
         newBtn.textContent = "Recebido!";
