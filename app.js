@@ -54,6 +54,14 @@ let jokenpoState = {
     isProcessing: false
 };
 
+let dungeonState = {
+    lives: 3,
+    currentLoot: 0,
+    tiles: [], // O que tem em cada quadrado
+    isLocked: false,
+    combatMonster: null // Carta do monstro atual
+};
+
 // Elementos da Tela de Login
 const loginScreen = document.getElementById('login-screen');
 const gameContent = document.getElementById('game-content');
@@ -1416,7 +1424,7 @@ async function refreshMinigameEnergy() {
 async function attemptPlay(gameType) {
     // --- 1. VERIFICAÇÃO SE O JOGO EXISTE ---
     // Lista aqui apenas os jogos que já funcionam
-    const jogosProntos = ['battle', 'memory', 'target', 'puzzle', 'jokenpo']; 
+const jogosProntos = ['battle', 'memory', 'target', 'puzzle', 'jokenpo', 'dungeon'];
 
     if (!jogosProntos.includes(gameType)) {
         alert("🚧 Em breve! Guarde sua energia para quando lançar.");
@@ -1456,7 +1464,7 @@ async function attemptPlay(gameType) {
             break;
         // Deixe os outros comentados ou sem ação até criar as funções
         case 'dungeon':
-            // startDungeonGame();
+             startDungeonGame();
             break;
         case 'puzzle':
              startPuzzleGame();
@@ -2196,6 +2204,201 @@ async function finishJokenpoGame() {
 
 function quitJokenpoGame() {
     document.getElementById('jokenpo-arena').classList.add('hidden');
+    document.getElementById('games-menu').classList.remove('hidden');
+    refreshMinigameEnergy();
+}
+
+// =================================================
+// MINIGAME: MASMORRA MISTERIOSA
+// =================================================
+
+async function startDungeonGame() {
+    // 1. Verifica Cartas (Precisa de pelo menos 1 para lutar)
+    const myDeck = cardsInAlbum.filter(c => c.owned);
+    if (myDeck.length < 1) {
+        alert("Você precisa de cartas para explorar a masmorra!");
+        return;
+    }
+
+    // 2. UI Setup
+    document.getElementById('games-menu').classList.add('hidden');
+    document.getElementById('dungeon-arena').classList.remove('hidden');
+    document.getElementById('dungeon-combat-overlay').classList.add('hidden');
+
+    // 3. Reset Estado
+    dungeonState.lives = 3;
+    dungeonState.currentLoot = 0;
+    dungeonState.isLocked = false;
+    updateDungeonUI();
+
+    // 4. Gera o Tabuleiro (3x3 = 9 tiles)
+    // Balanceamento: 5 Tesouros, 4 Monstros
+    let contents = [];
+    for(let i=0; i<5; i++) contents.push('treasure');
+    for(let i=0; i<4; i++) contents.push('monster');
+    
+    contents.sort(() => 0.5 - Math.random()); // Embaralha
+
+    const grid = document.getElementById('dungeon-grid');
+    grid.innerHTML = '';
+
+    contents.forEach((type, index) => {
+        const tile = document.createElement('div');
+        tile.className = 'dungeon-tile';
+        tile.dataset.index = index;
+        tile.dataset.type = type;
+        
+        // Cria o visual do tile
+        // O verso já é pré-gerado mas fica escondido
+        let contentHTML = '';
+        if (type === 'treasure') {
+            // Tesouro aleatório entre 10 e 50 moedas
+            const amount = Math.floor(Math.random() * 41) + 10;
+            tile.dataset.amount = amount;
+            contentHTML = `<div class="tile-back treasure"><i class="fas fa-coins" style="font-size:30px; margin-bottom:5px;"></i>+${amount}</div>`;
+        } else {
+            // Monstro (apenas ícone visual aqui, a carta real vem no combate)
+            contentHTML = `<div class="tile-back monster"><i class="fas fa-dragon" style="font-size:30px; margin-bottom:5px;"></i>MONSTRO!</div>`;
+        }
+
+        tile.innerHTML = `
+            <div class="tile-front"></div>
+            ${contentHTML}
+        `;
+
+        tile.onclick = () => handleDungeonClick(tile);
+        grid.appendChild(tile);
+    });
+}
+
+async function handleDungeonClick(tile) {
+    // Se já tá virada ou jogo travado
+    if (tile.classList.contains('revealed') || dungeonState.isLocked) return;
+
+    tile.classList.add('revealed');
+    const type = tile.dataset.type;
+
+    if (type === 'treasure') {
+        // --- ACHOU OURO ---
+        const amount = parseInt(tile.dataset.amount);
+        dungeonState.currentLoot += amount;
+        updateDungeonUI();
+        // Efeito sonoro mental: "Ca-ching!"
+    } else {
+        // --- ACHOU MONSTRO ---
+        dungeonState.isLocked = true; // Trava o tabuleiro
+        
+        // Gera um monstro aleatório do sistema
+        const { data: allCards } = await supabase.from('cards').select('*');
+        const randomMonster = allCards[Math.floor(Math.random() * allCards.length)];
+        
+        // Abre combate após breve delay da animação de virar
+        setTimeout(() => startDungeonCombat(randomMonster), 600);
+    }
+}
+
+function startDungeonCombat(monsterCard) {
+    dungeonState.combatMonster = monsterCard;
+    
+    const overlay = document.getElementById('dungeon-combat-overlay');
+    overlay.classList.remove('hidden');
+
+    // Mostra Monstro
+    renderCardInSlot(monsterCard, 'dungeon-monster-card');
+    document.getElementById('monster-power-display').textContent = monsterCard.power;
+
+    // Limpa slot do jogador
+    const pSlot = document.getElementById('dungeon-player-slot');
+    pSlot.innerHTML = '<div class="slot-placeholder">Escolha...</div>';
+    pSlot.removeAttribute('style');
+    pSlot.className = 'card-slot empty';
+
+    // Renderiza mão do jogador (Suas 5 melhores cartas para agilizar)
+    const myDeck = cardsInAlbum.filter(c => c.owned)
+        .sort((a, b) => b.power - a.power) // Mais fortes primeiro
+        .slice(0, 5);
+
+    const handContainer = document.getElementById('dungeon-hand');
+    handContainer.innerHTML = '';
+
+    myDeck.forEach(card => {
+        const div = document.createElement('div');
+        div.className = 'hand-card';
+        div.style.backgroundImage = `url('${card.image_url}')`;
+        div.style.flexShrink = '0';
+        div.innerHTML = `<div style="position:absolute; bottom:2px; right:2px; background:white; border-radius:50%; width:20px; height:20px; text-align:center; font-size:12px; font-weight:bold; color:black;">${card.power}</div>`;
+        
+        div.onclick = () => resolveDungeonFight(card);
+        handContainer.appendChild(div);
+    });
+}
+
+async function resolveDungeonFight(playerCard) {
+    // Renderiza escolha
+    renderCardInSlot(playerCard, 'dungeon-player-slot');
+
+    // Compara
+    const monsterPower = dungeonState.combatMonster.power;
+    const playerPower = playerCard.power;
+
+    await new Promise(r => setTimeout(r, 800)); // Suspense
+
+    const overlay = document.getElementById('dungeon-combat-overlay');
+
+    if (playerPower > monsterPower) {
+        // VITÓRIA
+        alert("Você venceu o monstro! O caminho está livre.");
+        overlay.classList.add('hidden');
+        dungeonState.isLocked = false; // Destrava tabuleiro
+    } else {
+        // DERROTA
+        dungeonState.lives--;
+        updateDungeonUI();
+        alert("Você perdeu! -1 Vida 💔");
+        overlay.classList.add('hidden');
+        
+        if (dungeonState.lives <= 0) {
+            gameOverDungeon();
+        } else {
+            dungeonState.isLocked = false; // Destrava se ainda tiver vida
+        }
+    }
+}
+
+async function escapeDungeon() {
+    if (dungeonState.currentLoot === 0) {
+        alert("Você não pegou nada ainda! Explore mais.");
+        return;
+    }
+
+    if (confirm(`Fugir agora e garantir ${dungeonState.currentLoot} moedas?`)) {
+        // Salva o loot
+        await supabase.rpc('atualizar_moedas_jogo', { qtd: dungeonState.currentLoot });
+        player.moedas += dungeonState.currentLoot;
+        updateHeaderInfo();
+        
+        showNotification(`Masmorra concluída! +${dungeonState.currentLoot} moedas.`);
+        quitDungeonGame();
+    }
+}
+
+function gameOverDungeon() {
+    alert("VOCÊ DESMAIOU! 💀\n\nOs monstros roubaram toda sua mochila.\nVocê ganhou 0 moedas.");
+    quitDungeonGame();
+}
+
+function updateDungeonUI() {
+    // Atualiza corações
+    let hearts = "";
+    for(let i=0; i<dungeonState.lives; i++) hearts += "❤️";
+    for(let i=dungeonState.lives; i<3; i++) hearts += "💀"; // Mostra caveira nas vidas perdidas
+    
+    document.getElementById('dungeon-lives').textContent = hearts;
+    document.getElementById('dungeon-loot').textContent = dungeonState.currentLoot;
+}
+
+function quitDungeonGame() {
+    document.getElementById('dungeon-arena').classList.add('hidden');
     document.getElementById('games-menu').classList.remove('hidden');
     refreshMinigameEnergy();
 }
