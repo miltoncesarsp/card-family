@@ -1347,7 +1347,7 @@ async function refreshMinigameEnergy() {
     if (data) {
         minigameStatus = data;
         // Atualiza o texto na tela (ex: ⚡ 5/5)
-        const games = ['battle', 'memory', 'target', 'dungeon', 'puzzle'];
+        const games = ['battle', 'memory', 'target', 'dungeon', 'puzzle', 'jokenpo'];
         games.forEach(game => {
             const el = document.getElementById(`energy-${game}`);
             if (el && minigameStatus[game]) {
@@ -1396,8 +1396,11 @@ async function attemptPlay(gameType) {
         case 'dungeon':
             alert("Masmorra: Em breve!"); // Aqui entra a função startDungeonGame()
             break;
-        case 'puzzle':
-            alert("Quebra-Cabeça: Em breve!"); // Aqui entra a função startPuzzleGame()
-            break;
+case 'puzzle':
+        alert("Quebra-Cabeça: Em breve!");
+        break;
+    case 'jokenpo':
+        alert("Jo-Ken-Po: Em breve!"); // Aqui entra a função startJokenpoGame()
+        break;
     }
 }
