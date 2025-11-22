@@ -1969,11 +1969,12 @@ async function startJokenpoGame() {
     jokenpoState.isProcessing = false;
     
     // Reseta visual das rodadas
-    document.querySelector('.round-indicator span').textContent = "RODADA";
-    // Cria um elemento para mostrar 1/3 se não tiver
+    // Se o elemento jk-round-counter não existir, cria ele dentro do round-indicator
     let roundCounter = document.getElementById('jk-round-counter');
     if(!roundCounter) {
-        const container = document.querySelector('.round-indicator');
+        const container = document.querySelector('#jokenpo-arena .round-indicator');
+        // Limpa o conteúdo antigo (o "VS")
+        container.innerHTML = '<span>RODADA</span>';
         roundCounter = document.createElement('strong');
         roundCounter.id = 'jk-round-counter';
         container.appendChild(roundCounter);
@@ -1982,13 +1983,13 @@ async function startJokenpoGame() {
 
     updateJokenpoScore();
 
-    // 3. Carrega Regras
+    // 3. Carrega Regras (Cache)
     if (jokenpoState.rules.length === 0) {
         const { data } = await supabase.from('elementos').select('*');
         if (data) jokenpoState.rules = data;
     }
 
-    // 4. Prepara Mão do Jogador
+    // 4. Prepara Mão do Jogador (5 cartas aleatórias)
     jokenpoState.myDeck = [...allMyOwned]
         .sort(() => 0.5 - Math.random())
         .slice(0, 5);
@@ -2002,9 +2003,11 @@ async function startJokenpoGame() {
         return;
     }
 
+    // SALVA AS CARTAS DO RIVAL NO ESTADO
     jokenpoState.cpuDeck = enemyData.cartas;
 
-    const enemyLabel = document.querySelector('.enemy-score small');
+    // Mostra o nome do rival
+    const enemyLabel = document.querySelector('#jokenpo-arena .enemy-score small');
     if(enemyLabel) enemyLabel.textContent = enemyData.nome.toUpperCase();
 
     renderJokenpoHand();
@@ -2035,17 +2038,20 @@ function renderJokenpoHand() {
 }
 
 async function playJokenpoRound(playerCard, cardEl) {
+    // Bloqueio de duplo clique
     if (jokenpoState.isProcessing) return;
     jokenpoState.isProcessing = true;
 
     // 1. Escolha da CPU
-    // Pega a carta correspondente ao round atual (0, 1 ou 2) para não repetir
-    // Se o deck da CPU for menor que 3 (bug), pega aleatório
-    let cpuCard;
-    if (jokenpoState.cpuDeck[jokenpoState.round - 1]) {
-        cpuCard = jokenpoState.cpuDeck[jokenpoState.round - 1];
-    } else {
-        cpuCard = jokenpoState.cpuDeck[Math.floor(Math.random() * jokenpoState.cpuDeck.length)];
+    // Pega a carta correspondente à rodada atual (Índice 0, 1 ou 2)
+    // jokenpoState.round começa em 1, então subtraímos 1 para pegar o índice do array
+    let cpuCard = jokenpoState.cpuDeck[jokenpoState.round - 1];
+
+    // Fallback de segurança: Se por algum motivo o deck vier vazio ou menor
+    if (!cpuCard) {
+        // Pega uma carta aleatória do sistema só pra não travar
+        const { data: allCards } = await supabase.from('cards').select('*').limit(20);
+        cpuCard = allCards[Math.floor(Math.random() * allCards.length)];
     }
 
     // 2. Visual: Coloca cartas na mesa
@@ -2076,9 +2082,7 @@ async function playJokenpoRound(playerCard, cardEl) {
     let reason = "";
 
     // A. Verifica Vantagem de ELEMENTO (Prioridade Máxima)
-    // Procura: "Meu Elemento" ataca "Elemento Dele"
     const myAdvantage = jokenpoState.rules.find(r => r.atacante === playerCard.element && r.defensor === cpuCard.element);
-    // Procura: "Elemento Dele" ataca "Meu Elemento"
     const cpuAdvantage = jokenpoState.rules.find(r => r.atacante === cpuCard.element && r.defensor === playerCard.element);
 
     if (myAdvantage && myAdvantage.resultado === 1) {
@@ -2126,7 +2130,7 @@ async function playJokenpoRound(playerCard, cardEl) {
 
     updateJokenpoScore();
 
-    // 6. Controle de Rodadas (Igual à Batalha)
+    // 6. Controle de Rodadas
     if (jokenpoState.round < 3) {
         // Prepara próxima rodada
         document.getElementById('btn-jk-next').classList.remove('hidden');
