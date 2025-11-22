@@ -11,6 +11,7 @@ const BUCKET_NAME = 'cards';
 let marketCards = [];
 let pendingTradeId = null; // Guarda qual troca o usuário clicou
 let minigameStatus = {}; // Vai guardar a energia: { battle: 5, memory: 3... }
+let targetMaxScale = 50;
 
 let battleState = {
     round: 1,
@@ -1603,36 +1604,53 @@ function quitMemoryGame() {
 // =================================================
 
 function startTargetGame() {
-    // 1. UI Setup
+    // 1. Filtra cartas do jogador para calcular a média
+    const myDeck = cardsInAlbum.filter(c => c.owned);
+    
+    if (myDeck.length === 0) {
+        alert("Você precisa de cartas para jogar!");
+        return;
+    }
+
+    // --- LÓGICA INTELIGENTE DE ALVO ---
+    // Calcula a força média das cartas do jogador
+    const totalPower = myDeck.reduce((sum, card) => sum + card.power, 0);
+    const avgPower = Math.ceil(totalPower / myDeck.length);
+
+    // Define o alvo para ser algo entre "3 a 5 cartas médias"
+    // Ex: Se a média é 10, o alvo será entre 30 e 50.
+    const minTarget = avgPower * 3;
+    const maxTarget = avgPower * 5;
+    
+    targetState.goal = Math.floor(Math.random() * (maxTarget - minTarget + 1)) + minTarget;
+    
+    // Define o tamanho do tubo visual (Alvo + 30% de folga para dar medo de estourar)
+    targetMaxScale = Math.ceil(targetState.goal * 1.3);
+    // ----------------------------------
+
+    // UI Setup (Igual ao anterior)
     document.getElementById('games-menu').classList.add('hidden');
     document.getElementById('target-arena').classList.remove('hidden');
     document.getElementById('btn-hit').classList.remove('hidden');
     document.getElementById('btn-stand').classList.remove('hidden');
     document.getElementById('btn-target-exit').classList.add('hidden');
     
-    // Limpa a carta da mesa
     const cardSlot = document.getElementById('target-card-display');
     cardSlot.innerHTML = '<div class="card-back-pattern"></div>';
     cardSlot.removeAttribute('style');
     cardSlot.className = 'card-slot empty';
 
-    // 2. Define o Alvo (Entre 20 e 40)
-    targetState.goal = Math.floor(Math.random() * 21) + 20; 
     targetState.current = 0;
     targetState.isGameOver = false;
 
-    // 3. Renderiza Alvo
+    // Renderiza
     document.getElementById('target-goal').textContent = targetState.goal;
     document.getElementById('target-current').textContent = '0';
 
-    // 4. Posiciona a linha vermelha visualmente
-    // O tubo tem "100%". Se o max possível fosse 50, calculamos a % da linha.
-    // Vamos assumir que o tubo cheio = 50 pontos (para ter margem de estourar)
-    const maxScale = 50;
-    const linePercent = (targetState.goal / maxScale) * 100;
+    // Posiciona a linha vermelha baseada na nova escala dinâmica
+    const linePercent = (targetState.goal / targetMaxScale) * 100;
     document.getElementById('target-line').style.bottom = `${linePercent}%`;
 
-    // 5. Reseta Líquido
     const liquid = document.getElementById('target-liquid');
     liquid.style.height = '0%';
     liquid.className = 'target-liquid-fill';
@@ -1641,44 +1659,32 @@ function startTargetGame() {
 function targetHit() {
     if (targetState.isGameOver) return;
 
-    // 1. Filtra APENAS cartas que o jogador tem
     const myDeck = cardsInAlbum.filter(c => c.owned);
-
-    if (myDeck.length === 0) {
-        alert("Você não tem cartas para jogar! Compre um pacote.");
-        return;
-    }
-
-    // 2. Pega carta aleatória DA COLEÇÃO DO JOGADOR
+    // Pega carta da coleção
     const randomCard = myDeck[Math.floor(Math.random() * myDeck.length)];
     
-    // 3. Mostra a carta na tela
     renderCardInSlot(randomCard, 'target-card-display');
 
-    // 4. Soma Força
     targetState.current += randomCard.power;
     document.getElementById('target-current').textContent = targetState.current;
 
-    // 5. Atualiza Visual do Tubo
-    const maxScale = 50; 
-    let fillPercent = (targetState.current / maxScale) * 100;
+    // Atualiza Visual usando a escala dinâmica
+    let fillPercent = (targetState.current / targetMaxScale) * 100;
     if (fillPercent > 100) fillPercent = 100; 
     
     const liquid = document.getElementById('target-liquid');
     liquid.style.height = `${fillPercent}%`;
 
-    // Muda cor se estiver perto
-    if (targetState.current >= targetState.goal - 5) {
+    if (targetState.current >= targetState.goal - (targetState.goal * 0.15)) { // 15% de margem
         liquid.classList.add('danger');
     }
 
-    // 6. Verifica se Estourou
     if (targetState.current > targetState.goal) {
         liquid.classList.remove('danger');
         liquid.classList.add('exploded');
-        endTargetGame(false); // Perdeu
+        endTargetGame(false);
     } else if (targetState.current === targetState.goal) {
-        endTargetGame(true); // Cravou!
+        endTargetGame(true);
     }
 }
 
