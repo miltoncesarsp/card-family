@@ -44,6 +44,16 @@ let targetState = {
     isGameOver: false
 };
 
+let jokenpoState = {
+    round: 1,
+    playerScore: 0,
+    cpuScore: 0,
+    rules: [], // Vamos carregar do banco
+    myDeck: [],
+    cpuDeck: [],
+    isProcessing: false
+};
+
 // Elementos da Tela de Login
 const loginScreen = document.getElementById('login-screen');
 const gameContent = document.getElementById('game-content');
@@ -1406,7 +1416,7 @@ async function refreshMinigameEnergy() {
 async function attemptPlay(gameType) {
     // --- 1. VERIFICAÇÃO SE O JOGO EXISTE ---
     // Lista aqui apenas os jogos que já funcionam
-    const jogosProntos = ['battle', 'memory', 'target', 'puzzle']; 
+    const jogosProntos = ['battle', 'memory', 'target', 'puzzle', 'jokenpo']; 
 
     if (!jogosProntos.includes(gameType)) {
         alert("🚧 Em breve! Guarde sua energia para quando lançar.");
@@ -1452,7 +1462,7 @@ async function attemptPlay(gameType) {
              startPuzzleGame();
             break;
         case 'jokenpo':
-            // startJokenpoGame();
+             startJokenpoGame();
             break;
     }
 }
@@ -1927,6 +1937,234 @@ async function checkPuzzleWin() {
 
 function quitPuzzleGame() {
     document.getElementById('puzzle-arena').classList.add('hidden');
+    document.getElementById('games-menu').classList.remove('hidden');
+    refreshMinigameEnergy();
+}
+
+// =================================================
+// MINIGAME: JO-KEN-PO ELEMENTAL
+// =================================================
+
+async function startJokenpoGame() {
+    // 1. Verifica Cartas
+    const myDeck = cardsInAlbum.filter(c => c.owned);
+    if (myDeck.length < 3) {
+        alert("Você precisa de pelo menos 3 cartas para jogar!");
+        return;
+    }
+
+    // 2. Prepara UI
+    document.getElementById('games-menu').classList.add('hidden');
+    document.getElementById('jokenpo-arena').classList.remove('hidden');
+    
+    // Reseta Placar
+    jokenpoState.playerScore = 0;
+    jokenpoState.cpuScore = 0;
+    jokenpoState.round = 1;
+    jokenpoState.isProcessing = false;
+    updateJokenpoScore();
+
+    // 3. Carrega Regras do Banco (Cache simples)
+    if (jokenpoState.rules.length === 0) {
+        const { data } = await supabase.from('elementos').select('*');
+        if (data) jokenpoState.rules = data;
+    }
+
+    // 4. Prepara Mãos
+    // Jogador: Usa todas as cartas disponíveis (para ter variedade de elementos)
+    jokenpoState.myDeck = myDeck.sort((a, b) => b.power - a.power); // Mais fortes primeiro ajuda? Talvez.
+    
+    // CPU: Gera 3 cartas aleatórias do jogo
+    const { data: allCards } = await supabase.from('cards').select('*');
+    jokenpoState.cpuDeck = [];
+    for(let i=0; i<5; i++) { // CPU tem 5 cartas pra escolher
+        jokenpoState.cpuDeck.push(allCards[Math.floor(Math.random() * allCards.length)]);
+    }
+
+    renderJokenpoHand();
+    resetJokenpoTable();
+}
+
+function renderJokenpoHand() {
+    const container = document.getElementById('jk-hand');
+    container.innerHTML = '';
+    
+    // Mostra as cartas do jogador
+    jokenpoState.myDeck.forEach(card => {
+        const div = document.createElement('div');
+        div.className = 'hand-card';
+        div.style.backgroundImage = `url('${card.image_url}')`;
+        div.style.flexShrink = '0'; // Garante mobile
+        
+        // Ícone do elemento pequeno na carta
+        div.innerHTML = `
+            <div style="position:absolute; top:2px; right:2px; background:rgba(0,0,0,0.7); border-radius:50%; width:20px; height:20px; display:flex; justify-content:center; align-items:center; font-size:10px; color:white;">
+                ${getElementIcon(card.element)}
+            </div>
+        `;
+
+        div.onclick = () => playJokenpoRound(card, div);
+        container.appendChild(div);
+    });
+}
+
+async function playJokenpoRound(playerCard, cardEl) {
+    if (jokenpoState.isProcessing) return;
+    jokenpoState.isProcessing = true;
+
+    // 1. Escolha da CPU (Aleatória do deck dela)
+    const cpuCard = jokenpoState.cpuDeck[Math.floor(Math.random() * jokenpoState.cpuDeck.length)];
+
+    // 2. Visual: Coloca cartas na mesa
+    renderCardInSlot(playerCard, 'jk-player-card');
+    
+    const enemySlot = document.getElementById('jk-enemy-card');
+    enemySlot.innerHTML = '<div class="card-back-pattern"></div>';
+    enemySlot.removeAttribute('style');
+    enemySlot.className = 'card-preview card-small';
+
+    // Mostra Ícones dos Elementos
+    document.getElementById('jk-player-element').innerHTML = getElementIcon(playerCard.element);
+    document.getElementById('jk-player-element').style.background = getElementStyles(playerCard.element).primary;
+    document.getElementById('jk-enemy-element').innerHTML = '?';
+    document.getElementById('jk-enemy-element').style.background = '#333';
+
+    document.getElementById('jk-status').textContent = "JOKENPO...";
+    
+    await new Promise(r => setTimeout(r, 800));
+
+    // 3. Revela CPU
+    renderCardInSlot(cpuCard, 'jk-enemy-card');
+    document.getElementById('jk-enemy-element').innerHTML = getElementIcon(cpuCard.element);
+    document.getElementById('jk-enemy-element').style.background = getElementStyles(cpuCard.element).primary;
+
+    // 4. Lógica de Combate
+    let result = 0; // 0 empate, 1 player, -1 cpu
+    let reason = "";
+
+    // Busca regra no banco local
+    const rule = jokenpoState.rules.find(r => r.atacante === playerCard.element && r.defensor === cpuCard.element);
+    
+    if (rule) {
+        // Existe regra direta (Ex: Fogo x Terra)
+        if (rule.resultado === 1) {
+            result = 1;
+            reason = `${playerCard.element} vence ${cpuCard.element}!`;
+        } else if (rule.resultado === -1) {
+            result = -1;
+            reason = `${playerCard.element} perde para ${cpuCard.element}!`;
+        }
+    } else {
+        // Checa o inverso (Ex: Terra x Fogo)
+        const reverseRule = jokenpoState.rules.find(r => r.atacante === cpuCard.element && r.defensor === playerCard.element);
+        if (reverseRule) {
+             if (reverseRule.resultado === 1) {
+                result = -1;
+                reason = `${cpuCard.element} vence ${playerCard.element}!`;
+             } else {
+                result = 1;
+                reason = `${cpuCard.element} perde para ${playerCard.element}!`;
+             }
+        }
+    }
+
+    // Se continuou 0, é empate de elemento ou elementos neutros -> Decide na FORÇA
+    if (result === 0) {
+        reason = "Elementos Neutros! Decisão na Força.";
+        if (playerCard.power > cpuCard.power) result = 1;
+        else if (playerCard.power < cpuCard.power) result = -1;
+    }
+
+    // 5. Aplica Resultado
+    const statusEl = document.getElementById('jk-status');
+    const pElemIcon = document.getElementById('jk-player-element');
+    const cElemIcon = document.getElementById('jk-enemy-element');
+
+    if (result === 1) {
+        statusEl.textContent = "VENCEU! " + reason;
+        statusEl.style.color = "#2ecc71";
+        pElemIcon.classList.add('win');
+        cElemIcon.classList.add('lose');
+        jokenpoState.playerScore++;
+    } else if (result === -1) {
+        statusEl.textContent = "PERDEU! " + reason;
+        statusEl.style.color = "#e74c3c";
+        cElemIcon.classList.add('win');
+        pElemIcon.classList.add('lose');
+        jokenpoState.cpuScore++;
+    } else {
+        statusEl.textContent = "EMPATE TOTAL!";
+        statusEl.style.color = "#f1c40f";
+    }
+
+    updateJokenpoScore();
+
+    // 6. Botão Próximo
+    if (jokenpoState.playerScore >= 3 || jokenpoState.cpuScore >= 3) {
+        setTimeout(finishJokenpoGame, 1000);
+    } else {
+        document.getElementById('btn-jk-next').classList.remove('hidden');
+    }
+}
+
+function nextJokenpoRound() {
+    resetJokenpoTable();
+    document.getElementById('btn-jk-next').classList.add('hidden');
+    jokenpoState.isProcessing = false;
+}
+
+function resetJokenpoTable() {
+    document.getElementById('jk-status').textContent = "Escolha sua carta...";
+    document.getElementById('jk-status').style.color = "#FFD700";
+    
+    const pSlot = document.getElementById('jk-player-card');
+    const eSlot = document.getElementById('jk-enemy-card');
+    
+    // Limpa cartas
+    pSlot.removeAttribute('style');
+    pSlot.innerHTML = '<div class="slot-placeholder">Sua Carta</div>';
+    pSlot.className = 'card-preview card-small empty';
+
+    eSlot.removeAttribute('style');
+    eSlot.innerHTML = '<div class="card-back-pattern"></div>';
+    eSlot.className = 'card-preview card-small';
+
+    // Limpa ícones
+    document.getElementById('jk-player-element').className = 'element-indicator';
+    document.getElementById('jk-player-element').innerHTML = '?';
+    document.getElementById('jk-player-element').style.background = '#333';
+    
+    document.getElementById('jk-enemy-element').className = 'element-indicator';
+    document.getElementById('jk-enemy-element').innerHTML = '?';
+    document.getElementById('jk-enemy-element').style.background = '#333';
+}
+
+function updateJokenpoScore() {
+    document.getElementById('jk-score-player').textContent = jokenpoState.playerScore;
+    document.getElementById('jk-score-cpu').textContent = jokenpoState.cpuScore;
+}
+
+async function finishJokenpoGame() {
+    let msg = "";
+    let prize = 0;
+
+    if (jokenpoState.playerScore > jokenpoState.cpuScore) {
+        msg = "VITÓRIA ELEMENTAL! 🏆";
+        prize = 120;
+        await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
+        player.moedas += prize;
+        showNotification(`Ganhou +${prize} moedas!`);
+    } else {
+        msg = "DERROTA...";
+    }
+
+    updateHeaderInfo();
+    alert(`FIM DE JOGO!\n${msg}`);
+    quitJokenpoGame();
+}
+
+function quitJokenpoGame() {
+    document.getElementById('jokenpo-arena').classList.add('hidden');
     document.getElementById('games-menu').classList.remove('hidden');
     refreshMinigameEnergy();
 }
