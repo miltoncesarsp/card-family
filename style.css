@@ -1474,3 +1474,27 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     .combat-zone { gap: 5px; transform: scale(0.9); }
     .hand-grid { justify-content: flex-start; } /* Alinha à esquerda pra rolar */
 }
+
+/* === EFEITOS DE RESULTADO NA BATALHA === */
+.card-slot.win {
+    border-color: #2ecc71 !important; /* Borda Verde */
+    box-shadow: 0 0 25px rgba(46, 204, 113, 0.9); /* Brilho verde forte */
+    transform: scale(1.05); /* Cresce um pouco */
+}
+
+.card-slot.lose {
+    border-color: #e74c3c !important; /* Borda Vermelha */
+    filter: brightness(0.6); /* Escurece a carta perdedora */
+}
+
+/* Animação de entrada do resultado */
+@keyframes flash-result {
+    0% { opacity: 0; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.power-display.winner {
+    color: #2ecc71;
+    animation: flash-result 0.5s ease-out;
+}
