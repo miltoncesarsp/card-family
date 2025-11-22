@@ -703,7 +703,7 @@ async function checkDailyReward() {
     const hoje = new Date();
     const ultimoLogin = new Date(lastLoginTimestamp); 
     
-    // --- 1. CHECAGEM RÁPIDA: Já coletou hoje? (CORRETO) ---
+    // 1. CHECAGEM RÁPIDA: Já coletou hoje? 
     const hojeString = hoje.toISOString().split('T')[0];
     const ultimoLoginString = ultimoLogin.toISOString().split('T')[0]; 
     
@@ -712,32 +712,25 @@ async function checkDailyReward() {
         return;
     }
 
-    // --- 2. CÁLCULO DE DIAS (Para o STREAK) ---
-    // Zera as horas para evitar fuso na comparação. Usando Math.round para evitar números fracionados.
-    const dataHojeDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-    const dataUltimoDia = new Date(ultimoLogin.getFullYear(), ultimoLogin.getMonth(), ultimoLogin.getDate());
+    // --- CÁLCULO DE STREAK ---
+    // Zera horas e calcula a diferença em dias
+    const dataHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    const dataUltimo = new Date(ultimoLogin.getFullYear(), ultimoLogin.getMonth(), ultimoLogin.getDate());
     
-    const diffTempo = dataHojeDia.getTime() - dataUltimoDia.getTime();
-    const diffDias = Math.round(diffTempo / (1000 * 60 * 60 * 24)); // Usa Math.round para maior tolerância
+    const diffTempo = dataHoje - dataUltimo;
+    const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24)); 
     
-    // --- 3. LÓGICA DO STREAK (CORREÇÃO DE FLUXO) ---
+    // Lógica do Streak
     let novosDiasConsecutivos = player.dias_consecutivos;
-    let premio = 100; // Valor base
+    let premio = 100;
 
     if (diffDias === 1) { 
-        // Se a diferença foi de EXATAMENTE 1 dia (logou ontem), a sequência continua.
         novosDiasConsecutivos++;
-    } else if (diffDias <= 0) {
-        // Se o diffDias for 0 (que não deveria chegar aqui) ou negativo (futuro/fuso), 
-        // o prêmio é dado, mas o streak NÃO avança e reinicia para 1, evitando o bug de loop.
-        novosDiasConsecutivos = 1;
-    } 
-    else { // diffDias > 1
-        // Pulou um dia ou mais. Reseta o streak.
-        novosDiasConsecutivos = 1;
+    } else if (diffDias > 1 || diffDias < 0) { // <--- Trata o caso -1 (fuso) como um prêmio de reset
+        novosDiasConsecutivos = 1; 
     }
 
-    // Lógica de Progressão: Base + (Dias * 50). Máximo de 7 dias (combo).
+    // Lógica de Progressão (Continua igual)
     const bonusStreak = Math.min(novosDiasConsecutivos, 7) * 50;
     premio += bonusStreak;
 
@@ -746,7 +739,6 @@ async function checkDailyReward() {
     document.getElementById('daily-amount').textContent = `+${premio}`;
     document.getElementById('daily-streak').textContent = novosDiasConsecutivos;
     
-    // Mensagem motivacional
     const msgEl = document.getElementById('daily-message');
     if (novosDiasConsecutivos > 1) {
         msgEl.textContent = `Incrível! ${novosDiasConsecutivos} dias seguidos!`;
@@ -758,23 +750,22 @@ async function checkDailyReward() {
 
     // Configura o botão de receber
     const btnCollect = document.getElementById('collectDailyBtn');
-    
-    // Remove listeners antigos para não duplicar (cloneNode truque)
     const newBtn = btnCollect.cloneNode(true);
     btnCollect.parentNode.replaceChild(newBtn, btnCollect);
     
     newBtn.addEventListener('click', async () => {
-        // Efeito visual simples
         newBtn.textContent = "Recebido!";
-        
-        // Atualiza no Banco
         const novasMoedas = player.moedas + premio;
         
+        // 🚨 O PONTO CHAVE: Salva a data como meia-noite local, mas no formato UTC.
+        // Isso garante que a string de comparação sempre funcione no próximo load.
+        const dataParaSalvar = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString();
+
         const { error } = await supabase
             .from('jogadores')
             .update({ 
                 moedas: novasMoedas,
-                ultimo_login: new Date().toISOString(), 
+                ultimo_login: dataParaSalvar, // <--- SALVANDO O INÍCIO DO DIA ATUAL
                 dias_consecutivos: novosDiasConsecutivos
             })
             .eq('id', player.id);
@@ -786,7 +777,7 @@ async function checkDailyReward() {
             // Atualiza localmente
             player.moedas = novasMoedas;
             player.dias_consecutivos = novosDiasConsecutivos;
-            player.ultimo_login = new Date().toISOString();
+            player.ultimo_login = dataParaSalvar; // Atualiza com o valor limpo
             
             updateHeaderInfo();
             showNotification(`Você ganhou ${premio} moedas!`);
