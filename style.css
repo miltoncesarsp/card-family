@@ -1578,3 +1578,61 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     border-radius: 10px;
     display: inline-block;
 }
+
+/* === JOGO DA MEMÓRIA === */
+
+.memory-grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 Colunas */
+    gap: 10px;
+    padding: 10px;
+    max-width: 500px; /* Não ficar gigante no PC */
+    margin: 0 auto;
+}
+
+/* Carta do Jogo da Memória */
+.memory-card {
+    position: relative;
+    aspect-ratio: 220/308; /* Mantém a proporção de carta */
+    cursor: pointer;
+    border-radius: 8px;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+}
+
+/* Quando a carta é virada (adicionada pelo JS) */
+.memory-card.flipped {
+    transform: rotateY(180deg);
+}
+
+/* Lados da Carta */
+.memory-front, .memory-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden; /* Esconde o verso quando virada */
+    border-radius: 8px;
+    border: 2px solid #fff;
+}
+
+/* Frente (A imagem do personagem) */
+.memory-front {
+    transform: rotateY(180deg); /* Começa virada pra trás */
+    background-size: cover;
+    background-position: center;
+}
+
+/* Verso (O desenho padrão) */
+.memory-back {
+    background: repeating-linear-gradient(45deg, #16213e, #16213e 10px, #0f3460 10px, #0f3460 20px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.memory-back::after {
+    content: '?';
+    font-family: 'Bungee', cursive;
+    font-size: 2em;
+    color: rgba(255,255,255,0.2);
+}
