@@ -268,7 +268,7 @@ function renderAlbum() {
         return;
     }
 
-    // VISÃO 2: MENU PRINCIPAL (PASTAS)
+ // VISÃO 2: MENU PRINCIPAL (PASTAS)
     let html = `<div class="origin-hub-grid">`;
     for (const [key, data] of Object.entries(originsData)) {
         const percentage = Math.round((data.owned / data.total) * 100);
@@ -278,9 +278,10 @@ function renderAlbum() {
         const bgStyle = coverImage 
             ? `background-image: url('${coverImage}');` 
             : `background: linear-gradient(135deg, #1a1a2e, #16213e);`;
+        
         const iconFallback = !coverImage ? `<i class="fas fa-layer-group" style="font-size: 60px; color: rgba(255,255,255,0.1); position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);"></i>` : '';
 
-        // --- NOTIFICAÇÕES NA PASTA ---
+        // --- NOTIFICAÇÕES ---
         let notificationsHTML = '<div class="folder-notifications">';
         if (data.newCount > 0) {
             notificationsHTML += `<div class="notif-badge-new"><i class="fas fa-exclamation-circle"></i> ${data.newCount} NOVAS</div>`;
@@ -289,10 +290,10 @@ function renderAlbum() {
             notificationsHTML += `<div class="notif-badge-evo"><i class="fas fa-arrow-up"></i> ${data.evoCount} UPGRADES</div>`;
         }
         notificationsHTML += '</div>';
-        // -----------------------------
 
+        // CORREÇÃO AQUI: onclick chama apenas o nome da pasta
         html += `
-            <div class="origin-folder" onclick="openOriginView('${data.name}', ${JSON.stringify(data.cards.map(c => c.id))})" style="${bgStyle}">
+            <div class="origin-folder" onclick="openOriginView('${data.name}')" style="${bgStyle}">
                 ${iconFallback}
                 ${notificationsHTML}
                 <div class="origin-content-overlay">
