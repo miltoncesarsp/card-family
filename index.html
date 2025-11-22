@@ -257,15 +257,50 @@
         <h3 style="color: white; text-align: center;">Monte a Carta!</h3>
     </div>
 
-    <div id="puzzle-difficulty-menu" class="difficulty-container">
-        <p style="color: #ccc; margin-bottom: 15px;">Escolha o tamanho:</p>
-        <div class="diff-buttons">
-            <button class="btn-diff" onclick="initPuzzle(2)">2x2 (Fácil)</button>
-            <button class="btn-diff" onclick="initPuzzle(3)">3x3</button>
-            <button class="btn-diff" onclick="initPuzzle(4)">4x4</button>
-            <button class="btn-diff" onclick="initPuzzle(5)">5x5</button>
-            <button class="btn-diff" onclick="initPuzzle(6)">6x6 (Hard)</button>
+<div id="puzzle-difficulty-menu" class="difficulty-container">
+        
+        <div class="diff-group easy-group">
+            <div class="diff-header">
+                <i class="fas fa-smile-beam"></i> FÁCIL
+            </div>
+            <div class="diff-buttons-row">
+                <button class="btn-diff" onclick="initPuzzle(2)">
+                    2 x 2<br><small>4 Peças</small>
+                </button>
+                <button class="btn-diff" onclick="initPuzzle(3)">
+                    3 x 3<br><small>9 Peças</small>
+                </button>
+            </div>
         </div>
+
+        <div class="diff-group normal-group">
+            <div class="diff-header">
+                <i class="fas fa-bolt"></i> NORMAL
+            </div>
+            <div class="diff-buttons-row">
+                <button class="btn-diff" onclick="initPuzzle(3)">
+                    3 x 3<br><small>9 Peças</small>
+                </button>
+                <button class="btn-diff" onclick="initPuzzle(4)">
+                    4 x 4<br><small>16 Peças</small>
+                </button>
+            </div>
+        </div>
+
+        <div class="diff-group hard-group">
+            <div class="diff-header">
+                <i class="fas fa-crown"></i> DIFÍCIL
+            </div>
+            <div class="diff-buttons-row">
+                <button class="btn-diff" onclick="initPuzzle(5)">
+                    5 x 5<br><small>25 Peças</small>
+                </button>
+                <button class="btn-diff" onclick="initPuzzle(6)">
+                    6 x 6<br><small>36 Peças</small>
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <div id="puzzle-board-container" class="hidden">
