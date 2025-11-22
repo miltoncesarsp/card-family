@@ -1636,3 +1636,62 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     font-size: 2em;
     color: rgba(255,255,255,0.2);
 }
+
+/* === JOGO O ALVO === */
+
+.target-game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* O Tubo */
+.target-tube {
+    width: 60px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 4px solid #fff;
+    border-radius: 30px;
+    position: relative;
+    overflow: hidden; /* Para o líquido não vazar visualmente */
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+}
+
+/* O Líquido */
+.target-liquid-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%; /* Começa vazio */
+    background: linear-gradient(to top, #3498db, #2980b9);
+    transition: height 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); /* Efeito de subida suave */
+    box-shadow: 0 0 15px #3498db;
+}
+
+/* Mudança de cor quando perto de estourar */
+.target-liquid-fill.danger { background: linear-gradient(to top, #f1c40f, #e67e22); box-shadow: 0 0 15px #f1c40f; }
+.target-liquid-fill.exploded { background: linear-gradient(to top, #c0392b, #e74c3c); box-shadow: 0 0 20px #e74c3c; }
+
+/* A Linha do Alvo */
+.target-limit-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background-color: #e74c3c; /* Vermelho */
+    z-index: 10;
+    box-shadow: 0 0 10px red;
+}
+
+.target-limit-line::after {
+    content: 'ALVO';
+    position: absolute;
+    right: -45px;
+    top: -8px;
+    color: #e74c3c;
+    font-size: 10px;
+    font-weight: bold;
+}
