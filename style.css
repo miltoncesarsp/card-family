@@ -1742,8 +1742,14 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
 /* === JOGO PUZZLE === */
 
 .difficulty-container {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espaço entre os blocos de dificuldade */
     margin-top: 20px;
+    width: 100%;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .diff-buttons {
@@ -1753,15 +1759,77 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     gap: 10px;
 }
 
+/* Estilo base dos grupos */
+.diff-group {
+    border-radius: 12px;
+    padding: 10px;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+/* Cores por Dificuldade */
+.easy-group {
+    background: rgba(46, 204, 113, 0.1); /* Fundo Verde Transparente */
+    border-color: #2ecc71;
+}
+.easy-group .diff-header { color: #2ecc71; }
+.easy-group .btn-diff { background-color: #2ecc71; border-color: #27ae60; }
+
+.normal-group {
+    background: rgba(52, 152, 219, 0.1); /* Fundo Azul Transparente */
+    border-color: #3498db;
+}
+.normal-group .diff-header { color: #3498db; }
+.normal-group .btn-diff { background-color: #3498db; border-color: #2980b9; }
+
+.hard-group {
+    background: rgba(155, 89, 182, 0.1); /* Fundo Roxo Transparente */
+    border-color: #9b59b6;
+}
+.hard-group .diff-header { color: #9b59b6; }
+.hard-group .btn-diff { background-color: #9b59b6; border-color: #8e44ad; }
+
+/* Cabeçalho (Ícone + Nome) */
+.diff-header {
+    font-family: 'Bungee', cursive;
+    font-size: 1.2em;
+    text-align: center;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.diff-header i { margin-right: 5px; }
+
+/* Botões lado a lado */
+.diff-buttons-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* O Botão em si */
 .btn-diff {
-    background: #0f3460;
+    flex: 1; /* Ocupa espaço igual */
     color: white;
-    border: 2px solid #007bff;
-    padding: 10px 15px;
-    border-radius: 10px;
+    padding: 12px 5px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
-    transition: 0.2s;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1em;
+    transition: transform 0.2s;
+    border-style: solid;
+    border-width: 0 0 4px 0; /* Efeito 3D embaixo */
+}
+
+.btn-diff:active {
+    transform: translateY(2px);
+    border-width: 0;
+}
+
+.btn-diff small {
+    font-weight: normal;
+    opacity: 0.8;
+    font-size: 0.7em;
 }
 
 .btn-diff:hover { background: #007bff; transform: scale(1.05); }
