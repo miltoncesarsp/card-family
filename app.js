@@ -2248,12 +2248,17 @@ function quitJokenpoGame() {
 // =================================================
 
 async function startDungeonGame() {
-    // 1. Verifica Cartas (Precisa de pelo menos 1 para lutar)
-    const myDeck = cardsInAlbum.filter(c => c.owned);
-    if (myDeck.length < 1) {
-        alert("Você precisa de cartas para explorar a masmorra!");
+    // 1. Verifica e Seleciona as 5 Cartas
+    const ownedCards = cardsInAlbum.filter(c => c.owned);
+    
+    if (ownedCards.length < 5) {
+        alert("Você precisa de pelo menos 5 cartas para entrar na masmorra!");
         return;
     }
+
+    dungeonState.playerHand = [...ownedCards]
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 5);
 
     // 2. UI Setup
     document.getElementById('games-menu').classList.add('hidden');
@@ -2263,16 +2268,28 @@ async function startDungeonGame() {
     // 3. Reset Estado
     dungeonState.lives = 3;
     dungeonState.currentLoot = 0;
+    dungeonState.foundTreasures = 0; // Reset
     dungeonState.isLocked = false;
     updateDungeonUI();
 
-    // 4. Gera o Tabuleiro (3x3 = 9 tiles)
-    // Balanceamento: 5 Tesouros, 4 Monstros
-    let contents = [];
-    for(let i=0; i<5; i++) contents.push('treasure');
-    for(let i=0; i<4; i++) contents.push('monster');
+    // 4. Gera o Tabuleiro (4x4 = 16 tiles)
+    // NOVA DISTRIBUIÇÃO:
+    // 6 Tesouros (Ouro)
+    // 5 Monstros (Perigo)
+    // 2 Poções (Vida)
+    // 2 Armadilhas (Perde Carta) <--- NOVO
+    // 1 Reforço (Ganha Carta)   <--- NOVO
     
-    contents.sort(() => 0.5 - Math.random()); // Embaralha
+    let contents = [];
+    for(let i=0; i<6; i++) contents.push('treasure');
+    for(let i=0; i<5; i++) contents.push('monster');
+    for(let i=0; i<2; i++) contents.push('potion');
+    for(let i=0; i<2; i++) contents.push('trap');      // Armadilha
+    for(let i=0; i<1; i++) contents.push('reinforce'); // Reforço
+    
+    dungeonState.totalTreasures = 6; // Define o objetivo
+
+    contents.sort(() => 0.5 - Math.random()); 
 
     const grid = document.getElementById('dungeon-grid');
     grid.innerHTML = '';
@@ -2283,17 +2300,24 @@ async function startDungeonGame() {
         tile.dataset.index = index;
         tile.dataset.type = type;
         
-        // Cria o visual do tile
-        // O verso já é pré-gerado mas fica escondido
         let contentHTML = '';
+        
         if (type === 'treasure') {
-            // Tesouro aleatório entre 10 e 50 moedas
             const amount = Math.floor(Math.random() * 41) + 10;
             tile.dataset.amount = amount;
-            contentHTML = `<div class="tile-back treasure"><i class="fas fa-coins" style="font-size:30px; margin-bottom:5px;"></i>+${amount}</div>`;
+            contentHTML = `<div class="tile-back treasure"><i class="fas fa-coins" style="font-size:24px; margin-bottom:5px;"></i>+${amount}</div>`;
+        
+        } else if (type === 'potion') {
+            contentHTML = `<div class="tile-back potion"><i class="fas fa-heart" style="font-size:24px; margin-bottom:5px;"></i>CURA</div>`;
+        
+        } else if (type === 'trap') {
+            contentHTML = `<div class="tile-back trap"><i class="fas fa-shoe-prints" style="font-size:24px; margin-bottom:5px;"></i>-1 CARTA</div>`;
+        
+        } else if (type === 'reinforce') {
+            contentHTML = `<div class="tile-back reinforce"><i class="fas fa-user-plus" style="font-size:24px; margin-bottom:5px;"></i>ALIADO</div>`;
+        
         } else {
-            // Monstro (apenas ícone visual aqui, a carta real vem no combate)
-            contentHTML = `<div class="tile-back monster"><i class="fas fa-dragon" style="font-size:30px; margin-bottom:5px;"></i>MONSTRO!</div>`;
+            contentHTML = `<div class="tile-back monster"><i class="fas fa-dragon" style="font-size:24px; margin-bottom:5px;"></i>MONSTRO</div>`;
         }
 
         tile.innerHTML = `
@@ -2305,147 +2329,148 @@ async function startDungeonGame() {
         grid.appendChild(tile);
     });
 }
-
 async function handleDungeonClick(tile) {
-    // Se já tá virada ou jogo travado
     if (tile.classList.contains('revealed') || dungeonState.isLocked) return;
 
     tile.classList.add('revealed');
     const type = tile.dataset.type;
 
+    // --- 1. TESOURO ---
     if (type === 'treasure') {
-        // --- ACHOU OURO ---
         const amount = parseInt(tile.dataset.amount);
         dungeonState.currentLoot += amount;
+        dungeonState.foundTreasures++; // Conta +1 achado
         updateDungeonUI();
-    } else {
-        // --- ACHOU MONSTRO ---
-        dungeonState.isLocked = true; // Trava o tabuleiro
+
+        // VERIFICAÇÃO DE VITÓRIA AUTOMÁTICA
+        // Se achou todos os tesouros, sai automaticamente
+        if (dungeonState.foundTreasures >= dungeonState.totalTreasures) {
+            setTimeout(() => {
+                alert("🎉 MAPA LIMPO! Você encontrou todos os tesouros!");
+                forceDungeonExit(); // Função nova para sair direto
+            }, 500);
+        }
+    } 
+    // --- 2. POÇÃO (Vida) ---
+    else if (type === 'potion') {
+        if (dungeonState.lives < 3) {
+            dungeonState.lives++;
+            showNotification("Vida recuperada! ❤️");
+        } else {
+            showNotification("Vida cheia! Poção desperdiçada.");
+        }
+        updateDungeonUI();
+    }
+    // --- 3. ARMADILHA (Perde Carta) ---
+    else if (type === 'trap') {
+        if (dungeonState.playerHand.length > 0) {
+            // Remove carta aleatória da mão
+            const randomIndex = Math.floor(Math.random() * dungeonState.playerHand.length);
+            const removedCard = dungeonState.playerHand.splice(randomIndex, 1)[0];
+            
+            showNotification(`ARMADILHA! Você derrubou: ${removedCard.name}`, true);
+            
+            // Se ficar sem cartas, morre na hora? Não, deixamos ele tentar fugir ou achar poção.
+            // Só morre se encontrar monstro depois.
+        } else {
+            showNotification("Ufa! Armadilha vazia (você não tinha cartas).");
+        }
+    }
+    // --- 4. REFORÇO (Ganha Carta) ---
+    else if (type === 'reinforce') {
+        // Pega todas as cartas da coleção
+        const ownedCards = cardsInAlbum.filter(c => c.owned);
+        // Sorteia uma nova
+        const newCard = ownedCards[Math.floor(Math.random() * ownedCards.length)];
         
-        // 1. CALCULA A FORÇA DO JOGADOR
+        dungeonState.playerHand.push(newCard);
+        showNotification(`REFORÇO! ${newCard.name} entrou na mão!`);
+    }
+    // --- 5. MONSTRO ---
+    else {
+        dungeonState.isLocked = true;
+        
+        // (Lógica de dificuldade adaptativa - Mantida igual)
         const myDeck = cardsInAlbum.filter(c => c.owned);
-        
-        // Se não tiver cartas (segurança), assume força 10
         let avgPower = 10; 
         if (myDeck.length > 0) {
             const totalPower = myDeck.reduce((sum, card) => sum + card.power, 0);
             avgPower = totalPower / myDeck.length;
         }
 
-        // 2. DEFINE A FAIXA DE PERIGO DO MONSTRO
-        // O monstro pode ser de 30% mais fraco até 40% mais forte que sua média
-        // Ex: Se sua média é 100, o monstro terá entre 70 e 140.
         const minMonsterPower = Math.floor(avgPower * 0.7);
         const maxMonsterPower = Math.ceil(avgPower * 1.4);
 
-        // 3. FILTRA OS CANDIDATOS (Usa a variável global allGameCards pra não chamar o banco)
         let validMonsters = allGameCards.filter(c => 
             c.power >= minMonsterPower && 
             c.power <= maxMonsterPower
         );
-
-        // Fallback: Se não achar nenhum monstro nessa faixa exata, pega qualquer um próximo
-        if (validMonsters.length === 0) {
-            validMonsters = allGameCards.filter(c => c.power <= maxMonsterPower + 20);
-        }
-        // Fallback final: Pega qualquer carta se der tudo errado
         if (validMonsters.length === 0) validMonsters = allGameCards;
 
-        // 4. SORTEIA
         const randomMonster = validMonsters[Math.floor(Math.random() * validMonsters.length)];
         
-        // Abre combate após breve delay da animação de virar
         setTimeout(() => startDungeonCombat(randomMonster), 600);
     }
 }
 
+async function forceDungeonExit() {
+    // Salva o loot
+    await supabase.rpc('atualizar_moedas_jogo', { qtd: dungeonState.currentLoot });
+    player.moedas += dungeonState.currentLoot;
+    updateHeaderInfo();
+    
+    showNotification(`Masmorra Concluída 100%! +${dungeonState.currentLoot} moedas.`);
+    quitDungeonGame();
+}
+
+
 function startDungeonCombat(monsterCard) {
+    // VERIFICAÇÃO DE MORTE SÚBITA
+    // Se acabou as cartas, você não pode lutar -> Game Over
+    if (dungeonState.playerHand.length === 0) {
+        alert("VOCÊ ESTÁ SEM CARTAS! 😱\nO monstro te atacou e você não pode se defender.");
+        dungeonState.lives = 0; // Mata o jogador
+        updateDungeonUI();
+        gameOverDungeon();
+        return;
+    }
+
     dungeonState.combatMonster = monsterCard;
     
     const overlay = document.getElementById('dungeon-combat-overlay');
     overlay.classList.remove('hidden');
 
-    // 1. MOSTRA O INIMIGO CLARAMENTE (Estratégia)
-    // Renderiza a carta do monstro para o jogador ver a arte e a raridade
+    // Mostra Monstro
     renderCardInSlot(monsterCard, 'dungeon-monster-card');
     
-    // Destaca o número da força do monstro em vermelho para ficar bem visível
     const powerDisplay = document.getElementById('monster-power-display');
     powerDisplay.textContent = monsterCard.power;
-    powerDisplay.style.color = "#e74c3c"; // Vermelho perigo
-    powerDisplay.style.fontSize = "1.5em"; // Maior
+    powerDisplay.style.color = "#e74c3c";
+    powerDisplay.style.fontSize = "1.5em";
 
-    // Limpa slot do jogador (esperando escolha)
+    // Limpa slot do jogador
     const pSlot = document.getElementById('dungeon-player-slot');
     pSlot.innerHTML = '<div class="slot-placeholder">Sua vez...</div>';
     pSlot.removeAttribute('style');
     pSlot.className = 'card-slot empty';
 
-    // 2. PREPARA A MÃO TÁTICA (1 de cada Raridade)
-    const ownedCards = cardsInAlbum.filter(c => c.owned);
-    let tacticalHand = [];
-    
-    // Lista de prioridade para garantir variedade
-    const rarities = ['Comum', 'Rara', 'Épica', 'Lendária', 'Mítica'];
-
-    // Tenta pegar a MELHOR carta que você tem de CADA raridade
-    rarities.forEach(rarity => {
-        const bestOfRarity = ownedCards
-            .filter(c => c.rarity === rarity)
-            .sort((a, b) => b.power - a.power)[0]; // Pega a mais forte daquela raridade
-
-        if (bestOfRarity) {
-            tacticalHand.push(bestOfRarity);
-        }
-    });
-
-    // Se o jogador não tiver todas as raridades (ex: tem 3 cartas), 
-    // completa a mão até ter 5 cartas usando as mais fortes que sobraram
-    if (tacticalHand.length < 5) {
-        const remaining = ownedCards
-            .filter(c => !tacticalHand.includes(c)) // Não repete as que já escolheu
-            .sort((a, b) => b.power - a.power); // Ordena por força
-
-        const slotsNeeded = 5 - tacticalHand.length;
-        // Adiciona as que faltam
-        tacticalHand = [...tacticalHand, ...remaining.slice(0, slotsNeeded)];
-    }
-
-    // Ordena a mão final da Mais Fraca para a Mais Forte
-    // Isso ajuda o jogador a ver visualmente qual é a mínima necessária para vencer
-    tacticalHand.sort((a, b) => a.power - b.power);
-
-    // 3. Renderiza a Mão na Tela
+    // RENDERIZA A MÃO FIXA (Ordenada por força)
     const handContainer = document.getElementById('dungeon-hand');
     handContainer.innerHTML = '';
 
-    tacticalHand.forEach(card => {
+    // Ordena apenas visualmente para ajudar a escolher
+    const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
+
+    displayHand.forEach(card => {
         const div = document.createElement('div');
         div.className = 'hand-card';
         div.style.backgroundImage = `url('${card.image_url}')`;
         div.style.flexShrink = '0';
         
-        // Mostra a força bem grande na carta para facilitar a conta
         const rarityColor = getRarityColors(card.rarity).primary;
         
         div.innerHTML = `
-            <div style="
-                position: absolute; 
-                bottom: 5px; 
-                right: 5px; 
-                background: ${rarityColor}; 
-                color: white; 
-                border: 2px solid white; 
-                border-radius: 50%; 
-                width: 25px; 
-                height: 25px; 
-                display: flex; 
-                justify-content: center; 
-                align-items: center; 
-                font-weight: bold; 
-                font-size: 12px;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-            ">${card.power}</div>
+            <div style="position: absolute; bottom: 5px; right: 5px; background: ${rarityColor}; color: white; border: 2px solid white; border-radius: 50%; width: 25px; height: 25px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 12px;">${card.power}</div>
         `;
         
         div.onclick = () => resolveDungeonFight(card);
@@ -2454,33 +2479,39 @@ function startDungeonCombat(monsterCard) {
 }
 
 async function resolveDungeonFight(playerCard) {
+    // 1. REMOVE A CARTA DA MÃO (Consome o recurso)
+    // Acha o índice da carta usada no array original
+    const cardIndex = dungeonState.playerHand.findIndex(c => c.id === playerCard.id);
+    if (cardIndex > -1) {
+        dungeonState.playerHand.splice(cardIndex, 1); // Remove 1 elemento
+    }
+
     // Renderiza escolha
     renderCardInSlot(playerCard, 'dungeon-player-slot');
 
-    // Compara
     const monsterPower = dungeonState.combatMonster.power;
     const playerPower = playerCard.power;
 
-    await new Promise(r => setTimeout(r, 800)); // Suspense
+    await new Promise(r => setTimeout(r, 800)); 
 
     const overlay = document.getElementById('dungeon-combat-overlay');
 
     if (playerPower > monsterPower) {
         // VITÓRIA
-        alert("Você venceu o monstro! O caminho está livre.");
+        alert("Você venceu o monstro! Carta descartada.");
         overlay.classList.add('hidden');
-        dungeonState.isLocked = false; // Destrava tabuleiro
+        dungeonState.isLocked = false;
     } else {
         // DERROTA
         dungeonState.lives--;
         updateDungeonUI();
-        alert("Você perdeu! -1 Vida 💔");
+        alert("Você perdeu! -1 Vida 💔\nSua carta foi gasta.");
         overlay.classList.add('hidden');
         
         if (dungeonState.lives <= 0) {
             gameOverDungeon();
         } else {
-            dungeonState.isLocked = false; // Destrava se ainda tiver vida
+            dungeonState.isLocked = false;
         }
     }
 }
