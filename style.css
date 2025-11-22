@@ -1349,56 +1349,6 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
 .game-icon { font-size: 40px; color: #FFD700; margin-bottom: 10px; }
 .game-cost { display: block; margin-top: 10px; font-size: 0.8em; color: #2ecc71; font-weight: bold; }
 
-/* Arena de Batalha */
-.arena-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin: 30px 0;
-    position: relative;
-}
-
-.fighter-box { text-align: center; width: 160px; }
-.fighter-box h3 { color: #aaa; margin-bottom: 10px; font-family: 'Bungee', cursive; }
-
-/* Placeholder da carta antes de virar */
-.card-placeholder {
-    width: 150px; height: 210px;
-    background-color: #333;
-    border: 2px dashed #555;
-    border-radius: 10px;
-    display: flex; justify-content: center; align-items: center;
-    font-size: 50px; color: #555;
-    margin: 0 auto;
-    transition: 0.5s;
-}
-
-.vs-badge {
-    background: #e74c3c;
-    color: white;
-    font-family: 'Bungee', cursive;
-    padding: 10px;
-    border-radius: 50%;
-    font-size: 1.5em;
-    border: 3px solid white;
-    box-shadow: 0 0 20px rgba(231, 76, 60, 0.6);
-    z-index: 10;
-}
-
-.battle-controls { text-align: center; }
-.power-display { font-size: 1.5em; font-weight: bold; height: 30px; margin-top: 10px; text-shadow: 0 0 10px currentColor; }
-
-/* Animação de Dano/Batida */
-.shake-hit { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-
-@keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-  40%, 60% { transform: translate3d(4px, 0, 0); }
-}
-
 /* === NOVA ARENA DE BATALHA === */
 
 .battle-header {
