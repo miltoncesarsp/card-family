@@ -229,6 +229,28 @@
         <button class="back-btn" onclick="quitMemoryGame()">Desistir / Sair</button>
     </div>
 </div>
+
+<div id="target-arena" class="hidden">
+    <div class="section-header">
+        <h3 style="color: white; text-align: center;">Alvo: <span id="target-goal" style="color: #e74c3c; font-size: 1.5em;">0</span></h3>
+        <p style="text-align: center; font-size: 0.9em; color: #aaa;">Soma atual: <span id="target-current">0</span></p>
+    </div>
+
+    <div class="target-game-container">
+        <div class="target-tube">
+            <div id="target-line" class="target-limit-line"></div> <div id="target-liquid" class="target-liquid-fill"></div> </div>
+
+        <div id="target-card-display" class="card-slot empty" style="margin: 0 auto; transform: scale(0.8);">
+            <div class="card-back-pattern"></div>
+        </div>
+    </div>
+
+    <div class="battle-controls">
+        <button id="btn-hit" class="btn-primary" onclick="targetHit()">MAIS UMA CARTA (+)</button>
+        <button id="btn-stand" class="btn-secondary" onclick="targetStand()">PARAR (✋)</button>
+        <button id="btn-target-exit" class="back-btn hidden" onclick="quitTargetGame()">Sair</button>
+    </div>
+</div>    
                 
             </section>
 
