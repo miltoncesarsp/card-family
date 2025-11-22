@@ -1127,23 +1127,24 @@ function renderPlayerHand() {
 
 async function playRound(playerCard, cardElement) {
     // 1. BLOQUEIO DE SEGURANÇA
-    // Se já estiver batalhando OU a carta já foi usada, não faz nada.
     if (battleState.isProcessing || cardElement.classList.contains('played')) return;
     
-    battleState.isProcessing = true; // Trava o jogo
-    cardElement.classList.add('played'); // Marca visualmente que a carta foi usada
+    battleState.isProcessing = true;
+    cardElement.classList.add('played'); // Carta fica cinza na mão
 
     // 2. Renderiza as cartas na mesa
     renderCardInSlot(playerCard, 'player-slot');
     
-    // Mostra o verso da carta inimiga primeiro (suspense)
+    // Garante que o inimigo comece com o verso
     const enemySlot = document.getElementById('enemy-slot');
+    enemySlot.removeAttribute('style'); // Garante limpeza
+    enemySlot.className = 'card-slot empty';
     enemySlot.innerHTML = '<div class="card-back-pattern"></div>'; 
     
-    // Pega a carta do inimigo correspondente ao round atual (Array começa em 0)
+    // Pega a carta do inimigo
     const enemyCard = battleState.enemyDeck[battleState.round - 1];
 
-    await new Promise(r => setTimeout(r, 600)); // Pequena pausa dramática
+    await new Promise(r => setTimeout(r, 600)); // Suspense
 
     // 3. Revela Carta do Inimigo
     renderCardInSlot(enemyCard, 'enemy-slot');
@@ -1155,41 +1156,44 @@ async function playRound(playerCard, cardElement) {
     pSlot.classList.add('clash-player');
     eSlot.classList.add('clash-enemy');
     
-    await new Promise(r => setTimeout(r, 300)); // Espera o impacto
+    await new Promise(r => setTimeout(r, 300)); // Impacto!
 
-    // 5. Resolve a lógica (Quem ganhou?)
+    // 5. Resolve a lógica
     await resolveRound(playerCard, enemyCard);
 
     // Remove classes de animação
     pSlot.classList.remove('clash-player');
     eSlot.classList.remove('clash-enemy');
 
-    // 6. Limpeza e Preparação (COM PROTEÇÃO CONTRA O ERRO NULL)
-    await new Promise(r => setTimeout(r, 1500)); // Tempo para ver o resultado
+    // 6. Limpeza e Preparação
+    await new Promise(r => setTimeout(r, 1500)); // Tempo para ver quem ganhou
 
-    // Limpa classes de vitória/derrota com segurança
+    // Limpa classes de vitória/derrota
     if(pSlot) pSlot.classList.remove('win', 'lose');
     if(eSlot) eSlot.classList.remove('win', 'lose');
 
     const pPowerEl = document.getElementById('player-battle-power');
     const cPowerEl = document.getElementById('cpu-battle-power');
     
-    // AQUI ESTAVA O ERRO: Agora verificamos se existe antes de remover
+    // Limpa os números de força
     if(pPowerEl) {
         pPowerEl.classList.remove('winner');
-        pPowerEl.textContent = '?'; // Reseta o número
+        pPowerEl.textContent = '?';
     }
     if(cPowerEl) {
         cPowerEl.classList.remove('winner');
-        cPowerEl.textContent = '?'; // Reseta o número
+        cPowerEl.textContent = '?';
     }
 
-    // Limpa visualmente os slots para a próxima rodada
+    // === AQUI ESTÁ A CORREÇÃO VISUAL ===
+    // Limpa visualmente os slots removendo a imagem de fundo
     if(pSlot) {
+        pSlot.removeAttribute('style'); // <--- TIRA A CARTA ESTICADA
         pSlot.innerHTML = '<div class="slot-placeholder">Sua Carta</div>';
         pSlot.className = 'card-slot empty';
     }
     if(eSlot) {
+        eSlot.removeAttribute('style'); // <--- TIRA A CARTA ESTICADA
         eSlot.innerHTML = '<div class="card-back-pattern"></div>';
         eSlot.className = 'card-slot empty';
     }
@@ -1203,14 +1207,11 @@ async function playRound(playerCard, cardElement) {
             statusEl.textContent = "Escolha sua próxima carta...";
             statusEl.style.color = "#FFD700";
         }
-        // Libera para jogar de novo
-        battleState.isProcessing = false; 
+        battleState.isProcessing = false; // Libera o clique
     } else {
         finishBattle();
-        // Nota: Não liberamos battleState.isProcessing aqui para evitar cliques no final
     }
 }
-
 async function resolveRound(myCard, cpuCard) {
     const pPower = myCard.power;
     const cPower = cpuCard.power;
