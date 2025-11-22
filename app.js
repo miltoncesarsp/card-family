@@ -700,36 +700,38 @@ async function checkDailyReward() {
     const hoje = new Date();
     const ultimoLogin = new Date(player.ultimo_login);
     
-    // Zera as horas para comparar apenas o DIA (Data Local)
-    const dataHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-    const dataUltimo = new Date(ultimoLogin.getFullYear(), ultimoLogin.getMonth(), ultimoLogin.getDate());
-
-    // Calcula a diferença em milissegundos e converte para dias
-    const diffTempo = dataHoje - dataUltimo;
-    const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24));
-
-    console.log(`Diferença de dias: ${diffDias}`);
-
-    // Se a diferença for 0, já pegou hoje.
-    if (diffDias === 0) {
-        console.log("Bônus diário já coletado hoje.");
+    // FIX 1: Checagem rápida contra loop e fuso horário
+    const hojeString = hoje.toISOString().split('T')[0];
+    const ultimoLoginString = ultimoLogin.toISOString().split('T')[0]; 
+    
+    // 1. Checa se o último login registrado é o mesmo dia de hoje.
+    if (hojeString === ultimoLoginString) {
+        console.log("Bônus diário já coletado hoje. (Check String OK)");
         return;
     }
 
+    // 🚨 FIX 2: CÁLCULO DA DIFERENÇA DE DIAS (Para o STREAK)
+    // Zera as horas para comparar apenas o dia (necessário para o cálculo de streak)
+    const dataHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    const dataUltimo = new Date(ultimoLogin.getFullYear(), ultimoLogin.getMonth(), ultimoLogin.getDate());
+    
+    const diffTempo = dataHoje - dataUltimo;
+    const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24));
+    // -----------------------------------------------------------
+    
     // CALCULA O PRÊMIO
     let novosDiasConsecutivos = player.dias_consecutivos;
     let premio = 100; // Valor base
 
-    if (diffDias === 1) {
+    if (diffDias === 1) { // <-- AGORA diffDias ESTÁ DEFINIDO E FUNCIONA!
         // Entrou em dias seguidos! Aumenta o streak
         novosDiasConsecutivos++;
     } else {
-        // Pulou um dia ou mais (reset)
+        // Pulou um dia ou mais (reset ou primeiro login)
         novosDiasConsecutivos = 1;
     }
 
     // Lógica de Progressão: Base + (Dias * 50). Máximo de 7 dias (combo).
-    // Ex: Dia 1=150, Dia 2=200, Dia 7=450...
     const bonusStreak = Math.min(novosDiasConsecutivos, 7) * 50;
     premio += bonusStreak;
 
