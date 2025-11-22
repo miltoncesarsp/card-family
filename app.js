@@ -700,40 +700,41 @@ async function checkDailyReward() {
     // Data de referência segura (1 de Janeiro de 2000)
     const SAFE_PAST_DATE = '2000-01-01T00:00:00Z'; 
     
-    // 🚨 CORREÇÃO: Garante que ultimo_login tenha um valor válido (ou use o valor seguro)
+    // Garante que ultimo_login tem um valor válido para não dar erro
     const lastLoginTimestamp = player.ultimo_login && player.ultimo_login !== '0' 
         ? player.ultimo_login 
         : SAFE_PAST_DATE;
 
     const hoje = new Date();
-    const ultimoLogin = new Date(lastLoginTimestamp); // Usa o valor garantido
+    const ultimoLogin = new Date(lastLoginTimestamp); 
     
-    // FIX 1: Checagem rápida contra loop e fuso horário
+    // --- 1. CHECAGEM RÁPIDA: Já coletou hoje? ---
     const hojeString = hoje.toISOString().split('T')[0];
     const ultimoLoginString = ultimoLogin.toISOString().split('T')[0]; 
     
-    // 1. Checa se o último login registrado é o mesmo dia de hoje.
     if (hojeString === ultimoLoginString) {
         console.log("Bônus diário já coletado hoje. (Check String OK)");
         return;
     }
 
-    // 🚨 FIX 2: Cálculo da diferença de dias (Para o STREAK)
+    // --- 2. CÁLCULO DE DIFERENÇA DE DIAS (para streak) ---
+    // Zera horas e calcula a diferença
     const dataHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
     const dataUltimo = new Date(ultimoLogin.getFullYear(), ultimoLogin.getMonth(), ultimoLogin.getDate());
     
     const diffTempo = dataHoje - dataUltimo;
-    const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24));
+    const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24)); // <--- ESTE CÁLCULO É O QUE FALTAVA NO LUGAR CERTO!
     
-    // CALCULA O PRÊMIO
+    // --- 3. LÓGICA DO STREAK (INCREMENTO OU RESET) ---
     let novosDiasConsecutivos = player.dias_consecutivos;
     let premio = 100; // Valor base
 
     if (diffDias === 1) { 
+        // Se a diferença foi de EXATAMENTE 1 dia, a sequência continua
         novosDiasConsecutivos++;
-    } else {
-        // Se a diferença for maior que 1, ou se for a primeira vez (vem de 2000), reseta/inicia em 1
-        novosDiasConsecutivos = 1;
+    } else if (diffDias > 1 || novosDiasConsecutivos === 0) {
+        // Se pulou um dia, ou se é a primeira vez (vem da data de 2000), o streak recomeça em 1
+        novosDiasConsecutivos = 1; 
     }
 
     // Lógica de Progressão: Base + (Dias * 50). Máximo de 7 dias (combo).
