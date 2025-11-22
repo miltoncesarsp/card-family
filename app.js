@@ -2553,3 +2553,37 @@ function quitDungeonGame() {
     document.getElementById('games-menu').classList.remove('hidden');
     refreshMinigameEnergy();
 }
+
+// --- SISTEMA DE ALERTAS (SUBSTITUI O NATIVO) ---
+function showGameAlert(title, message, isConfirm = false) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('game-alert-modal');
+        const titleEl = document.getElementById('alert-title');
+        const bodyEl = document.getElementById('alert-body');
+        const btnOk = document.getElementById('btn-alert-ok');
+        const btnCancel = document.getElementById('btn-alert-cancel');
+
+        // Configura Texto
+        titleEl.innerHTML = title; // Permite HTML (ícones)
+        bodyEl.innerHTML = message.replace(/\n/g, '<br>'); // Quebra de linha
+
+        // Configura Botões
+        btnOk.onclick = () => {
+            modal.classList.add('hidden');
+            resolve(true); // Retorna VERDADEIRO
+        };
+
+        if (isConfirm) {
+            btnCancel.classList.remove('hidden');
+            btnCancel.onclick = () => {
+                modal.classList.add('hidden');
+                resolve(false); // Retorna FALSO
+            };
+        } else {
+            btnCancel.classList.add('hidden');
+        }
+
+        // Mostra
+        modal.classList.remove('hidden');
+    });
+}
