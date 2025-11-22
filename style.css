@@ -1394,6 +1394,7 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
 }
 
 .card-slot {
+   position: relative; /* <--- MUITO IMPORTANTE */
     width: 160px;
     height: 224px;
     border-radius: 10px;
@@ -1407,6 +1408,40 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     border: 2px dashed #555;
     background: rgba(255,255,255,0.05);
 }
+
+/* Novo display de força na arena */
+.battle-power-display {
+    position: absolute;
+    top: -15px; /* Acima do slot */
+    background: #000;
+    color: white;
+    font-family: 'Bungee', cursive;
+    font-size: 1.5em;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 2px solid white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.8);
+    z-index: 100;
+    display: none; /* Escondido por padrão */
+}
+
+/* Mostra apenas quando a carta está sendo jogada */
+#enemy-slot.card-preview .battle-power-display,
+#player-slot.card-preview .battle-power-display {
+    display: block !important;
+}
+
+/* Estilo para o vencedor (Brilho verde) */
+.battle-power-display.winner {
+    color: #2ecc71;
+    border-color: #2ecc71;
+    box-shadow: 0 0 15px #2ecc71;
+    animation: flash-result 0.5s ease-out; /* Reutiliza sua animação existente */
+}
+
+/* Posição específica no centro do topo para cada lado */
+#player-slot #player-battle-power { right: 50%; transform: translateX(50%); }
+#enemy-slot #cpu-battle-power { left: 50%; transform: translateX(-50%); }
 
 /* Verso da Carta Inimiga */
 .card-back-pattern {
