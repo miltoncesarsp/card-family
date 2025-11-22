@@ -1518,6 +1518,49 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
         padding-right: 10px;
     }
 
+   /* --- JOGO DA MEMÓRIA --- */
+    .memory-grid-container {
+        /* Diminui o espaço entre as cartas */
+        gap: 5px !important; 
+        padding: 5px !important;
+        /* Garante que não ultrapasse a largura da tela */
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    /* --- JOGO PUZZLE --- */
+    .puzzle-grid {
+        /* Muda de largura fixa (300px) para fluida */
+        width: 90% !important; 
+        max-width: 300px; /* Trava no máximo, mas encolhe se precisar */
+        margin: 0 auto; /* Centraliza */
+    }
+
+    /* --- JOGO O ALVO --- */
+    .target-game-container {
+        /* Diminui o espaçamento interno */
+        padding: 10px !important;
+        gap: 10px !important;
+    }
+
+    .target-tube {
+        /* Tubo um pouco menor no celular para caber na tela vertical */
+        height: 250px !important;
+    }
+
+    /* Força a carta do Alvo a ficar menor no celular */
+    #target-card-display {
+        transform: scale(0.7) !important; /* Reduz para 70% do tamanho */
+        margin-top: -20px !important; /* Puxa um pouco pra cima */
+    }
+    
+    /* Ajuste dos botões para não ficarem gigantes */
+    .battle-controls button {
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+   
+
    
 }
 
