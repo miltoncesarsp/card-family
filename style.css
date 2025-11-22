@@ -1533,3 +1533,27 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     color: #2ecc71;
     animation: flash-result 0.5s ease-out;
 }
+
+/* Carta na mão quando já foi usada */
+.hand-card.played {
+    filter: grayscale(100%) brightness(0.5);
+    cursor: not-allowed;
+    transform: scale(0.9);
+    border-color: #555;
+}
+
+/* Animação de Impacto (Clash) */
+@keyframes clash-right {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(30px) scale(1.1); } /* Vai pra frente */
+    100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes clash-left {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(-30px) scale(1.1); } /* Vai pra frente */
+    100% { transform: translateX(0) scale(1); }
+}
+
+.clash-player { animation: clash-right 0.3s ease-in-out; }
+.clash-enemy { animation: clash-left 0.3s ease-in-out; }
