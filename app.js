@@ -360,7 +360,7 @@ async function openOriginView(originName) {
     const cardIdsToUpdate = cardsInThisFolder.map(c => c.id);
 
     // Se tiver cartas novas para limpar o aviso
-    if (cardIdsToUpdate.length > 0) {
+if (cardIdsToUpdate.length > 0) {
         // Atualiza no banco (silenciosamente)
         const { error } = await supabase
             .from('cartas_do_jogador')
@@ -369,10 +369,23 @@ async function openOriginView(originName) {
             .eq('jogador_id', player.id);
 
         if (!error) {
-            // Atualiza localmente para o selo sumir na próxima vez que renderizar
-            cardsInAlbum.forEach(c => {
-                if (cardIdsToUpdate.includes(c.id)) c.isNew = false;
+            // 🚨 ADICIONE ESTE BLOCO 🚨
+            cardIdsToUpdate.forEach(cardId => {
+                // 1. Atualiza localmente a variável (para a próxima renderização)
+                const card = cardsInAlbum.find(c => c.id === cardId);
+                if (card) card.isNew = false;
+                
+                // 2. Remove o elemento visual "NOVO!" da DOM
+                // Encontra a carta na tela pelo data-card-id (ou seletor equivalente)
+                const cardElement = document.querySelector(`.card-preview.card-collected[title="${card.name}"]`);
+                if (cardElement) {
+                    const newBadge = cardElement.querySelector('.badge-new-card');
+                    if (newBadge) {
+                        newBadge.remove(); // Remove o selo visual imediatamente
+                    }
+                }
             });
+            // FIM DO BLOCO ADICIONADO
         }
     }
 }
