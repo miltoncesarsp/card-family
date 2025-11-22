@@ -10,6 +10,7 @@ let currentOriginView = null; // Controla em qual pasta estamos
 const BUCKET_NAME = 'cards';
 let marketCards = [];
 let pendingTradeId = null; // Guarda qual troca o usuário clicou
+let minigameStatus = {}; // Vai guardar a energia: { battle: 5, memory: 3... }
 
 let battleState = {
     round: 1,
@@ -687,7 +688,10 @@ function setupNavigation() {
 
             // ADICIONE ESTA LINHA SE ELA NÃO ESTIVER LÁ:
             if(sectionId === 'trade') renderTrade(); 
-
+            // Dentro de setupNavigation() ...
+                if(sectionId === 'minigames') {
+                    refreshMinigameEnergy(); // <--- ADICIONE ISSO
+                }
             if(sectionId === 'shop') renderShop();
             if(sectionId === 'album') { currentOriginView = null; renderAlbum(); }
         });
@@ -1333,4 +1337,67 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// --- SISTEMA DE ENERGIA DOS MINIGAMES ---
 
+// 1. Carrega e Atualiza a Energia Visualmente
+async function refreshMinigameEnergy() {
+    // Chama a função do banco que calcula regeneração
+    const { data, error } = await supabase.rpc('sincronizar_energia');
+    
+    if (data) {
+        minigameStatus = data;
+        // Atualiza o texto na tela (ex: ⚡ 5/5)
+        const games = ['battle', 'memory', 'target', 'dungeon', 'puzzle'];
+        games.forEach(game => {
+            const el = document.getElementById(`energy-${game}`);
+            if (el && minigameStatus[game]) {
+                const qtd = minigameStatus[game].energia;
+                el.innerHTML = `⚡ ${qtd}/5`;
+                
+                // Muda cor se estiver vazio
+                if(qtd === 0) el.style.color = "#e74c3c"; // Vermelho
+                else el.style.color = "#FFD700"; // Dourado
+            }
+        });
+    }
+}
+
+// 2. Tenta Jogar (Hub Central)
+async function attemptPlay(gameType) {
+    // Verifica localmente primeiro pra não gastar chamada de rede a toa
+    if (minigameStatus[gameType] && minigameStatus[gameType].energia <= 0) {
+        showNotification("Sem energia! Espere regenerar (1 a cada 10h).", true);
+        return;
+    }
+
+    // Tenta gastar energia no Banco de Dados
+    const { data: sucesso, error } = await supabase.rpc('gastar_energia_minigame', { tipo_jogo: gameType });
+
+    if (!sucesso || error) {
+        showNotification("Erro ou sem energia.", true);
+        return;
+    }
+
+    // Se gastou com sucesso, atualiza local e inicia o jogo
+    minigameStatus[gameType].energia--; 
+    refreshMinigameEnergy(); // Atualiza visual
+
+    // ROTEADOR DE JOGOS
+    switch(gameType) {
+        case 'battle':
+            startBattleGame();
+            break;
+        case 'memory':
+            alert("Jogo da Memória: Em breve!"); // Aqui entra a função startMemoryGame()
+            break;
+        case 'target':
+            alert("O Alvo: Em breve!"); // Aqui entra a função startTargetGame()
+            break;
+        case 'dungeon':
+            alert("Masmorra: Em breve!"); // Aqui entra a função startDungeonGame()
+            break;
+        case 'puzzle':
+            alert("Quebra-Cabeça: Em breve!"); // Aqui entra a função startPuzzleGame()
+            break;
+    }
+}
