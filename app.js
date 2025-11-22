@@ -1641,9 +1641,12 @@ function startTargetGame() {
     document.getElementById('btn-stand').classList.remove('hidden');
     document.getElementById('btn-target-exit').classList.add('hidden');
     
+// Limpa a carta da mesa
     const cardSlot = document.getElementById('target-card-display');
     cardSlot.innerHTML = '<div class="card-back-pattern"></div>';
-    cardSlot.removeAttribute('style');
+    
+    // Remove apenas a imagem de fundo, mas mantém o tamanho (transform)
+    cardSlot.style.backgroundImage = ''; 
     cardSlot.className = 'card-slot empty';
 
     targetState.current = 0;
