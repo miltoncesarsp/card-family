@@ -251,6 +251,36 @@
         <button id="btn-target-exit" class="back-btn hidden" onclick="quitTargetGame()">Sair</button>
     </div>
 </div>    
+
+<div id="puzzle-arena" class="hidden">
+    <div class="section-header">
+        <h3 style="color: white; text-align: center;">Monte a Carta!</h3>
+    </div>
+
+    <div id="puzzle-difficulty-menu" class="difficulty-container">
+        <p style="color: #ccc; margin-bottom: 15px;">Escolha o tamanho:</p>
+        <div class="diff-buttons">
+            <button class="btn-diff" onclick="initPuzzle(2)">2x2 (Fácil)</button>
+            <button class="btn-diff" onclick="initPuzzle(3)">3x3</button>
+            <button class="btn-diff" onclick="initPuzzle(4)">4x4</button>
+            <button class="btn-diff" onclick="initPuzzle(5)">5x5</button>
+            <button class="btn-diff" onclick="initPuzzle(6)">6x6 (Hard)</button>
+        </div>
+    </div>
+
+    <div id="puzzle-board-container" class="hidden">
+        <div class="puzzle-preview">
+            <p>Meta:</p>
+            <img id="puzzle-target-img" src="" alt="Meta">
+        </div>
+
+        <div id="puzzle-grid" class="puzzle-grid"></div>
+    </div>
+
+    <div class="battle-controls">
+        <button class="back-btn" onclick="quitPuzzleGame()">Sair</button>
+    </div>
+</div>
                 
             </section>
 
