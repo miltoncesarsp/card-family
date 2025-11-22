@@ -22,6 +22,15 @@ let battleState = {
     isProcessing: false // <--- NOVO: Trava cliques duplos
 };
 
+let memoryState = {
+    cards: [],
+    hasFlippedCard: false,
+    lockBoard: false, // Impede clicar em mais de 2 cartas
+    firstCard: null,
+    secondCard: null,
+    matchesFound: 0
+};
+
 // Elementos da Tela de Login
 const loginScreen = document.getElementById('login-screen');
 const gameContent = document.getElementById('game-content');
@@ -1384,7 +1393,7 @@ async function refreshMinigameEnergy() {
 async function attemptPlay(gameType) {
     // --- 1. VERIFICAÇÃO SE O JOGO EXISTE ---
     // Lista aqui apenas os jogos que já funcionam
-    const jogosProntos = ['battle']; 
+    const jogosProntos = ['battle', 'memory']; 
 
     if (!jogosProntos.includes(gameType)) {
         alert("🚧 Em breve! Guarde sua energia para quando lançar.");
@@ -1414,5 +1423,153 @@ async function attemptPlay(gameType) {
     // Inicia o jogo
     if (gameType === 'battle') {
         startBattleGame();
+    }else if (gameType === 'memory') {
+        startMemoryGame();
     }
+}
+
+// =================================================
+// MINIGAME: MEMÓRIA
+// =================================================
+
+async function startMemoryGame() {
+    // 1. Prepara a Tela
+    document.getElementById('games-menu').classList.add('hidden');
+    document.getElementById('memory-arena').classList.remove('hidden');
+    document.getElementById('memory-score').textContent = '0';
+    
+    const grid = document.getElementById('memory-grid');
+    grid.innerHTML = 'Carregando...';
+
+    // 2. Reseta Estado
+    memoryState = {
+        cards: [],
+        hasFlippedCard: false,
+        lockBoard: false,
+        firstCard: null,
+        secondCard: null,
+        matchesFound: 0
+    };
+
+    // 3. Seleciona 6 cartas aleatórias da coleção (ou do jogo todo se tiver poucas)
+    // Usa cartas que o jogador TEM para ele ficar feliz vendo as dele
+    let pool = cardsInAlbum.filter(c => c.owned);
+    
+    // Se tiver menos de 6, completa com aleatórias do jogo
+    if (pool.length < 6) {
+        pool = [...pool, ...allGameCards].slice(0, 20); // Pega um mix
+    }
+
+    // Embaralha o pool e pega 6
+    pool.sort(() => 0.5 - Math.random());
+    const selected = pool.slice(0, 6);
+
+    // 4. Duplica para criar os pares (6 x 2 = 12 cartas)
+    // Adicionamos um ID único 'tempId' para diferenciar as duas cartas iguais
+    let gameCards = [...selected, ...selected].map((card, index) => ({
+        ...card,
+        tempId: index // Identificador único para o DOM
+    }));
+
+    // Embaralha as 12 cartas
+    gameCards.sort(() => 0.5 - Math.random());
+
+    // 5. Renderiza na Tela
+    grid.innerHTML = '';
+    gameCards.forEach(card => {
+        const cardEl = document.createElement('div');
+        cardEl.classList.add('memory-card');
+        cardEl.dataset.cardId = card.id; // ID original para comparar
+        
+        // HTML interno (Frente e Verso)
+        cardEl.innerHTML = `
+            <div class="memory-front" style="background-image: url('${card.image_url}'); border-color: ${getRarityColors(card.rarity).primary}"></div>
+            <div class="memory-back"></div>
+        `;
+
+        cardEl.addEventListener('click', () => flipCard(cardEl));
+        grid.appendChild(cardEl);
+    });
+}
+
+function flipCard(cardElement) {
+    // Regras de Bloqueio:
+    // 1. Se o tabuleiro tá travado (esperando desvirar)
+    // 2. Se clicou na mesma carta 2 vezes
+    if (memoryState.lockBoard) return;
+    if (cardElement === memoryState.firstCard) return;
+
+    cardElement.classList.add('flipped');
+
+    if (!memoryState.hasFlippedCard) {
+        // Primeira carta virada
+        memoryState.hasFlippedCard = true;
+        memoryState.firstCard = cardElement;
+        return;
+    }
+
+    // Segunda carta virada
+    memoryState.secondCard = cardElement;
+    checkForMatch();
+}
+
+function checkForMatch() {
+    // Compara os IDs das cartas originais
+    let isMatch = memoryState.firstCard.dataset.cardId === memoryState.secondCard.dataset.cardId;
+
+    if (isMatch) {
+        disableCards();
+    } else {
+        unflipCards();
+    }
+}
+
+function disableCards() {
+    // Travam viradas para sempre
+    // Remove o listener de clique (opcional, pois a lógica já impede)
+    memoryState.matchesFound++;
+    document.getElementById('memory-score').textContent = memoryState.matchesFound;
+
+    resetBoard();
+
+    // Verifica Vitória (6 pares)
+    if (memoryState.matchesFound === 6) {
+        setTimeout(finishMemoryGame, 500);
+    }
+}
+
+function unflipCards() {
+    memoryState.lockBoard = true; // Trava para o jogador não clicar em outra doida
+
+    setTimeout(() => {
+        memoryState.firstCard.classList.remove('flipped');
+        memoryState.secondCard.classList.remove('flipped');
+        resetBoard();
+    }, 1000); // 1 segundo para a criança memorizar
+}
+
+function resetBoard() {
+    [memoryState.hasFlippedCard, memoryState.lockBoard] = [false, false];
+    [memoryState.firstCard, memoryState.secondCard] = [null, null];
+}
+
+async function finishMemoryGame() {
+    const prize = 50; // Prêmio menor que a batalha pois é mais fácil
+    
+    await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
+    player.moedas += prize;
+    updateHeaderInfo();
+    
+    showNotification(`MEMÓRIA COMPLETA! +${prize} moedas!`);
+    
+    setTimeout(() => {
+        alert(`PARABÉNS! Você encontrou todos os pares!\nGanhou ${prize} moedas.`);
+        quitMemoryGame();
+    }, 300);
+}
+
+function quitMemoryGame() {
+    document.getElementById('memory-arena').classList.add('hidden');
+    document.getElementById('games-menu').classList.remove('hidden');
+    refreshMinigameEnergy(); // Atualiza energia visualmente
 }
