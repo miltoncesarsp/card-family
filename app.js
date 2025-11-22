@@ -12,6 +12,12 @@ let marketCards = [];
 let pendingTradeId = null; // Guarda qual troca o usuário clicou
 let minigameStatus = {}; // Vai guardar a energia: { battle: 5, memory: 3... }
 let targetMaxScale = 50;
+let puzzleState = {
+    gridSize: 3, // Ex: 3x3
+    pieces: [], // Array com a ordem atual das peças
+    selectedPieceIndex: null, // Qual peça o usuário clicou primeiro
+    originalImage: null // URL da carta
+};
 
 let battleState = {
     round: 1,
@@ -1400,7 +1406,7 @@ async function refreshMinigameEnergy() {
 async function attemptPlay(gameType) {
     // --- 1. VERIFICAÇÃO SE O JOGO EXISTE ---
     // Lista aqui apenas os jogos que já funcionam
-    const jogosProntos = ['battle', 'memory', 'target']; 
+    const jogosProntos = ['battle', 'memory', 'target', 'puzzle']; 
 
     if (!jogosProntos.includes(gameType)) {
         alert("🚧 Em breve! Guarde sua energia para quando lançar.");
@@ -1742,6 +1748,172 @@ async function endTargetGame(survived) {
 
 function quitTargetGame() {
     document.getElementById('target-arena').classList.add('hidden');
+    document.getElementById('games-menu').classList.remove('hidden');
+    refreshMinigameEnergy();
+}
+
+// =================================================
+// MINIGAME: PUZZLE (QUEBRA-CABEÇA)
+// =================================================
+
+function startPuzzleGame() {
+    // 1. Verifica se tem cartas
+    const myDeck = cardsInAlbum.filter(c => c.owned);
+    if (myDeck.length === 0) {
+        alert("Você precisa de cartas para jogar!");
+        return;
+    }
+
+    // 2. Prepara UI
+    document.getElementById('games-menu').classList.add('hidden');
+    document.getElementById('puzzle-arena').classList.remove('hidden');
+    
+    // Mostra menu de dificuldade, esconde tabuleiro
+    document.getElementById('puzzle-difficulty-menu').classList.remove('hidden');
+    document.getElementById('puzzle-board-container').classList.add('hidden');
+}
+
+function initPuzzle(size) {
+    puzzleState.gridSize = size;
+    
+    // 1. Escolhe carta aleatória da coleção
+    const myDeck = cardsInAlbum.filter(c => c.owned);
+    const randomCard = myDeck[Math.floor(Math.random() * myDeck.length)];
+    puzzleState.originalImage = randomCard.image_url;
+
+    // 2. Setup Visual
+    document.getElementById('puzzle-difficulty-menu').classList.add('hidden');
+    document.getElementById('puzzle-board-container').classList.remove('hidden');
+    document.getElementById('puzzle-target-img').src = puzzleState.originalImage;
+
+    // 3. Cria as peças (Lógica Matemática)
+    const totalPieces = size * size;
+    puzzleState.pieces = [];
+
+    // Cria array ordenado [0, 1, 2, ..., 35]
+    for (let i = 0; i < totalPieces; i++) {
+        puzzleState.pieces.push(i);
+    }
+
+    // Embaralha (Garante que não comece resolvido)
+    // Dica: Se fosse aquele puzzle de deslizar, precisaria verificar solubilidade.
+    // Como é troca livre, qualquer embaralhamento é solúvel.
+    puzzleState.pieces.sort(() => 0.5 - Math.random());
+
+    puzzleState.selectedPieceIndex = null;
+    
+    renderPuzzleBoard();
+}
+
+function renderPuzzleBoard() {
+    const grid = document.getElementById('puzzle-grid');
+    grid.innerHTML = '';
+    grid.classList.remove('solved'); // Reseta brilho
+
+    // Configura o CSS Grid dinamicamente (ex: 3 colunas, 4 colunas...)
+    grid.style.gridTemplateColumns = `repeat(${puzzleState.gridSize}, 1fr)`;
+    grid.style.gridTemplateRows = `repeat(${puzzleState.gridSize}, 1fr)`;
+
+    const size = puzzleState.gridSize;
+
+    puzzleState.pieces.forEach((originalIndex, currentIndex) => {
+        const piece = document.createElement('div');
+        piece.className = 'puzzle-piece';
+        
+        // Se esta for a peça selecionada, marca ela
+        if (currentIndex === puzzleState.selectedPieceIndex) {
+            piece.classList.add('selected');
+        }
+
+        // --- MÁGICA DO BACKGROUND POSITION ---
+        // Calcula onde esse pedaço estava na imagem original
+        // originalIndex 0 é topo-esquerda, originalIndex (size*size -1) é baixo-direita
+        
+        const row = Math.floor(originalIndex / size);
+        const col = originalIndex % size;
+
+        // Calcula porcentagem para o CSS background-position
+        // Ex: Numa grade 3x3, as posições são 0%, 50%, 100%
+        const xPercent = col * (100 / (size - 1));
+        const yPercent = row * (100 / (size - 1));
+
+        piece.style.backgroundImage = `url('${puzzleState.originalImage}')`;
+        piece.style.backgroundSize = `${size * 100}%`; // Zoom na imagem para caber um pedaço
+        piece.style.backgroundPosition = `${xPercent}% ${yPercent}%`;
+
+        // Clique para trocar
+        piece.onclick = () => handlePieceClick(currentIndex);
+
+        grid.appendChild(piece);
+    });
+}
+
+function handlePieceClick(index) {
+    // Se não tem nada selecionado, seleciona este
+    if (puzzleState.selectedPieceIndex === null) {
+        puzzleState.selectedPieceIndex = index;
+        renderPuzzleBoard(); // Re-renderiza para mostrar a borda verde
+        return;
+    }
+
+    // Se clicou no mesmo, deseleciona
+    if (puzzleState.selectedPieceIndex === index) {
+        puzzleState.selectedPieceIndex = null;
+        renderPuzzleBoard();
+        return;
+    }
+
+    // Se clicou em outro, TROCA!
+    const firstIndex = puzzleState.selectedPieceIndex;
+    const secondIndex = index;
+
+    // Troca no array
+    const temp = puzzleState.pieces[firstIndex];
+    puzzleState.pieces[firstIndex] = puzzleState.pieces[secondIndex];
+    puzzleState.pieces[secondIndex] = temp;
+
+    // Limpa seleção
+    puzzleState.selectedPieceIndex = null;
+
+    renderPuzzleBoard();
+    checkPuzzleWin();
+}
+
+async function checkPuzzleWin() {
+    // Verifica se o array está ordenado [0, 1, 2, 3...]
+    let isSolved = true;
+    for (let i = 0; i < puzzleState.pieces.length; i++) {
+        if (puzzleState.pieces[i] !== i) {
+            isSolved = false;
+            break;
+        }
+    }
+
+    if (isSolved) {
+        const grid = document.getElementById('puzzle-grid');
+        grid.classList.add('solved'); // Remove as bordas para parecer uma imagem só
+
+        // Calcula prêmio baseado na dificuldade
+        // 2x2 = 10 moedas, 6x6 = 100 moedas
+        const basePrize = 10;
+        const difficultyBonus = (puzzleState.gridSize - 2) * 20; 
+        const totalPrize = basePrize + difficultyBonus;
+
+        await supabase.rpc('atualizar_moedas_jogo', { qtd: totalPrize });
+        player.moedas += totalPrize;
+        updateHeaderInfo();
+
+        showNotification(`PUZZLE MONTADO! +${totalPrize} moedas!`);
+
+        setTimeout(() => {
+            alert("PARABÉNS! Imagem completa!");
+            quitPuzzleGame();
+        }, 500);
+    }
+}
+
+function quitPuzzleGame() {
+    document.getElementById('puzzle-arena').classList.add('hidden');
     document.getElementById('games-menu').classList.remove('hidden');
     refreshMinigameEnergy();
 }
