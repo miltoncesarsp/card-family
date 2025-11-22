@@ -1141,58 +1141,81 @@ async function resolveBattle(myCard, cpuCard, prize) {
 }
 
 async function playRound(playerCard, cardElement) {
-    if (cardElement.classList.contains('selected')) return; // Já jogou essa
-    
-    // Marca carta como usada visualmente
+    if (cardElement.classList.contains('selected')) return; 
     cardElement.classList.add('selected');
-    
-    // 1. Mostra Carta do Jogador na Arena
-    renderCardInSlot(playerCard, 'player-slot');
 
-    // 2. Pega a carta do inimigo da rodada atual (0, 1 ou 2)
+    // 1. Mostra Carta do Jogador
+    renderCardInSlot(playerCard, 'player-slot');
     const enemyCard = battleState.enemyDeck[battleState.round - 1];
     
-    // Efeito de suspense...
     await new Promise(r => setTimeout(r, 500));
     
-    // 3. Revela Carta do Inimigo
+    // 2. Revela Carta do Inimigo
     renderCardInSlot(enemyCard, 'enemy-slot');
 
-    // 4. Compara Força
-    await new Promise(r => setTimeout(r, 800)); // Pausa pra ver
+    // 3. Resolução da Rodada (Lógica de Placar e Efeitos)
+    await resolveRound(playerCard, enemyCard);
+
+    // 4. Limpa e Avança
+    await new Promise(r => setTimeout(r, 1500)); // Tempo para resultado ser visto
     
-    if (playerCard.power > enemyCard.power) {
-        battleState.playerScore++;
-        showNotification("Você venceu a rodada!", false);
-        document.getElementById('player-slot').style.boxShadow = "0 0 20px #2ecc71";
-    } else if (playerCard.power < enemyCard.power) {
-        battleState.enemyScore++;
-        showNotification("Rival venceu a rodada...", true);
-        document.getElementById('enemy-slot').style.boxShadow = "0 0 20px #e74c3c";
-    } else {
-        showNotification("Empate!", false);
-    }
-
-    updateRoundDisplay();
-
-    // 5. Próxima Rodada ou Fim de Jogo
-    await new Promise(r => setTimeout(r, 1500)); // Tempo pra ler o resultado
+    // Remove Efeitos e Classes de slot
+    document.getElementById('player-slot').classList.remove('win', 'lose');
+    document.getElementById('enemy-slot').classList.remove('win', 'lose');
+    document.getElementById('player-battle-power').classList.remove('winner');
+    document.getElementById('cpu-battle-power').classList.remove('winner');
     
     // Limpa a mesa
     document.getElementById('player-slot').innerHTML = '';
     document.getElementById('player-slot').className = 'card-slot empty';
-    document.getElementById('player-slot').style = '';
-    
     document.getElementById('enemy-slot').innerHTML = '<div class="card-back-pattern"></div>';
     document.getElementById('enemy-slot').className = 'card-slot empty';
-    document.getElementById('enemy-slot').style = '';
 
+    // 5. Próxima Rodada ou Fim de Jogo
     if (battleState.round < 3) {
         battleState.round++;
         updateRoundDisplay();
+        document.getElementById('battle-status').textContent = "Escolha sua próxima carta...";
     } else {
         finishBattle();
     }
+}
+
+async function resolveRound(myCard, cpuCard) {
+    const pPower = myCard.power;
+    const cPower = cpuCard.power;
+    const statusEl = document.getElementById('battle-status');
+    const playerSlot = document.getElementById('player-slot');
+    const enemySlot = document.getElementById('enemy-slot');
+    const pPowerEl = document.getElementById('player-battle-power');
+    const cPowerEl = document.getElementById('cpu-battle-power');
+    
+    pPowerEl.textContent = pPower;
+    cPowerEl.textContent = cPower;
+
+    document.querySelector('.arena-container').classList.add('shake-hit');
+    setTimeout(() => document.querySelector('.arena-container').classList.remove('shake-hit'), 500);
+
+    if (pPower > cPower) {
+        statusEl.textContent = "RODADA VENCIDA!";
+        statusEl.style.color = "#2ecc71";
+        playerSlot.classList.add('win');
+        enemySlot.classList.add('lose');
+        pPowerEl.classList.add('winner');
+        battleState.playerScore++;
+    } else if (pPower < cPower) {
+        statusEl.textContent = "RODADA PERDIDA!";
+        statusEl.style.color = "#e74c3c";
+        enemySlot.classList.add('win');
+        playerSlot.classList.add('lose');
+        cPowerEl.classList.add('winner');
+        battleState.enemyScore++;
+    } else {
+        statusEl.textContent = "EMPATE!";
+        statusEl.style.color = "#f1c40f";
+    }
+
+    updateRoundDisplay();
 }
 
 async function finishBattle() {
