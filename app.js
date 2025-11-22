@@ -1329,42 +1329,30 @@ async function resolveRound(myCard, cpuCard) {
 async function finishBattle() {
     let msg = "";
     let prize = 0;
-    const WIN_PRIZE = 150; // Prêmio fixo por vencer
+    const WIN_PRIZE = 150;
 
-    // 1. Lógica de Resultado
     if (battleState.playerScore > battleState.enemyScore) {
         msg = "VITÓRIA! 🏆";
         prize = WIN_PRIZE;
-        
-        // Entrega o prêmio
         await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
         player.moedas += prize;
         showNotification(`PARABÉNS! Você ganhou +${prize} moedas!`);
-        
     } else if (battleState.playerScore < battleState.enemyScore) {
-        msg = "DERROTA";
-        showNotification("Você perdeu a batalha. Tente novamente!", true);
-
+        msg = "DERROTA 💀";
     } else {
-        msg = "EMPATE";
-        showNotification("Empate! Ninguém ganhou moedas desta vez.");
+        msg = "EMPATE 🤝";
     }
     
-    updateHeaderInfo(); // Atualiza as moedas no topo
+    updateHeaderInfo();
 
-    // 2. Feedback para o usuário
-    // Usamos um pequeno delay para o usuário ver o último resultado antes do alert
-    setTimeout(() => {
-        alert(`FIM DE JOGO!\n\n${msg}\nPlacar: ${battleState.playerScore} x ${battleState.enemyScore}`);
+    setTimeout(async () => {
+        // 🚨 SUBSTIUIÇÃO AQUI
+        await showGameAlert("FIM DE JOGO!", `${msg}\nPlacar: ${battleState.playerScore} x ${battleState.enemyScore}`);
         
-        // 3. Limpeza e Navegação (AQUI ESTÁ A MUDANÇA)
-        resetUI();          // Limpa a mesa (cartas, placar, etc)
-        exitGame();         // Esconde a arena e VOLTA PARA O MENU ARCADE
-        
-        // Garante que o estado de processamento seja liberado
-        battleState.isProcessing = false; 
-        
-    }, 500); // Espera meio segundo após o último round
+        resetUI();
+        exitGame();
+        battleState.isProcessing = false;
+    }, 500);
 }
 
 // Helper para desenhar carta na arena
@@ -1606,16 +1594,16 @@ function resetBoard() {
 }
 
 async function finishMemoryGame() {
-    const prize = 50; // Prêmio menor que a batalha pois é mais fácil
-    
+    const prize = 50;
     await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
     player.moedas += prize;
     updateHeaderInfo();
     
     showNotification(`MEMÓRIA COMPLETA! +${prize} moedas!`);
     
-    setTimeout(() => {
-        alert(`PARABÉNS! Você encontrou todos os pares!\nGanhou ${prize} moedas.`);
+    setTimeout(async () => {
+        // 🚨 SUBSTIUIÇÃO AQUI
+        await showGameAlert("PARABÉNS! 🧠", `Você encontrou todos os pares!\nGanhou ${prize} moedas.`);
         quitMemoryGame();
     }, 300);
 }
@@ -1726,56 +1714,40 @@ function targetStand() {
 
 async function endTargetGame(survived) {
     targetState.isGameOver = true;
-    
-    // Esconde botões de jogo
     document.getElementById('btn-hit').classList.add('hidden');
     document.getElementById('btn-stand').classList.add('hidden');
     
-    // Lógica de Vitória/Derrota
     let prize = 0;
     let message = "";
+    let title = "";
 
     if (!survived) {
-        message = "💥 ESTOUROU! O tubo quebrou.";
-        showNotification("Você passou do limite!", true);
+        title = "QUEBROU! 💥";
+        message = "O tubo estourou. Você foi ganancioso!";
     } else {
-        // 1. Calcula a diferença
         const diff = targetState.goal - targetState.current;
-        
-        // 2. Calcula a porcentagem de erro
-        // Fórmula: (Diferença / Alvo) * 100
         const errorPercentage = (diff / targetState.goal) * 100;
 
-        // --- TABELA DE PRÊMIOS ---
-        
         if (diff === 0) { 
-            prize = 100; 
-            message = "🎯 NA MOSCA! Prêmio Máximo!";
-            
+            prize = 100; title = "PERFEITO! 🎯"; message = "Na mosca! Prêmio Máximo!";
         } else if (errorPercentage <= 5) { 
-            prize = 60;  
-            message = "🔥 Incrível! Muito perto!";
-            
+            prize = 60; title = "INCRÍVEL! 🔥"; message = "Muito perto!";
         } else if (errorPercentage <= 15) { 
-            prize = 30; 
-            message = "👍 Boa! Jogou seguro.";
-            
+            prize = 30; title = "BOA! 👍"; message = "Jogou seguro.";
         } else { 
-            // Erro maior que 15% (Prêmio de Consolação Aumentado)
-            prize = 10; // <--- AQUI ESTÁ A MUDANÇA
-            message = "😐 Longe... Mas valeu o esforço!";
+            prize = 10; title = "LONGE... 😐"; message = "Valeu o esforço.";
         }
 
         if (prize > 0) {
             await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
             player.moedas += prize;
             updateHeaderInfo();
-            showNotification(`Ganhou +${prize} moedas!`);
         }
     }
 
-    setTimeout(() => {
-        alert(message);
+    setTimeout(async () => {
+        // 🚨 SUBSTIUIÇÃO AQUI
+        await showGameAlert(title, message);
         document.getElementById('btn-target-exit').classList.remove('hidden');
     }, 500);
 }
@@ -1937,21 +1909,15 @@ function handlePieceClick(index) {
 }
 
 async function checkPuzzleWin() {
-    // Verifica se o array está ordenado [0, 1, 2, 3...]
     let isSolved = true;
     for (let i = 0; i < puzzleState.pieces.length; i++) {
-        if (puzzleState.pieces[i] !== i) {
-            isSolved = false;
-            break;
-        }
+        if (puzzleState.pieces[i] !== i) { isSolved = false; break; }
     }
 
     if (isSolved) {
         const grid = document.getElementById('puzzle-grid');
-        grid.classList.add('solved'); // Remove as bordas para parecer uma imagem só
+        grid.classList.add('solved');
 
-        // Calcula prêmio baseado na dificuldade
-        // 2x2 = 10 moedas, 6x6 = 100 moedas
         const basePrize = 10;
         const difficultyBonus = (puzzleState.gridSize - 2) * 20; 
         const totalPrize = basePrize + difficultyBonus;
@@ -1960,10 +1926,9 @@ async function checkPuzzleWin() {
         player.moedas += totalPrize;
         updateHeaderInfo();
 
-        showNotification(`PUZZLE MONTADO! +${totalPrize} moedas!`);
-
-        setTimeout(() => {
-            alert("PARABÉNS! Imagem completa!");
+        setTimeout(async () => {
+            // 🚨 SUBSTIUIÇÃO AQUI
+            await showGameAlert("ARTE COMPLETA! 🎨", `Imagem montada com sucesso!\nPrêmio: ${totalPrize} moedas.`);
             quitPuzzleGame();
         }, 500);
     }
@@ -2227,13 +2192,13 @@ async function finishJokenpoGame() {
         prize = 120;
         await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
         player.moedas += prize;
-        showNotification(`Ganhou +${prize} moedas!`);
     } else {
-        msg = "DERROTA...";
+        msg = "DERROTA... 💀";
     }
 
     updateHeaderInfo();
-    alert(`FIM DE JOGO!\n${msg}`);
+    // 🚨 SUBSTIUIÇÃO AQUI
+    await showGameAlert("FIM DO DUELO", `${msg}\nPlacar Final: ${jokenpoState.playerScore} x ${jokenpoState.cpuScore}`);
     quitJokenpoGame();
 }
 
@@ -2344,10 +2309,11 @@ async function handleDungeonClick(tile) {
 
         // VERIFICAÇÃO DE VITÓRIA AUTOMÁTICA
         // Se achou todos os tesouros, sai automaticamente
-        if (dungeonState.foundTreasures >= dungeonState.totalTreasures) {
-            setTimeout(() => {
-                alert("🎉 MAPA LIMPO! Você encontrou todos os tesouros!");
-                forceDungeonExit(); // Função nova para sair direto
+if (dungeonState.foundTreasures >= dungeonState.totalTreasures) {
+            setTimeout(async () => {
+                // 🚨 SUBSTIUIÇÃO AQUI
+                await showGameAlert("MAPA LIMPO! 🗺️", "Você encontrou todos os tesouros!");
+                forceDungeonExit();
             }, 500);
         }
     } 
@@ -2496,16 +2462,16 @@ async function resolveDungeonFight(playerCard) {
 
     const overlay = document.getElementById('dungeon-combat-overlay');
 
-    if (playerPower > monsterPower) {
-        // VITÓRIA
-        alert("Você venceu o monstro! Carta descartada.");
+if (playerPower > monsterPower) {
+        // 🚨 SUBSTIUIÇÃO AQUI
+        await showGameAlert("VITÓRIA! ⚔️", "Você venceu o monstro!\nSua carta foi descartada.");
         overlay.classList.add('hidden');
         dungeonState.isLocked = false;
     } else {
-        // DERROTA
         dungeonState.lives--;
         updateDungeonUI();
-        alert("Você perdeu! -1 Vida 💔\nSua carta foi gasta.");
+        // 🚨 SUBSTIUIÇÃO AQUI
+        await showGameAlert("DERROTA! 🩸", "Você perdeu 1 vida.\nSua carta foi descartada.");
         overlay.classList.add('hidden');
         
         if (dungeonState.lives <= 0) {
@@ -2518,23 +2484,28 @@ async function resolveDungeonFight(playerCard) {
 
 async function escapeDungeon() {
     if (dungeonState.currentLoot === 0) {
-        alert("Você não pegou nada ainda! Explore mais.");
+        await showGameAlert("MOCHILA VAZIA", "Você não pegou nada ainda! Explore mais.");
         return;
     }
 
-    if (confirm(`Fugir agora e garantir ${dungeonState.currentLoot} moedas?`)) {
-        // Salva o loot
+    // 🚨 SUBSTIUIÇÃO DO CONFIRM POR UM MODAL BONITO
+    const querSair = await showGameAlert(
+        "FUGIR?", 
+        `Você tem ${dungeonState.currentLoot} moedas na mochila.\nDeseja sair e garantir o prêmio?`, 
+        true // Habilita botão Cancelar
+    );
+
+    if (querSair) {
         await supabase.rpc('atualizar_moedas_jogo', { qtd: dungeonState.currentLoot });
         player.moedas += dungeonState.currentLoot;
         updateHeaderInfo();
-        
-        showNotification(`Masmorra concluída! +${dungeonState.currentLoot} moedas.`);
         quitDungeonGame();
     }
 }
 
-function gameOverDungeon() {
-    alert("VOCÊ DESMAIOU! 💀\n\nOs monstros roubaram toda sua mochila.\nVocê ganhou 0 moedas.");
+async function gameOverDungeon() {
+    // 🚨 SUBSTIUIÇÃO AQUI
+    await showGameAlert("VOCÊ DESMAIOU! 💀", "Os monstros roubaram toda sua mochila.\nVocê ganhou 0 moedas.");
     quitDungeonGame();
 }
 
