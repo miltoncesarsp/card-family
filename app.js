@@ -1016,9 +1016,13 @@ async function initBattleMatch() {
     }
 
     // 2. Prepara o Jogo (Grátis agora)
-    document.getElementById('btnStartBattle').classList.add('hidden');
+    const btnStart = document.getElementById('btnStartBattle');
+    const battleStatus = document.getElementById('battle-status');
+    
+    btnStart.classList.add('hidden');
     document.querySelector('.player-hand-container').classList.remove('hidden');
-    document.getElementById('battle-status').textContent = "Buscando oponente..."; // Limpa o status
+    
+    if (battleStatus) battleStatus.textContent = "Buscando oponente...";
     showNotification("Iniciando busca...");
 
     // A. Seleciona 5 cartas aleatórias do jogador para ser a "Mão"
@@ -1029,7 +1033,7 @@ async function initBattleMatch() {
     const { data: enemyData, error: enemyError } = await supabase.rpc('buscar_oponente_batalha');
     
     if (enemyError) {
-        document.getElementById('battle-status').textContent = "ERRO: Nenhum rival encontrado.";
+        if (battleStatus) battleStatus.textContent = "ERRO: Nenhum rival encontrado.";
         showNotification("Erro ao achar oponente.", true);
         resetUI();
         return;
@@ -1042,13 +1046,16 @@ async function initBattleMatch() {
     battleState.playerScore = 0;
     battleState.enemyScore = 0;
 
-    // D. Renderiza a Tela
-    document.getElementById('enemy-name-display').textContent = battleState.enemyName.toUpperCase();
-    updateRoundDisplay();
-    renderPlayerHand();
-    document.getElementById('battle-status').textContent = "Escolha sua primeira carta!";
+    // D. Renderiza a Tela (Com verificação de ID para evitar null)
+    const enemyNameDisplay = document.getElementById('enemy-name-display');
+    
+    if (enemyNameDisplay) enemyNameDisplay.textContent = battleState.enemyName.toUpperCase();
+    
+    updateRoundDisplay(); // Atualiza o placar
+    renderPlayerHand(); // Desenha a mão do jogador
+    
+    if (battleStatus) battleStatus.textContent = "Escolha sua primeira carta!";
 }
-
 function updateRoundDisplay() {
     document.getElementById('current-round').textContent = `${battleState.round} / 3`;
     document.getElementById('score-player').textContent = battleState.playerScore;
