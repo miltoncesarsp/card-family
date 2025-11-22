@@ -99,7 +99,10 @@ async function loadPlayerData(userId) {
     if (allCardsData) allGameCards = allCardsData;
 
     // 4. Carrega as cartas do Jogador
-    const { data: playerCardData } = await supabase.from('cartas_do_jogador').select(`quantidade, card_id`).eq('jogador_id', userId);
+    const { data: playerCardData } = await supabase
+        .from('cartas_do_jogador')
+        .select(`quantidade, card_id, is_new`) // <--- MUDANÇA AQUI
+        .eq('jogador_id', userId);
 
     // 5. Cruza os dados
 if (allGameCards.length > 0) {
@@ -109,11 +112,11 @@ if (allGameCards.length > 0) {
             // Pega a quantidade (se não tiver registro, é 0)
             const qtd = userHas ? userHas.quantidade : 0;
 
-            return {
+return {
                 ...gameCard,
-                quantidade: qtd,
-                // CORREÇÃO AQUI: Só considera "owned" (dono) se a quantidade for maior que 0
-                owned: qtd > 0 
+                quantidade: userHas ? userHas.quantidade : 0,
+                owned: !!userHas,
+                isNew: userHas ? userHas.is_new : false // <--- NOVA PROPRIEDADE
             };
         });
     }
@@ -165,14 +168,27 @@ function renderAlbum() {
     cardsInAlbum.forEach(card => {
         const origem = card.personagens_base ? card.personagens_base.origem : 'Outros';
         if (!originsData[origem]) {
-            originsData[origem] = { name: origem, total: 0, owned: 0, cards: [] };
+            originsData[origem] = { name: origem, total: 0, owned: 0, cards: [], newCount: 0, evoCount: 0 };
         }
+        
         originsData[origem].cards.push(card);
         originsData[origem].total++;
-        if (card.owned) originsData[origem].owned++;
+        
+        if (card.owned) {
+            originsData[origem].owned++;
+            
+            // Conta se é nova
+            if (card.isNew) originsData[origem].newCount++;
+
+            // Conta se pode evoluir
+            const cost = evolutionRules[card.rarity] || 999;
+            if (card.quantidade >= cost && card.rarity !== 'Mítica') {
+                originsData[origem].evoCount++;
+            }
+        }
     });
 
-    // VISÃO 1: DENTRO DA PASTA
+    // VISÃO 1: DENTRO DA PASTA (Mostra Cartas Individuais)
     if (currentOriginView) {
         const currentData = originsData[currentOriginView];
         
@@ -189,13 +205,18 @@ function renderAlbum() {
         `;
 
         const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
-        currentData.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
+        // Ordena: Primeiro as Novas, Depois as que podem Evoluir, Depois Raridade
+        currentData.cards.sort((a, b) => {
+            if (a.isNew && !b.isNew) return -1; // Novas primeiro
+            if (!a.isNew && b.isNew) return 1;
+            return rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity);
+        });
 
         currentData.cards.forEach(card => {
             const rarityStyles = getRarityColors(card.rarity);
             
             if (card.owned) {
-                // Lógica do Botão de Evolução
+                // Botão Evoluir
                 const cost = evolutionRules[card.rarity] || 999;
                 let evolutionBtnHTML = '';
                 if (card.quantidade >= cost && card.rarity !== 'Mítica') {
@@ -206,14 +227,20 @@ function renderAlbum() {
                     `;
                 }
 
+                // Selo "NOVO"
+                let newBadgeHTML = '';
+                if (card.isNew) {
+                    newBadgeHTML = `<div class="badge-new-card">NOVO!</div>`;
+                }
+
                 const elementStyles = getElementStyles(card.element);
 
-            html += `
+                html += `
                     <div class="card-preview card-small card-collected" 
                          style="background-image: url('${card.image_url}'); border: 3px solid ${rarityStyles.primary};" 
                          title="${card.name}">
                         
-                        ${evolutionBtnHTML}
+                        ${newBadgeHTML} ${evolutionBtnHTML}
                         
                         <div class="card-quantity">x${card.quantidade}</div>
                         
@@ -223,7 +250,6 @@ function renderAlbum() {
 
                         <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity.substring(0,1)}</div>
                         <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
-                        
                         <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
                     </div>
                 `;
@@ -244,29 +270,38 @@ function renderAlbum() {
 
     // VISÃO 2: MENU PRINCIPAL (PASTAS)
     let html = `<div class="origin-hub-grid">`;
-for (const [key, data] of Object.entries(originsData)) {
+    for (const [key, data] of Object.entries(originsData)) {
         const percentage = Math.round((data.owned / data.total) * 100);
-        const coverImage = originCovers[data.name]; 
+        const barColor = percentage === 100 ? '#2ecc71' : '#007bff';
         
-        // Define o estilo do background
+        const coverImage = originCovers[data.name]; 
         const bgStyle = coverImage 
             ? `background-image: url('${coverImage}');` 
-            : `background: linear-gradient(135deg, #1a1a2e, #16213e);`; // Fundo padrão bonito se não tiver imagem
-
-        // Se não tiver imagem, mostra um ícone grande no meio pra não ficar vazio
+            : `background: linear-gradient(135deg, #1a1a2e, #16213e);`;
         const iconFallback = !coverImage ? `<i class="fas fa-layer-group" style="font-size: 60px; color: rgba(255,255,255,0.1); position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);"></i>` : '';
 
+        // --- NOTIFICAÇÕES NA PASTA ---
+        let notificationsHTML = '<div class="folder-notifications">';
+        if (data.newCount > 0) {
+            notificationsHTML += `<div class="notif-badge-new"><i class="fas fa-exclamation-circle"></i> ${data.newCount} NOVAS</div>`;
+        }
+        if (data.evoCount > 0) {
+            notificationsHTML += `<div class="notif-badge-evo"><i class="fas fa-arrow-up"></i> ${data.evoCount} UPGRADES</div>`;
+        }
+        notificationsHTML += '</div>';
+        // -----------------------------
+
         html += `
-            <div class="origin-folder" onclick="openOriginView('${data.name}')" style="${bgStyle}">
+            <div class="origin-folder" onclick="openOriginView('${data.name}', ${JSON.stringify(data.cards.map(c => c.id))})" style="${bgStyle}">
                 ${iconFallback}
+                ${notificationsHTML}
                 <div class="origin-content-overlay">
                     <div class="origin-name">${data.name}</div>
                     <div class="origin-stats">
                         <i class="fas fa-clone"></i> ${data.owned}/${data.total}
                     </div>
-                    
                     <div class="progress-bar-container">
-                        <div class="progress-bar-fill" style="width: ${percentage}%;"></div>
+                        <div class="progress-bar-fill" style="width: ${percentage}%; background-color: ${barColor};"></div>
                     </div>
                     <div class="percent-text">${percentage}% Completo</div>
                 </div>
@@ -277,10 +312,28 @@ for (const [key, data] of Object.entries(originsData)) {
     container.innerHTML = html;
 }
 
-function openOriginView(originName) {
+async function openOriginView(originName, cardIds = []) {
     currentOriginView = originName;
-    renderAlbum();
+    renderAlbum(); // Renderiza imediatamente para o usuário não esperar
     window.scrollTo(0,0);
+
+    // Em segundo plano, marca as cartas como vistas no banco
+    if (cardIds && cardIds.length > 0) {
+        // Atualiza no banco
+        const { error } = await supabase
+            .from('cartas_do_jogador')
+            .update({ is_new: false })
+            .in('card_id', cardIds) // Filtra só as cartas dessa pasta
+            .eq('jogador_id', player.id)
+            .eq('is_new', true); // Só atualiza as que eram true
+
+        if (!error) {
+            // Atualiza localmente para o selo sumir na próxima renderização
+            cardsInAlbum.forEach(c => {
+                if (cardIds.includes(c.id)) c.isNew = false;
+            });
+        }
+    }
 }
 
 function closeOriginView() {
@@ -524,13 +577,20 @@ async function generateCardsForPack(pack) {
 async function updatePlayerCards(newCards) {
     if (!player || newCards.length === 0) return;
     const updates = newCards.reduce((acc, card) => { acc[card.id] = (acc[card.id] || 0) + 1; return acc; }, {});
+    
     for (const cardId in updates) {
         const quantityGained = updates[cardId];
         const existingCard = cardsInAlbum.find(c => c.id === cardId);
+        
         if (existingCard && existingCard.owned) {
-            await supabase.from('cartas_do_jogador').update({ quantidade: existingCard.quantidade + quantityGained }).eq('jogador_id', player.id).eq('card_id', cardId);
+            // ATUALIZAÇÃO: Adiciona is_new: true
+            await supabase.from('cartas_do_jogador')
+                .update({ quantidade: existingCard.quantidade + quantityGained, is_new: true }) 
+                .eq('jogador_id', player.id).eq('card_id', cardId);
         } else {
-            await supabase.from('cartas_do_jogador').insert([{ card_id: cardId, jogador_id: player.id, quantidade: quantityGained }]);
+            // INSERÇÃO: Adiciona is_new: true
+            await supabase.from('cartas_do_jogador')
+                .insert([{ card_id: cardId, jogador_id: player.id, quantidade: quantityGained, is_new: true }]);
         }
     }
     await loadPlayerData(player.id);
