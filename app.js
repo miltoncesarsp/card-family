@@ -1006,23 +1006,49 @@ function exitGame() {
 }
 
 function resetUI() {
-    document.getElementById('player-hand').innerHTML = '';
-    document.getElementById('player-slot').innerHTML = '';
-    document.getElementById('player-slot').className = 'card-slot empty';
-    document.getElementById('enemy-slot').innerHTML = '<div class="card-back-pattern"></div>';
+    const handContainer = document.getElementById('player-hand');
+    const playerSlot = document.getElementById('player-slot');
+    const enemySlot = document.getElementById('enemy-slot');
     
-    document.getElementById('score-player').textContent = '0';
-    document.getElementById('score-enemy').textContent = '0';
-    document.getElementById('current-round').textContent = '- / -';
-    document.getElementById('enemy-name-display').textContent = 'RIVAL';
+    // Limpa a mão e slots
+    if(handContainer) handContainer.innerHTML = '';
+    if(playerSlot) {
+        playerSlot.innerHTML = '';
+        playerSlot.className = 'card-slot empty';
+    }
+    if(enemySlot) {
+        enemySlot.innerHTML = '<div class="card-back-pattern"></div>';
+    }
+    
+    // Reseta placar
+    const scoreP = document.getElementById('score-player');
+    const scoreE = document.getElementById('score-enemy');
+    const roundEl = document.getElementById('current-round');
+    const enemyName = document.getElementById('enemy-name-display');
 
-    document.getElementById('player-battle-power').textContent = '?';
-    document.getElementById('cpu-battle-power').textContent = '?';
-    document.getElementById('player-battle-power').classList.remove('winner');
-    document.getElementById('cpu-battle-power').classList.remove('winner');
+    if(scoreP) scoreP.textContent = '0';
+    if(scoreE) scoreE.textContent = '0';
+    if(roundEl) roundEl.textContent = '- / -';
+    if(enemyName) enemyName.textContent = 'RIVAL';
+
+    // --- AQUI ERA ONDE DAVA O ERRO ---
+    // Agora usamos verificação (if) antes de tentar limpar
+    const pPower = document.getElementById('player-battle-power');
+    const cPower = document.getElementById('cpu-battle-power');
+    
+    if(pPower) {
+        pPower.textContent = '?';
+        pPower.classList.remove('winner');
+    }
+    if(cPower) {
+        cPower.textContent = '?';
+        cPower.classList.remove('winner');
+    }
+    // --------------------------------
 
     document.getElementById('btnStartBattle').classList.remove('hidden');
-    document.querySelector('.player-hand-container').classList.add('hidden');
+    const handCont = document.querySelector('.player-hand-container');
+    if(handCont) handCont.classList.add('hidden');
 }
 
 async function initBattleMatch() {
@@ -1142,43 +1168,63 @@ async function playRound(playerCard, cardElement) {
 async function resolveRound(myCard, cpuCard) {
     const pPower = myCard.power;
     const cPower = cpuCard.power;
+    
     const statusEl = document.getElementById('battle-status');
     const playerSlot = document.getElementById('player-slot');
     const enemySlot = document.getElementById('enemy-slot');
-
-    // 🚨 NOVO: Obtém a referência aos novos elementos no HTML 🚨
+    
+    // Captura os elementos de força com segurança
     const pPowerEl = document.getElementById('player-battle-power');
     const cPowerEl = document.getElementById('cpu-battle-power');
 
-    // Seta o valor
+    // Só tenta mudar o texto se o elemento existir
     if(pPowerEl) pPowerEl.textContent = pPower;
     if(cPowerEl) cPowerEl.textContent = cPower;
 
-    document.querySelector('.arena-container').classList.add('shake-hit');
-    setTimeout(() => document.querySelector('.arena-container').classList.remove('shake-hit'), 500);
+    const arena = document.querySelector('.arena-container');
+    if(arena) {
+        arena.classList.add('shake-hit');
+        setTimeout(() => arena.classList.remove('shake-hit'), 500);
+    }
 
     if (pPower > cPower) {
-        statusEl.textContent = "RODADA VENCIDA!";
-        statusEl.style.color = "#2ecc71";
-        playerSlot.classList.add('win');
-        enemySlot.classList.add('lose');
-        if(pPowerEl) pPowerEl.classList.add('winner'); // Usa a referência
+        // VITÓRIA
+        if(statusEl) {
+            statusEl.textContent = "RODADA VENCIDA!";
+            statusEl.style.color = "#2ecc71";
+        }
+        if(playerSlot) playerSlot.classList.add('win');
+        if(enemySlot) enemySlot.classList.add('lose');
+        
+        // --- AQUI DAVA ERRO ---
+        if(pPowerEl) pPowerEl.classList.add('winner'); 
+        
         battleState.playerScore++;
+
     } else if (pPower < cPower) {
-        statusEl.textContent = "RODADA PERDIDA!";
-        statusEl.style.color = "#e74c3c";
-        enemySlot.classList.add('win');
-        playerSlot.classList.add('lose');
-        if(cPowerEl) cPowerEl.classList.add('winner'); // Usa a referência
+        // DERROTA
+        if(statusEl) {
+            statusEl.textContent = "RODADA PERDIDA!";
+            statusEl.style.color = "#e74c3c";
+        }
+        if(enemySlot) enemySlot.classList.add('win');
+        if(playerSlot) playerSlot.classList.add('lose');
+        
+        // --- AQUI DAVA ERRO ---
+        if(cPowerEl) cPowerEl.classList.add('winner');
+        
         battleState.enemyScore++;
+
     } else {
-        statusEl.textContent = "EMPATE!";
-        statusEl.style.color = "#f1c40f";
+        // EMPATE
+        if(statusEl) {
+            statusEl.textContent = "EMPATE!";
+            statusEl.style.color = "#f1c40f";
+        }
     }
 
     updateRoundDisplay();
 }
-
 async function finishBattle() {
     let msg = "";
     let prize = 0;
