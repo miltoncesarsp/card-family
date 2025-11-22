@@ -281,6 +281,53 @@
         <button class="back-btn" onclick="quitPuzzleGame()">Sair</button>
     </div>
 </div>
+
+ <div id="jokenpo-arena" class="hidden">
+    <div class="section-header">
+        <div class="score-board">
+            <div class="score-box player-score">
+                <span id="jk-score-player">0</span>
+                <small>VOCÊ</small>
+            </div>
+            <div class="round-indicator">
+                <span style="color: #aaa; font-size: 0.8em;">VS</span>
+            </div>
+            <div class="score-box enemy-score">
+                <span id="jk-score-cpu">0</span>
+                <small>CPU</small>
+            </div>
+        </div>
+        <h3 id="jk-status" style="text-align: center; color: #FFD700; margin-top: 10px;">Escolha seu Elemento!</h3>
+    </div>
+
+    <div class="jokenpo-battle-zone">
+        <div class="jokenpo-slot">
+            <div id="jk-enemy-card" class="card-preview card-small">
+                <div class="card-back-pattern"></div>
+            </div>
+            <div id="jk-enemy-element" class="element-indicator">?</div>
+        </div>
+
+        <div id="jk-result-icon" class="vs-icon" style="font-size: 3em;">⚔️</div>
+
+        <div class="jokenpo-slot">
+            <div id="jk-player-card" class="card-preview card-small empty">
+                <div class="slot-placeholder">Sua Carta</div>
+            </div>
+            <div id="jk-player-element" class="element-indicator">?</div>
+        </div>
+    </div>
+
+    <div class="player-hand-container">
+        <p style="color:#aaa; margin-bottom:5px;">Suas Cartas:</p>
+        <div id="jk-hand" class="hand-grid"></div>
+    </div>
+
+    <div class="battle-controls">
+        <button id="btn-jk-next" class="btn-primary hidden" onclick="nextJokenpoRound()">Próxima Rodada</button>
+        <button class="back-btn" onclick="quitJokenpoGame()">Sair</button>
+    </div>
+</div>               
                 
             </section>
 
