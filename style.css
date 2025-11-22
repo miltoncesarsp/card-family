@@ -1091,6 +1091,46 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     #my-offer-grid .card-name-footer { font-size: 9px; padding: 3px 0; }
     #my-offer-grid .card-quantity { width: 20px; height: 20px; font-size: 10px; }
     #my-offer-grid .card-force-circle { width: 25px; height: 25px; font-size: 10px; bottom: 25px; }
+
+   /* Garante que o container fique no canto certo */
+    .folder-notifications {
+        top: 5px !important;
+        right: 5px !important;
+        gap: 3px !important;
+    }
+
+    /* Força o visual de "Botãozinho" colorido */
+    .notif-badge-new, 
+    .notif-badge-evo {
+        font-size: 8px !important;       /* Fonte menor para não tapar a capa */
+        padding: 3px 6px !important;     /* Espaçamento interno */
+        color: white !important;         /* FORÇA TEXTO BRANCO */
+        border-radius: 10px !important;  /* Arredondado */
+        border: 1px solid white !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
+        
+        /* Garante que o flex funcione para alinhar o ícone e o texto */
+        display: flex !important;
+        align-items: center !important;
+        width: fit-content !important;   /* Apenas o tamanho do texto */
+        margin-left: auto !important;    /* Alinha à direita */
+    }
+
+    /* Garante as cores de fundo */
+    .notif-badge-new {
+        background-color: #ff0000 !important; /* Vermelho */
+    }
+
+    .notif-badge-evo {
+        background-color: #2ecc71 !important; /* Verde */
+    }
+
+    /* Ajusta o ícone dentro do badge */
+    .notif-badge-new i, 
+    .notif-badge-evo i {
+        font-size: 9px !important;
+        margin-right: 3px !important;
+    }
 }
 
 /* Container da carta no modal (para centralizar os efeitos) */
