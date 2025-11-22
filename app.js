@@ -1396,7 +1396,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnLogout = document.getElementById('logoutBtn');
 
     if(btnLogin) btnLogin.addEventListener('click', handleLoginClick);
-    if(btnRegister) btnRegister.addEventListener('click', handleRegisterClick);
     if(btnLogout) btnLogout.addEventListener('click', handleLogout);
 
     setupNavigation();
