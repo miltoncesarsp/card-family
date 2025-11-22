@@ -1806,8 +1806,10 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     background-repeat: no-repeat;
     cursor: pointer;
     box-sizing: border-box;
-    border: 1px solid rgba(0,0,0,0.3); /* Linha fina para separar */
-    transition: transform 0.2s, border 0.2s;
+    /* Usamos OUTLINE porque ele não ocupa espaço em pixels na caixa */
+    outline: 1px solid rgba(0,0,0,0.3); 
+    border: none; 
+    transition: transform 0.2s;
 }
 
 /* Peça Selecionada */
