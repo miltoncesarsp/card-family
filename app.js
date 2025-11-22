@@ -697,8 +697,16 @@ async function loadOriginCovers() {
 async function checkDailyReward() {
     if (!player) return;
 
+    // Data de referência segura (1 de Janeiro de 2000)
+    const SAFE_PAST_DATE = '2000-01-01T00:00:00Z'; 
+    
+    // 🚨 CORREÇÃO: Garante que ultimo_login tenha um valor válido (ou use o valor seguro)
+    const lastLoginTimestamp = player.ultimo_login && player.ultimo_login !== '0' 
+        ? player.ultimo_login 
+        : SAFE_PAST_DATE;
+
     const hoje = new Date();
-    const ultimoLogin = new Date(player.ultimo_login);
+    const ultimoLogin = new Date(lastLoginTimestamp); // Usa o valor garantido
     
     // FIX 1: Checagem rápida contra loop e fuso horário
     const hojeString = hoje.toISOString().split('T')[0];
@@ -710,24 +718,21 @@ async function checkDailyReward() {
         return;
     }
 
-    // 🚨 FIX 2: CÁLCULO DA DIFERENÇA DE DIAS (Para o STREAK)
-    // Zera as horas para comparar apenas o dia (necessário para o cálculo de streak)
+    // 🚨 FIX 2: Cálculo da diferença de dias (Para o STREAK)
     const dataHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
     const dataUltimo = new Date(ultimoLogin.getFullYear(), ultimoLogin.getMonth(), ultimoLogin.getDate());
     
     const diffTempo = dataHoje - dataUltimo;
     const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24));
-    // -----------------------------------------------------------
     
     // CALCULA O PRÊMIO
     let novosDiasConsecutivos = player.dias_consecutivos;
     let premio = 100; // Valor base
 
-    if (diffDias === 1) { // <-- AGORA diffDias ESTÁ DEFINIDO E FUNCIONA!
-        // Entrou em dias seguidos! Aumenta o streak
+    if (diffDias === 1) { 
         novosDiasConsecutivos++;
     } else {
-        // Pulou um dia ou mais (reset ou primeiro login)
+        // Se a diferença for maior que 1, ou se for a primeira vez (vem de 2000), reseta/inicia em 1
         novosDiasConsecutivos = 1;
     }
 
@@ -768,7 +773,7 @@ async function checkDailyReward() {
             .from('jogadores')
             .update({ 
                 moedas: novasMoedas,
-                ultimo_login: new Date().toISOString(), // Salva data/hora atual com fuso
+                ultimo_login: new Date().toISOString(), 
                 dias_consecutivos: novosDiasConsecutivos
             })
             .eq('id', player.id);
