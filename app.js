@@ -57,9 +57,12 @@ let jokenpoState = {
 let dungeonState = {
     lives: 3,
     currentLoot: 0,
-    tiles: [], // O que tem em cada quadrado
+    tiles: [],
     isLocked: false,
-    combatMonster: null // Carta do monstro atual
+    combatMonster: null,
+    playerHand: [],
+    totalTreasures: 0, // <--- NOVO
+    foundTreasures: 0  // <--- NOVO
 };
 
 // Elementos da Tela de Login
