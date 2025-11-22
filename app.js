@@ -1015,12 +1015,11 @@ async function initBattleMatch() {
         return;
     }
 
-    // REMOVIDA: A lógica de custo e verificação de moedas!
-
-    // 2. Prepara o Jogo
+    // 2. Prepara o Jogo (Grátis agora)
     document.getElementById('btnStartBattle').classList.add('hidden');
     document.querySelector('.player-hand-container').classList.remove('hidden');
-    showNotification("Buscando oponente...");
+    document.getElementById('battle-status').textContent = "Buscando oponente..."; // Limpa o status
+    showNotification("Iniciando busca...");
 
     // A. Seleciona 5 cartas aleatórias do jogador para ser a "Mão"
     const shuffled = [...myPlayableCards].sort(() => 0.5 - Math.random());
@@ -1030,7 +1029,8 @@ async function initBattleMatch() {
     const { data: enemyData, error: enemyError } = await supabase.rpc('buscar_oponente_batalha');
     
     if (enemyError) {
-        showNotification("Erro ao achar oponente. Tente novamente.", true);
+        document.getElementById('battle-status').textContent = "ERRO: Nenhum rival encontrado.";
+        showNotification("Erro ao achar oponente.", true);
         resetUI();
         return;
     }
@@ -1046,6 +1046,7 @@ async function initBattleMatch() {
     document.getElementById('enemy-name-display').textContent = battleState.enemyName.toUpperCase();
     updateRoundDisplay();
     renderPlayerHand();
+    document.getElementById('battle-status').textContent = "Escolha sua primeira carta!";
 }
 
 function updateRoundDisplay() {
