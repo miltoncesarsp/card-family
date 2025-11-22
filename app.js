@@ -1941,10 +1941,8 @@ function quitPuzzleGame() {
 // =================================================
 
 async function startJokenpoGame() {
-    // 1. Verifica se o jogador tem cartas suficientes
-    // Filtra apenas as que ele tem (owned)
+    // 1. Verifica Cartas
     const allMyOwned = cardsInAlbum.filter(c => c.owned);
-    
     if (allMyOwned.length < 5) {
         alert("Você precisa de pelo menos 5 cartas para jogar Jo-Ken-Po!");
         return;
@@ -1954,29 +1952,40 @@ async function startJokenpoGame() {
     document.getElementById('games-menu').classList.add('hidden');
     document.getElementById('jokenpo-arena').classList.remove('hidden');
     
-    // Mostra Loading enquanto busca rival
     document.getElementById('jk-status').textContent = "Buscando Oponente...";
     
-    // Reseta Placar
+    // 🚨 RESETA O ESTADO PARA 3 RODADAS
     jokenpoState.playerScore = 0;
     jokenpoState.cpuScore = 0;
-    jokenpoState.round = 1;
+    jokenpoState.round = 1; 
     jokenpoState.isProcessing = false;
+    
+    // Reseta visual das rodadas
+    document.querySelector('.round-indicator span').textContent = "RODADA";
+    // Cria um elemento para mostrar 1/3 se não tiver
+    let roundCounter = document.getElementById('jk-round-counter');
+    if(!roundCounter) {
+        const container = document.querySelector('.round-indicator');
+        roundCounter = document.createElement('strong');
+        roundCounter.id = 'jk-round-counter';
+        container.appendChild(roundCounter);
+    }
+    roundCounter.textContent = "1 / 3";
+
     updateJokenpoScore();
 
-    // 3. Carrega Regras (Cache)
+    // 3. Carrega Regras
     if (jokenpoState.rules.length === 0) {
         const { data } = await supabase.from('elementos').select('*');
         if (data) jokenpoState.rules = data;
     }
 
-    // 4. PREPARA A SUA MÃO (5 Cartas Aleatórias)
-    // Embaralha todas as suas cartas e pega as 5 primeiras
+    // 4. Prepara Mão do Jogador
     jokenpoState.myDeck = [...allMyOwned]
         .sort(() => 0.5 - Math.random())
         .slice(0, 5);
 
-    // 5. BUSCA OPONENTE REAL (Igual na Batalha)
+    // 5. Busca Oponente Real
     const { data: enemyData, error } = await supabase.rpc('buscar_oponente_batalha');
     
     if (error || !enemyData) {
@@ -1985,17 +1994,15 @@ async function startJokenpoGame() {
         return;
     }
 
-    // Define o deck do inimigo com as cartas que vieram do banco
     jokenpoState.cpuDeck = enemyData.cartas;
 
-    // Atualiza o nome da CPU na tela para o nome do Rival
     const enemyLabel = document.querySelector('.enemy-score small');
     if(enemyLabel) enemyLabel.textContent = enemyData.nome.toUpperCase();
 
-    // Renderiza
     renderJokenpoHand();
     resetJokenpoTable();
 }
+
 function renderJokenpoHand() {
     const container = document.getElementById('jk-hand');
     container.innerHTML = '';
@@ -2023,8 +2030,15 @@ async function playJokenpoRound(playerCard, cardEl) {
     if (jokenpoState.isProcessing) return;
     jokenpoState.isProcessing = true;
 
-    // 1. Escolha da CPU (Aleatória do deck dela)
-    const cpuCard = jokenpoState.cpuDeck[Math.floor(Math.random() * jokenpoState.cpuDeck.length)];
+    // 1. Escolha da CPU
+    // Pega a carta correspondente ao round atual (0, 1 ou 2) para não repetir
+    // Se o deck da CPU for menor que 3 (bug), pega aleatório
+    let cpuCard;
+    if (jokenpoState.cpuDeck[jokenpoState.round - 1]) {
+        cpuCard = jokenpoState.cpuDeck[jokenpoState.round - 1];
+    } else {
+        cpuCard = jokenpoState.cpuDeck[Math.floor(Math.random() * jokenpoState.cpuDeck.length)];
+    }
 
     // 2. Visual: Coloca cartas na mesa
     renderCardInSlot(playerCard, 'jk-player-card');
@@ -2034,91 +2048,93 @@ async function playJokenpoRound(playerCard, cardEl) {
     enemySlot.removeAttribute('style');
     enemySlot.className = 'card-preview card-small';
 
-    // Mostra Ícones dos Elementos
+    // Ícones iniciais
     document.getElementById('jk-player-element').innerHTML = getElementIcon(playerCard.element);
     document.getElementById('jk-player-element').style.background = getElementStyles(playerCard.element).primary;
-    document.getElementById('jk-enemy-element').innerHTML = '?';
-    document.getElementById('jk-enemy-element').style.background = '#333';
-
-    document.getElementById('jk-status').textContent = "JOKENPO...";
     
-    await new Promise(r => setTimeout(r, 800));
+    document.getElementById('jk-status').textContent = "JO... KEN... PO!";
+    document.getElementById('jk-status').style.color = "#FFD700";
+    
+    // Suspense
+    await new Promise(r => setTimeout(r, 1000));
 
     // 3. Revela CPU
     renderCardInSlot(cpuCard, 'jk-enemy-card');
     document.getElementById('jk-enemy-element').innerHTML = getElementIcon(cpuCard.element);
     document.getElementById('jk-enemy-element').style.background = getElementStyles(cpuCard.element).primary;
 
-    // 4. Lógica de Combate
-    let result = 0; // 0 empate, 1 player, -1 cpu
+    // --- 4. LÓGICA DE COMBATE HIERÁRQUICA ---
+    let result = 0; // 0=Empate, 1=Player, -1=CPU
     let reason = "";
 
-    // Busca regra no banco local
-    const rule = jokenpoState.rules.find(r => r.atacante === playerCard.element && r.defensor === cpuCard.element);
-    
-    if (rule) {
-        // Existe regra direta (Ex: Fogo x Terra)
-        if (rule.resultado === 1) {
+    // A. Verifica Vantagem de ELEMENTO (Prioridade Máxima)
+    // Procura: "Meu Elemento" ataca "Elemento Dele"
+    const myAdvantage = jokenpoState.rules.find(r => r.atacante === playerCard.element && r.defensor === cpuCard.element);
+    // Procura: "Elemento Dele" ataca "Meu Elemento"
+    const cpuAdvantage = jokenpoState.rules.find(r => r.atacante === cpuCard.element && r.defensor === playerCard.element);
+
+    if (myAdvantage && myAdvantage.resultado === 1) {
+        result = 1;
+        reason = `Vantagem Elemental! (${playerCard.element} > ${cpuCard.element})`;
+    } else if (cpuAdvantage && cpuAdvantage.resultado === 1) {
+        result = -1;
+        reason = `Desvantagem Elemental! (${cpuCard.element} > ${playerCard.element})`;
+    } 
+    // B. Se não houve vantagem elemental (Neutro ou Mesmo Elemento), usa a FORÇA
+    else {
+        if (playerCard.power > cpuCard.power) {
             result = 1;
-            reason = `${playerCard.element} vence ${cpuCard.element}!`;
-        } else if (rule.resultado === -1) {
+            reason = "Elementos Neutros: Vitória por Força!";
+        } else if (playerCard.power < cpuCard.power) {
             result = -1;
-            reason = `${playerCard.element} perde para ${cpuCard.element}!`;
-        }
-    } else {
-        // Checa o inverso (Ex: Terra x Fogo)
-        const reverseRule = jokenpoState.rules.find(r => r.atacante === cpuCard.element && r.defensor === playerCard.element);
-        if (reverseRule) {
-             if (reverseRule.resultado === 1) {
-                result = -1;
-                reason = `${cpuCard.element} vence ${playerCard.element}!`;
-             } else {
-                result = 1;
-                reason = `${cpuCard.element} perde para ${playerCard.element}!`;
-             }
+            reason = "Elementos Neutros: Derrota por Força!";
+        } else {
+            result = 0;
+            reason = "Empate Total (Elemento e Força)";
         }
     }
 
-    // Se continuou 0, é empate de elemento ou elementos neutros -> Decide na FORÇA
-    if (result === 0) {
-        reason = "Elementos Neutros! Decisão na Força.";
-        if (playerCard.power > cpuCard.power) result = 1;
-        else if (playerCard.power < cpuCard.power) result = -1;
-    }
-
-    // 5. Aplica Resultado
+    // 5. Aplica Resultado Visual
     const statusEl = document.getElementById('jk-status');
     const pElemIcon = document.getElementById('jk-player-element');
     const cElemIcon = document.getElementById('jk-enemy-element');
 
     if (result === 1) {
-        statusEl.textContent = "VENCEU! " + reason;
+        statusEl.textContent = reason;
         statusEl.style.color = "#2ecc71";
         pElemIcon.classList.add('win');
         cElemIcon.classList.add('lose');
         jokenpoState.playerScore++;
     } else if (result === -1) {
-        statusEl.textContent = "PERDEU! " + reason;
+        statusEl.textContent = reason;
         statusEl.style.color = "#e74c3c";
         cElemIcon.classList.add('win');
         pElemIcon.classList.add('lose');
         jokenpoState.cpuScore++;
     } else {
-        statusEl.textContent = "EMPATE TOTAL!";
+        statusEl.textContent = reason;
         statusEl.style.color = "#f1c40f";
     }
 
     updateJokenpoScore();
 
-    // 6. Botão Próximo
-    if (jokenpoState.playerScore >= 3 || jokenpoState.cpuScore >= 3) {
-        setTimeout(finishJokenpoGame, 1000);
-    } else {
+    // 6. Controle de Rodadas (Igual à Batalha)
+    if (jokenpoState.round < 3) {
+        // Prepara próxima rodada
         document.getElementById('btn-jk-next').classList.remove('hidden');
+        // Remove a carta usada da mão (visual)
+        cardEl.style.opacity = "0.3";
+        cardEl.style.pointerEvents = "none";
+    } else {
+        // Fim de Jogo
+        setTimeout(finishJokenpoGame, 1500);
     }
 }
 
 function nextJokenpoRound() {
+    jokenpoState.round++;
+    updateJokenpoScore(); // Atualiza o texto "Rodada X / 3"
+    
     resetJokenpoTable();
     document.getElementById('btn-jk-next').classList.add('hidden');
     jokenpoState.isProcessing = false;
@@ -2153,6 +2169,10 @@ function resetJokenpoTable() {
 function updateJokenpoScore() {
     document.getElementById('jk-score-player').textContent = jokenpoState.playerScore;
     document.getElementById('jk-score-cpu').textContent = jokenpoState.cpuScore;
+    
+    // Atualiza indicador de Rodada se existir
+    const roundCounter = document.getElementById('jk-round-counter');
+    if(roundCounter) roundCounter.textContent = `${jokenpoState.round} / 3`;
 }
 
 async function finishJokenpoGame() {
