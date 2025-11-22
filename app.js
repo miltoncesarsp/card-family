@@ -977,8 +977,6 @@ function resetUI() {
 }
 
 async function initBattleMatch() {
-    const COST = 50;
-    
     // 1. Verifica se tem cartas suficientes (5)
     const myPlayableCards = cardsInAlbum.filter(c => c.owned);
     if (myPlayableCards.length < 5) {
@@ -986,26 +984,14 @@ async function initBattleMatch() {
         return;
     }
 
-    // 2. Paga
-    if (player.moedas < COST) {
-        showNotification("Sem moedas!", true);
-        return;
-    }
-    
-    if(!confirm("Pagar 50 moedas para iniciar a batalha?")) return;
+    // REMOVIDA: A lógica de custo e verificação de moedas!
 
-    const { error } = await supabase.rpc('atualizar_moedas_jogo', { qtd: -COST });
-    if(error) return;
-    player.moedas -= COST;
-    updateHeaderInfo();
-
-    // 3. Prepara o Jogo
+    // 2. Prepara o Jogo
     document.getElementById('btnStartBattle').classList.add('hidden');
     document.querySelector('.player-hand-container').classList.remove('hidden');
     showNotification("Buscando oponente...");
 
     // A. Seleciona 5 cartas aleatórias do jogador para ser a "Mão"
-    // Embaralha e pega 5
     const shuffled = [...myPlayableCards].sort(() => 0.5 - Math.random());
     battleState.myHand = shuffled.slice(0, 5);
 
@@ -1013,15 +999,14 @@ async function initBattleMatch() {
     const { data: enemyData, error: enemyError } = await supabase.rpc('buscar_oponente_batalha');
     
     if (enemyError) {
-        showNotification("Erro ao achar oponente. Dinheiro devolvido.");
-        await supabase.rpc('atualizar_moedas_jogo', { qtd: COST }); // Reembolso
+        showNotification("Erro ao achar oponente. Tente novamente.", true);
         resetUI();
         return;
     }
 
     // C. Configura Estado Inicial
     battleState.enemyName = enemyData.nome;
-    battleState.enemyDeck = enemyData.cartas; // Já vem 3 cartas embaralhadas do banco
+    battleState.enemyDeck = enemyData.cartas;
     battleState.round = 1;
     battleState.playerScore = 0;
     battleState.enemyScore = 0;
@@ -1190,22 +1175,25 @@ async function playRound(playerCard, cardElement) {
 async function finishBattle() {
     let msg = "";
     let prize = 0;
+    const WIN_PRIZE = 150; // Prêmio fixo por vencer
 
     if (battleState.playerScore > battleState.enemyScore) {
         msg = "VITÓRIA! 🏆";
-        prize = 150; // 50 entrada + 100 lucro
+        prize = WIN_PRIZE;
+        
         await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
         player.moedas += prize;
         showNotification(`PARABÉNS! Você ganhou +${prize} moedas!`);
+    
     } else if (battleState.playerScore < battleState.enemyScore) {
-        msg = "DERROTA...";
-        showNotification("Você perdeu a batalha.", true);
+        msg = "DERROTA";
+        // REMOVIDA: Nenhuma penalidade ou perda de moedas.
+        showNotification("Você perdeu a batalha. Tente novamente!", true);
+
     } else {
         msg = "EMPATE";
-        prize = 50; // Devolve
-        await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
-        player.moedas += prize;
-        showNotification("Empate! Moedas devolvidas.");
+        // REMOVIDA: Nenhuma devolução, pois a aposta foi removida.
+        showNotification("Empate! Ninguém ganhou moedas desta vez.");
     }
     
     updateHeaderInfo();
