@@ -1064,17 +1064,23 @@ async function initBattleMatch() {
         return;
     }
 
-    // 2. Prepara o Jogo (Grátis agora)
+    // 🚨 CORREÇÃO PRINCIPAL: Destrava o clique para a nova partida
+    battleState.isProcessing = false; 
+
+    // 2. Prepara o Jogo
     const btnStart = document.getElementById('btnStartBattle');
     const battleStatus = document.getElementById('battle-status');
     
     btnStart.classList.add('hidden');
     document.querySelector('.player-hand-container').classList.remove('hidden');
     
-    if (battleStatus) battleStatus.textContent = "Buscando oponente...";
+    if (battleStatus) {
+        battleStatus.textContent = "Buscando oponente...";
+        battleStatus.style.color = "#FFD700"; // Reseta a cor para amarelo
+    }
     showNotification("Iniciando busca...");
 
-    // A. Seleciona 5 cartas aleatórias do jogador para ser a "Mão"
+    // A. Seleciona 5 cartas aleatórias do jogador
     const shuffled = [...myPlayableCards].sort(() => 0.5 - Math.random());
     battleState.myHand = shuffled.slice(0, 5);
 
@@ -1095,16 +1101,17 @@ async function initBattleMatch() {
     battleState.playerScore = 0;
     battleState.enemyScore = 0;
 
-    // D. Renderiza a Tela (Com verificação de ID para evitar null)
+    // D. Renderiza a Tela
     const enemyNameDisplay = document.getElementById('enemy-name-display');
     
     if (enemyNameDisplay) enemyNameDisplay.textContent = battleState.enemyName.toUpperCase();
     
-    updateRoundDisplay(); // Atualiza o placar
-    renderPlayerHand(); // Desenha a mão do jogador
+    updateRoundDisplay(); 
+    renderPlayerHand(); 
     
     if (battleStatus) battleStatus.textContent = "Escolha sua primeira carta!";
 }
+
 function updateRoundDisplay() {
     document.getElementById('current-round').textContent = `${battleState.round} / 3`;
     document.getElementById('score-player').textContent = battleState.playerScore;
