@@ -33,9 +33,12 @@
             </div>
             
             <div class="user-info" id="userInfo">
-                <span id="player-name">Carregando...</span>
-                <span class="separator">|</span>
+            <span class="separator">|</span>
                 <span id="player-coins">...</span>
+                <span class="separator">|</span>
+                <span id="daily-streak-display" style="cursor:pointer;" onclick="showDailyRewardsList()">
+                    📅 Dia <span id="current-day-num">1</span>
+                </span>
             </div>
 
             <button id="logoutBtn" class="btn-logout">Sair</button>
@@ -472,6 +475,15 @@
         </div>
 
         <button id="collectDailyBtn" class="btn-primary" style="margin-top: 20px; width: 100%;">RECEBER MOEDAS</button>
+    </div>
+</div>
+
+    <div id="daily-list-modal" class="modal-overlay hidden">
+    <div class="modal-content" style="max-width: 400px;">
+        <h3 style="color: #FFD700; margin-bottom: 15px;">📅 Calendário de Prêmios</h3>
+        <div id="daily-rewards-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto;">
+            </div>
+        <button class="back-btn" onclick="document.getElementById('daily-list-modal').classList.add('hidden')" style="margin-top: 15px;">Fechar</button>
     </div>
 </div>
 
