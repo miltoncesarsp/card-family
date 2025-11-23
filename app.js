@@ -1126,12 +1126,32 @@ function closeTradeModal() {
 // =================================================
 
 function startBattleGame() {
+    // 1. Verifica se tem cartas suficientes ANTES de entrar
+    const myPlayableCards = cardsInAlbum.filter(c => c.owned);
+    if (myPlayableCards.length < 5) {
+        showNotification("Você precisa de 5 cartas para duelar!", true);
+        return;
+    }
+
     document.getElementById('games-menu').classList.add('hidden');
     document.getElementById('battle-arena').classList.remove('hidden');
     
     // --- ESTADO INICIAL LIMPO ---
-    document.getElementById('battle-game-area').classList.add('hidden'); // Esconde a mesa
-    document.getElementById('btnStartBattle').classList.remove('hidden'); // Mostra o botão Buscar
+    document.getElementById('battle-game-area').classList.add('hidden'); // Esconde a mesa de combate
+    document.getElementById('btnStartBattle').classList.remove('hidden'); // Botão Buscar
+    
+    // --- NOVO: MOSTRA A MÃO IMEDIATAMENTE ---
+    const handContainer = document.querySelector('.player-hand-container');
+    handContainer.classList.remove('hidden'); // Garante que está visível
+    
+    // Sorteia as cartas AGORA
+    const shuffled = [...myPlayableCards].sort(() => 0.5 - Math.random());
+    battleState.myHand = shuffled.slice(0, 5);
+    
+    // Renderiza a mão na tela
+    renderPlayerHand();
+    // ----------------------------------------
+
     document.getElementById('battle-status').textContent = "Encontre um oponente...";
     document.getElementById('battle-status').style.color = "#FFD700";
     
