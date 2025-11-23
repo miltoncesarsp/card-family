@@ -222,5 +222,146 @@ tr:nth-child(even) { background-color: #2a2a2a; }
 .evolution-cost {
     position: absolute; bottom: 50px; left: 5px;
     background: rgba(0, 0, 0, 0.7); color: white;
+
+   /* =========================================
+   NOVO: LISTA DE BASES (GRID)
+   ========================================= */
+.bases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    padding: 10px 0;
+}
+
+.base-item-card {
+    background: #2a2a40;
+    border: 1px solid #444;
+    border-left: 5px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.base-info h4 { margin: 0; color: white; font-size: 1.1rem; }
+.base-info span { font-size: 0.85rem; color: #aaa; display: block; margin-top: 4px; }
+
+.base-actions { display: flex; gap: 8px; }
+.base-actions button {
+    width: 32px; height: 32px; border-radius: 6px; border: none;
+    cursor: pointer; display: flex; justify-content: center; align-items: center;
+    transition: 0.2s;
+}
+.btn-edit-base { background: #3498db; color: white; }
+.btn-delete-base { background: #e74c3c; color: white; }
+.base-actions button:hover { transform: scale(1.1); filter: brightness(1.2); }
+
+
+/* =========================================
+   NOVO: ORIGENS EXPANSÍVEIS (ACCORDION)
+   ========================================= */
+.origin-accordion {
+    margin-bottom: 15px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #1e1e2f;
+}
+
+.origin-header {
+    padding: 15px 20px;
+    background: #25253a;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.origin-header:hover { background: #30304b; }
+
+.origin-title {
+    font-family: 'Bungee', cursive;
+    color: var(--coin-color); /* Dourado */
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.origin-count {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    color: #888;
+    background: rgba(0,0,0,0.3);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 10px;
+}
+
+.origin-content {
+    display: none; /* Escondido por padrão */
+    padding: 20px;
+    background: #161625;
+    border-top: 1px solid #333;
+}
+
+.origin-content.expanded {
+    display: block;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   NOVO: BOTÕES EMBAIXO DA CARTA
+   ========================================= */
+.card-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Removemos os botões de dentro da carta (CSS anterior) e criamos este container novo */
+.card-actions-footer {
+    display: flex;
+    width: 100%;
+    max-width: 220px; /* Mesma largura da carta */
+    margin-top: 8px;
+    gap: 5px;
+}
+
+.card-actions-footer button {
+    flex: 1;
+    padding: 8px 0;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: transform 0.2s;
+}
+
+.btn-card-edit { background: linear-gradient(to bottom, #3498db, #2980b9); border: 1px solid #3498db;}
+.btn-card-delete { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #e74c3c;}
+
+.card-actions-footer button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Carta pequena dentro do Wrapper */
+.card-wrapper .card-preview.card-small {
+    margin: 0; /* Remove margem antiga para alinhar com botões */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
     padding: 2px 6px; border-radius: 5px; font-size: 0.8em; z-index: 10;
 }
