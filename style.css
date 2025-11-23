@@ -2397,10 +2397,12 @@ width: 280px !important;
 }
 
 /* Cartas de Combate (Mão Interativa no Overlay) */
-#dungeon-hand-combat .card-preview {
-    width: 90px !important; 
-    height: 126px !important;
-    font-size: 0.7em !important;
+#dungeon-hand .card-preview {
+    /* Força o uso dos tamanhos .card-small definidos globalmente */
+    width: 80px !important; 
+    height: 112px !important;
+    font-size: 0.6em !important; 
+    margin: 5px !important; /* Adiciona um respiro */
 }
 
 /* Slots de Monstro e Jogador no Combate */
