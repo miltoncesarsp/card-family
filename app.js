@@ -771,103 +771,107 @@ async function checkDailyReward() {
     const hoje = new Date();
     const ultimoLogin = new Date(lastLoginTimestamp); 
     
-    // --- 1. CHECAGEM RÁPIDA: Já coletou hoje? ---
     const hojeString = hoje.toISOString().split('T')[0];
     const ultimoLoginString = ultimoLogin.toISOString().split('T')[0]; 
     
-    if (hojeString === ultimoLoginString) {
-        // Se já coletou, para o processo aqui.
-        return;
-    }
+    if (hojeString === ultimoLoginString) return; // Já coletou hoje
 
-    // --- 2. CÁLCULO DE DIFERENÇA DE DIAS (Para o STREAK) ---
-    // Zera horas e calcula a diferença de forma tolerante ao fuso
+    // Lógica de Dias
     const dataHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
     const dataUltimo = new Date(ultimoLogin.getFullYear(), ultimoLogin.getMonth(), ultimoLogin.getDate());
-    
-    const diffTempo = dataHoje.getTime() - dataUltimo.getTime(); // Pega a diferença em milissegundos
+    const diffTempo = dataHoje.getTime() - dataUltimo.getTime();
     const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24)); 
     
-    // --- 3. LÓGICA DO STREAK (INCREMENTO OU RESET) ---
     let novosDiasConsecutivos = player.dias_consecutivos;
-    let premio = 100; // Valor base
 
     if (diffDias === 1) { 
-        // Logou ontem. Sequência continua.
         novosDiasConsecutivos++;
     } else if (diffDias > 1 || diffDias <= 0) { 
-        // Quebrou a sequência, fuso horário negativo, ou primeiro login. Reseta para 1.
         novosDiasConsecutivos = 1; 
     }
 
-    // Lógica de Progressão (Continua igual)
-    const bonusStreak = Math.min(novosDiasConsecutivos, 7) * 50;
-    premio += bonusStreak;
+    // --- 1. BUSCA RECOMPENSA DO BANCO ---
+    const { data: allRewards } = await supabase.from('recompensas_diarias').select('*').order('dia');
+    
+    if (!allRewards || allRewards.length === 0) return; // Sem dados, aborta
 
-    // --- 4. MOSTRA O MODAL E SALVA ---
+    // Tenta achar o dia exato. Se não tiver (ex: dia 35), pega o último disponível (fallback).
+    let rewardData = allRewards.find(r => r.dia === novosDiasConsecutivos);
+    if (!rewardData) {
+        rewardData = allRewards[allRewards.length - 1]; // Pega o último dia cadastrado (ex: dia 30)
+    }
+
+    // Prepara visual do modal
     const modal = document.getElementById('daily-reward-modal');
     const dailyAmountEl = document.getElementById('daily-amount');
     const dailyStreakEl = document.getElementById('daily-streak');
     const msgEl = document.getElementById('daily-message');
 
-    // Verifica se os elementos existem antes de tentar escrever (Prevenção de TypeError)
-    if (!dailyAmountEl || !dailyStreakEl || !modal) {
-        console.error("ERRO DOM: Elementos de modal não encontrados. Verifique IDs.");
-        return; 
+    // Define ícone e texto baseado no tipo
+    let rewardHTML = '';
+    if (rewardData.tipo === 'pacote') {
+        rewardHTML = `<i class="fas fa-box-open" style="color:#9b59b6"></i> Pacote!`;
+        msgEl.textContent = `Dia Especial! Você ganhou: ${rewardData.descricao}`;
+    } else {
+        rewardHTML = `<i class="fas fa-coins" style="color:#FFD700"></i> +${rewardData.valor}`;
+        msgEl.textContent = rewardData.descricao || "Prêmio Diário!";
     }
 
-    dailyAmountEl.textContent = `+${premio}`;
+    dailyAmountEl.innerHTML = rewardHTML;
     dailyStreakEl.textContent = novosDiasConsecutivos;
     
-    // Mensagem motivacional
-    if (novosDiasConsecutivos > 1) {
-        msgEl.textContent = `Incrível! ${novosDiasConsecutivos} dias seguidos!`;
-    } else {
-        msgEl.textContent = "Volte amanhã para aumentar seu bônus!";
-    }
-
     modal.classList.remove('hidden');
 
-    // Configura o botão de receber
-const btnCollect = document.getElementById('collectDailyBtn');
-const newBtn = btnCollect.cloneNode(true);
-btnCollect.parentNode.replaceChild(newBtn, btnCollect);
+    // Configura Botão Receber
+    const btnCollect = document.getElementById('collectDailyBtn');
+    const newBtn = btnCollect.cloneNode(true);
+    btnCollect.parentNode.replaceChild(newBtn, btnCollect);
 
-newBtn.addEventListener('click', async () => {
-    newBtn.textContent = "Recebido!";
-    
-    // CORREÇÃO CRÍTICA: Salvar o momento atual (hoje) para garantir que a checagem diária funcione
-    // Ao invés de uma meia-noite 'limpa' que pode ter problemas de fuso, salva o instante de agora
-    const dataParaSalvar = (new Date()).toISOString(); // Usa o instante exato da coleta
-
-    const novasMoedas = player.moedas + premio;
-    
-    const { error } = await supabase
-        .from('jogadores')
-        .update({ 
-            moedas: novasMoedas,
-            // AQUI: Salva o instante real (toISOString)
-            ultimo_login: dataParaSalvar, 
-            dias_consecutivos: novosDiasConsecutivos
-        })
-        .eq('id', player.id);
-
-    if (error) {
-        console.error("Erro ao salvar bônus:", error);
-        showNotification("Erro ao salvar bônus.", true);
-    } else {
-        // ATUALIZAÇÃO LOCAL IMEDIATA
-        player.moedas = novasMoedas;
-        player.dias_consecutivos = novosDiasConsecutivos;
-        player.ultimo_login = dataParaSalvar; // Atualiza a variável local para a próxima checagem
+    newBtn.addEventListener('click', async () => {
+        newBtn.textContent = "Recebendo...";
+        newBtn.disabled = true;
         
-        updateHeaderInfo();
-        showNotification(`Você ganhou ${premio} moedas!`);
-        modal.classList.add('hidden');
-    }
-});
-}
+        const dataParaSalvar = (new Date()).toISOString();
+        let novasMoedas = player.moedas;
 
+        // ENTREGA O PRÊMIO
+        if (rewardData.tipo === 'pacote') {
+            // Lógica de Pacote: Busca o pacote pelo ID (valor)
+            const { data: pack } = await supabase.from('pacotes').select('*').eq('id', rewardData.valor).single();
+            if (pack) {
+                const newCards = await generateCardsForPack(pack);
+                await updatePlayerCards(newCards);
+                showPackOpeningModal(newCards, "🎁 BÔNUS DIÁRIO!"); // Abre o pack depois de fechar o diário
+            }
+        } else {
+            // Lógica de Moedas
+            novasMoedas += rewardData.valor;
+        }
+
+        // Salva Jogador
+        const { error } = await supabase
+            .from('jogadores')
+            .update({ 
+                moedas: novasMoedas,
+                ultimo_login: dataParaSalvar, 
+                dias_consecutivos: novosDiasConsecutivos
+            })
+            .eq('id', player.id);
+
+        if (!error) {
+            player.moedas = novasMoedas;
+            player.dias_consecutivos = novosDiasConsecutivos;
+            player.ultimo_login = dataParaSalvar;
+            
+            updateHeaderInfo();
+            modal.classList.add('hidden');
+            
+            if(rewardData.tipo === 'moedas') {
+                showNotification(`Recebido: ${rewardData.valor} moedas!`);
+            }
+        }
+    });
+}
 // =================================================
 // SISTEMA DE TROCAS
 // =================================================
