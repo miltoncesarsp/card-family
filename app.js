@@ -220,15 +220,21 @@ function updateHeaderInfo() {
     
     const nameEl = document.getElementById('player-name'); 
     const coinsEl = document.getElementById('player-coins');
-    // NOVO
-    const dayEl = document.getElementById('current-day-num');
+    const dayEl = document.getElementById('current-day-num'); // O novo elemento
 
-    if (nameEl && coinsEl) {
-        nameEl.textContent = player.nome || player.email; 
+    if (nameEl) {
+        // Usa nome ou email se nome vazio
+        nameEl.textContent = player.nome || player.email.split('@')[0]; 
+    }
+
+    if (coinsEl) {
+        // Garante formatação bonita com ícone
         coinsEl.innerHTML = `<i class="fas fa-coins"></i> ${player.moedas}`;
-        
-        // Atualiza o dia
-        if (dayEl) dayEl.textContent = player.dias_consecutivos;
+    }
+    
+    if (dayEl) {
+        // Mostra dia consecutivo
+        dayEl.textContent = player.dias_consecutivos || 1;
     }
 }
 
