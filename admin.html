@@ -377,12 +377,14 @@
             <input type="hidden" id="modalGameId">
             
             <label>Nome do Jogo:</label>
-            <input id="modalGameName" type="text" disabled> <label>Dificuldade (Texto):</label>
+            <input id="modalGameName" type="text" disabled>
+            
+            <label>Dificuldade:</label>
             <input id="modalGameDiff" type="text">
             
             <div class="form-row">
                 <div>
-                    <label>Recompensa Base (Moedas):</label>
+                    <label>Recompensa (Moedas):</label>
                     <input id="modalGameReward" type="number">
                 </div>
                 <div>
@@ -403,7 +405,9 @@
             <button class="close-admin-modal" onclick="closeModal('editDailyModal')">&times;</button>
         </div>
         <form class="modern-form">
-            <input type="hidden" id="modalDailyDay"> <label>Descrição (Nome do Prêmio):</label>
+            <input type="hidden" id="modalDailyDay">
+            
+            <label>Descrição (Nome do Prêmio):</label>
             <input id="modalDailyDesc" type="text" placeholder="Ex: Baú de Ouro">
             
             <label>Tipo de Recompensa:</label>
@@ -412,10 +416,10 @@
                 <option value="pacote">📦 Pacote (Card Pack)</option>
             </select>
             
-            <label id="labelDailyValue">Quantidade de Moedas:</label>
+            <label id="labelDailyValue">Quantidade / ID:</label>
             <input id="modalDailyValue" type="number">
             <p id="packIdHint" style="font-size:0.8em; color:#e74c3c; display:none;">
-                ⚠️ Insira o <strong>ID</strong> do Pacote que deseja dar.
+                ⚠️ Insira o <strong>ID</strong> do Pacote.
             </p>
             
             <button type="button" id="modalSaveDailyBtn" class="btn-save">Salvar Dia</button>
