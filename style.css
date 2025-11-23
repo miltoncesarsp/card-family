@@ -2117,3 +2117,152 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     font-family: 'Bungee', cursive;
     font-size: 1em;
 }
+
+/* =========================================
+   9. MELHORIAS ADMIN (MODAL, BUSCA, TOAST)
+   ========================================= */
+
+/* --- BARRA DE BUSCA FIXA --- */
+.admin-search-container {
+    position: sticky;
+    top: 0;
+    z-index: 900; /* Abaixo do Modal, acima do resto */
+    background: #1a1a2e; /* Mesma cor do fundo para não ficar transparente */
+    padding: 15px 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    border-bottom: 1px solid #333;
+}
+
+.admin-search-input {
+    width: 100%;
+    padding: 12px 40px 12px 15px; /* Espaço para ícone */
+    border-radius: 30px;
+    border: 1px solid #444;
+    background: #16213e;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: 0.3s;
+}
+
+.admin-search-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+}
+
+/* --- ADMIN MODAL (Específico para Edição) --- */
+/* Reutiliza .modal-overlay do seu CSS, cria conteudo novo */
+.admin-modal-content {
+    background: #fff; /* Fundo branco para formulário limpo */
+    color: #333;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+    text-align: left; /* Alinha formulário a esquerda */
+    border: none; /* Remove bordas coloridas de loot */
+}
+
+.admin-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.close-admin-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #e74c3c;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    width: auto;
+}
+
+/* --- TOAST NOTIFICATION (Substitui Alert) --- */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 20001; /* Acima de tudo */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    min-width: 250px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideInRight 0.3s ease-out forwards;
+}
+
+.toast.success { background-color: #2ecc71; border-left: 5px solid #27ae60; }
+.toast.error { background-color: #e74c3c; border-left: 5px solid #c0392b; }
+.toast.info { background-color: #3498db; border-left: 5px solid #2980b9; }
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOutToast {
+    to { opacity: 0; transform: translateY(-10px); }
+}
+
+/* --- TABELAS RESPONSIVAS (Mobile Card View) --- */
+@media (max-width: 768px) {
+    /* Força a tabela a agir como blocos */
+    table, thead, tbody, th, td, tr { 
+        display: block; 
+    }
+    
+    /* Esconde o cabeçalho da tabela */
+    thead tr { 
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    tr { border: 1px solid #ccc; margin-bottom: 15px; border-radius: 8px; background: #fff; overflow: hidden;}
+    
+    td { 
+        border: none;
+        border-bottom: 1px solid #eee; 
+        position: relative;
+        padding-left: 50%; /* Espaço para o rótulo */
+        text-align: right;
+    }
+    
+    td:before { 
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 45%; 
+        padding-right: 10px; 
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #007bff;
+        content: attr(data-label); /* Pega o nome da coluna via HTML */
+    }
+
+    /* Ajuste para botões na tabela mobile */
+    td button {
+        width: auto;
+        margin-left: 5px;
+        padding: 8px 12px;
+    }
+}
