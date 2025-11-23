@@ -1946,6 +1946,13 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
 
    .combat-zone { gap: 5px; transform: scale(0.9); }
     
+    /* 🚨 MUDE ISTO: Alinha no começo para permitir rolagem correta */
+    .hand-grid { 
+        justify-content: flex-start; 
+        padding-left: 10px; /* Um respiro na esquerda */
+        padding-right: 10px;
+    }
+
    /* --- JOGO DA MEMÓRIA --- */
 .memory-grid-container {
         gap: 5px !important;
@@ -1986,52 +1993,6 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
         padding: 10px 15px;
         font-size: 0.9em;
     }
-
-.player-hand-container {
-        width: 100%;
-        overflow-x: auto; /* Permite rolar para o lado */
-        padding: 10px 0;
-        /* Garante que a barra de rolagem não fique em cima das cartas */
-        scrollbar-width: none; /* Firefox */
-    }
-    
-    .player-hand-container::-webkit-scrollbar {
-        display: none; /* Chrome/Safari */
-    }
-
-    .hand-grid {
-        /* IMPORTANTE: Muda de center para flex-start no mobile para não cortar a esquerda */
-        justify-content: flex-start !important; 
-        padding-left: 20px; /* Espaço inicial */
-        padding-right: 20px;
-        width: max-content; /* Força o container a ter o tamanho das cartas */
-    }
-
-    .hand-card-wrapper {
-        /* Faz as cartas se sobreporem um pouco para caberem melhor */
-        margin-right: -15px; 
-        transition: transform 0.2s, margin 0.2s;
-    }
-
-    /* Quando clica/seleciona, dá espaço */
-    .hand-card-wrapper:hover, 
-    .hand-card-wrapper:active {
-        transform: translateY(-30px) scale(1.1);
-        margin-right: 10px; /* Abre espaço */
-        margin-left: 10px;
-        z-index: 100;
-    }
-
-    /* Ajuste do tamanho da carta na mão */
-    .hand-card-wrapper .card-preview.card-small {
-        width: 90px !important;  /* Um pouco menor */
-        height: 126px !important;
-        font-size: 0.7em;
-        box-shadow: -5px 0 10px rgba(0,0,0,0.3); /* Sombra lateral para destacar sobreposição */
-    }
-
-
-   
    
 }
 
