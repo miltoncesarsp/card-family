@@ -1471,27 +1471,44 @@ if (!jogosProntos.includes(gameType)) {
     refreshMinigameEnergy(); // Atualiza visual
 
     // ROTEADOR DE JOGOS (Switch Case)
-    switch (gameType) {
+switch (gameType) {
         case 'battle':
-            startBattleGame();
+            // Batalha cobra na hora (lógica antiga mantida)
+            if(checkAndSpendEnergy(gameType)) startBattleGame();
             break;
         case 'memory':
-            startMemoryGame();
-            break;
-        case 'target':
-            startTargetGame();
-            break;
-        // Deixe os outros comentados ou sem ação até criar as funções
-        case 'dungeon':
-             startDungeonGame();
+            // Memória NÃO COBRA AQUI, só abre o menu
+            startMemoryGame(); 
             break;
         case 'puzzle':
-             startPuzzleGame();
+            // Puzzle NÃO COBRA AQUI, só abre o menu
+            startPuzzleGame();
+            break;
+        case 'target':
+            if(checkAndSpendEnergy(gameType)) startTargetGame();
             break;
         case 'jokenpo':
-             startJokenpoGame();
-            break;
+             if(checkAndSpendEnergy(gameType)) startJokenpoGame();
+             break;
+        case 'dungeon':
+             if(checkAndSpendEnergy(gameType)) startDungeonGame();
+             break;
     }
+}
+
+// Função Auxiliar para gastar energia (crie se não tiver)
+async function checkAndSpendEnergy(gameType) {
+    if (minigameStatus[gameType].energia <= 0) {
+        showNotification("Sem energia!", true);
+        return false;
+    }
+    const { data: sucesso } = await supabase.rpc('gastar_energia_minigame', { tipo_jogo: gameType });
+    if(sucesso) {
+        minigameStatus[gameType].energia--;
+        refreshMinigameEnergy();
+        return true;
+    }
+    return false;
 }
 
 // =================================================
