@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     // Carrega apenas o essencial para a primeira aba (Bases/Cartas)
     await loadEvolutionCosts(); 
+    loadBasesList(); // Carrega a aba inicial
     loadUnifiedView(); 
     // Os outros (Players, Packs, Origins) carregam ao clicar na aba!
 
@@ -328,91 +329,104 @@ async function saveBasePersonagem() {
     await loadUnifiedView();
 }
 
+/* === CARREGAR CARTAS COM ACORDEÃO (ABA 2) === */
 async function loadUnifiedView() {
     const listContainer = document.getElementById("unifiedListContainer");
-    listContainer.innerHTML = "Carregando...";
+    listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;"><i class="fas fa-spinner fa-spin"></i> Carregando lista...</div>';
 
     if (Object.keys(EVOLUTION_COSTS).length === 0) { await loadEvolutionCosts(); }
 
+    // Busca cartas com join na base
     const { data: baseData, error } = await supabase
         .from("personagens_base")
-        .select(`id_base, personagem, origem, elemento, cards (id, name, rarity, power, image_url)`)
+        .select(`id_base, personagem, origem, elemento, cards (id, name, rarity, power, image_url, id_base)`)
         .order("origem", { ascending: true })
         .order("personagem", { ascending: true });
 
     if (error) { listContainer.innerHTML = "Erro ao carregar."; return; }
-    if (!baseData || baseData.length === 0) { listContainer.innerHTML = "Nenhum cadastro."; return; }
 
-    updateNameDatalist(baseData); 
-    
     const rarityOrder = ["Comum", "Rara", "Épica", "Lendária", "Mítica"];
-    let outputHTML = '';
     const groupedByOrigin = baseData.reduce((acc, base) => { (acc[base.origem] = acc[base.origem] || []).push(base); return acc; }, {});
 
+    let outputHTML = '';
+
     for (const [origem, personagensArray] of Object.entries(groupedByOrigin)) {
-        outputHTML += `<h3 class="group-title">${origem}</h3>`;
-        
+        // Conta total de cartas nessa origem para mostrar no header
+        let totalCartasOrigin = 0;
+        personagensArray.forEach(p => totalCartasOrigin += p.cards.length);
+
+        // Header do Acordeão
+        outputHTML += `
+            <div class="origin-accordion">
+                <div class="origin-header" onclick="toggleOrigin(this)">
+                    <div>
+                        <h3 class="origin-title" style="display:inline;">${origem}</h3>
+                        <span class="origin-count">${totalCartasOrigin} cartas</span>
+                    </div>
+                    <i class="fas fa-chevron-down transition-icon"></i>
+                </div>
+                
+                <div class="origin-content"> `;
+
+        // Conteúdo da Origem (Personagens)
         personagensArray.forEach(base => {
             const baseElementStyles = getElementStyles(base.elemento);
-            outputHTML += `<div class="personagem-base-container">`;
             
-            outputHTML += `<h4 class="sub-title" style="border-left-color: ${baseElementStyles.primary};">
-                ${base.personagem}
-                <span class="base-details">(ID: ${base.id_base} | ${base.elemento})</span>
-                <div class="base-management-buttons">
-                    <button class="edit-base-btn" data-id="${base.id_base}"><i class="fas fa-edit"></i></button>
-                    <button class="delete-base-btn" data-id="${base.id_base}" data-name="${base.personagem}"><i class="fas fa-trash-alt"></i></button>
-                </div>
+            // Se o personagem não tem cartas, não mostra nada OU mostra vazio (opcional).
+            // Vamos mostrar o nome dele para saber que existe
+            outputHTML += `<div class="personagem-base-container" style="margin-bottom:25px;">`;
+            
+            // Título do Personagem (Sem botões de editar base agora!)
+            outputHTML += `<h4 class="sub-title" style="border-left-color: ${baseElementStyles.primary}; margin-bottom:10px;">
+                ${base.personagem} <span class="base-details" style="opacity:0.5; font-size:0.8em;">(${base.elemento})</span>
             </h4>`;
             
-            outputHTML += `<div class="card-group-container card-evolution-line">`;
-            base.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
-
+            outputHTML += `<div class="card-evolution-line">`;
+            
             if (base.cards.length === 0) {
-                outputHTML += `<p class="base-details" style="margin-left: 10px;">Sem cartas.</p>`;
+                outputHTML += `<p style="color:#555; font-style:italic; font-size:0.9em; padding:10px;">Sem cartas cadastradas.</p>`;
             } else {
+                base.cards.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
+                
                 base.cards.forEach(card => { 
                     const rarityStyles = getRarityColors(card.rarity);
                     const custo = EVOLUTION_COSTS[card.rarity];
                     const custoTexto = (card.rarity === 'Mítica' || !custo) ? "Máx" : `${custo}x`;
                     
-                    // --- COPIE E COLE ESTE BLOCO INTEIRO ---
+                    // ESTRUTURA NOVA: Wrapper + Botões Embaixo
                     outputHTML += `
-                        <div class="card-preview card-small card-editable" 
-                            data-card-id="${card.id}" 
-                            data-card-name="${card.name}"
-                            style="background-image: url('${card.image_url}'); border-color: ${rarityStyles.primary};" 
-                        >
-                            <div class="card-management-buttons">
-                                <button class="edit-btn" data-id="${card.id}"><i class="fas fa-edit"></i></button>
-                                <button class="delete-btn" data-id="${card.id}" data-name="${card.name}"><i class="fas fa-trash-alt"></i></button>
-                            </div>
-                            
-                            <div class="card-element-badge" style="background: ${baseElementStyles.background};">
-                                ${getElementIcon(base.elemento)}
+                        <div class="card-wrapper">
+                            <div class="card-preview card-small" 
+                                style="background-image: url('${card.image_url}'); border-color: ${rarityStyles.primary}; cursor:default;">
+                                
+                                <div class="card-element-badge" style="background: ${baseElementStyles.background};">
+                                    ${getElementIcon(base.elemento)}
+                                </div>
+                                <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity.substring(0,1)}</div>
+                                <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
+                                <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+                                <div class="evolution-cost">Evolui: ${custoTexto}</div>
                             </div>
 
-                            <div class="rarity-badge" style="background-color: ${rarityStyles.primary};">${card.rarity.substring(0,1)}</div>
-                            
-                            <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
-                            
-                            <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
-                            
-                            <div class="evolution-cost">Evolui: ${custoTexto}</div>
+                            <div class="card-actions-footer">
+                                <button class="btn-card-edit" onclick="handleEditCardClick('${card.id}')">
+                                    <i class="fas fa-edit"></i> Editar
+                                </button>
+                                <button class="btn-card-delete" onclick="handleDeleteCardClick('${card.id}', '${card.name}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     `;
                 });
             }
-            outputHTML += `</div></div>`;
+            outputHTML += `</div></div>`; // Fecha card-line e container
         });
+
+        outputHTML += `</div></div>`; // Fecha origin-content e accordion
     }
 
     listContainer.innerHTML = outputHTML;
-    
-    document.querySelectorAll('.delete-btn').forEach(button => { button.addEventListener('click', handleDelete); });
-    document.querySelectorAll('.edit-btn').forEach(button => { button.addEventListener('click', handleEdit); });
-    document.querySelectorAll('.edit-base-btn').forEach(button => { button.addEventListener('click', handleEditBaseCharacter); });
-    document.querySelectorAll('.delete-base-btn').forEach(button => { button.addEventListener('click', handleDeleteBaseCharacter); });
 }
 
 async function handleDelete(event) {
@@ -890,31 +904,20 @@ async function saveOriginCover() {
 /* === SISTEMA DE ABAS === */
 function openTab(tabId) {
     // 1. Esconde todo o conteúdo
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-    });
-
-    // 2. Remove classe active de todos os botões
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-
-    // 3. Mostra o conteúdo alvo
+document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
-
-    // 4. Marca o botão clicado como ativo (busca pelo onclick que contém o ID)
-    // Uma forma simples é pegar o event.currentTarget se passado, ou iterar.
-    // Vamos fazer via seletor para garantir:
-    const clickedBtn = document.querySelector(`button[onclick="openTab('${tabId}')"]`);
+    
+const clickedBtn = document.querySelector(`button[onclick="openTab('${tabId}')"]`);
     if(clickedBtn) clickedBtn.classList.add('active');
 
-    // 5. OTIMIZAÇÃO: Carrega dados sob demanda (Lazy Loading)
-    // Isso faz o Admin abrir muito rápido, pois só carrega jogadores se clicar na aba
+// Loaders Específicos
+    if (tabId === 'tab-base') loadBasesList(); // <--- NOVO: Carrega a lista de bases
+    if (tabId === 'tab-cards') loadUnifiedView(); // Recarrega cartas
     if (tabId === 'tab-players') loadPlayers();
     if (tabId === 'tab-packs') loadPacks();
     if (tabId === 'tab-origins') loadOriginCovers();
     if (tabId === 'tab-rules') loadRarityRules();
-    // A aba 'tab-base' e 'tab-cards' carregam o UnifiedView, que já vem no inicio
 }
 
 async function deleteOriginCover(id) {
@@ -924,6 +927,82 @@ async function deleteOriginCover(id) {
     }
 }
 
+/* === CARREGAR LISTA DE BASES (ABA 1) === */
+async function loadBasesList() {
+    const container = document.getElementById("basesListContainer");
+    if (!container) return;
+    container.innerHTML = '<div style="color:#aaa;">Carregando bases...</div>';
+
+    const { data: bases, error } = await supabase
+        .from("personagens_base")
+        .select('*')
+        .order("origem", { ascending: true })
+        .order("personagem", { ascending: true });
+
+    if (error) { container.innerHTML = "Erro ao carregar."; return; }
+    if (!bases.length) { container.innerHTML = "Nenhuma base cadastrada."; return; }
+
+    let html = '';
+    bases.forEach(base => {
+        const elementStyles = getElementStyles(base.elemento); // Usa sua função existente
+        html += `
+            <div class="base-item-card" style="border-left-color: ${elementStyles.primary}">
+                <div class="base-info">
+                    <h4>${base.personagem}</h4>
+                    <span>${base.origem} • ${base.elemento}</span>
+                </div>
+                <div class="base-actions">
+                    <button class="btn-edit-base" onclick="handleEditBaseCharacterClick('${base.id_base}')" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-delete-base" onclick="handleDeleteBaseCharacterClick('${base.id_base}', '${base.personagem}')" title="Excluir">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+    updateNameDatalist(bases); // Atualiza o autocomplete do form de cartas também
+}
+
+// Wrappers globais para os onlicks do HTML funcionarem
+window.handleEditBaseCharacterClick = async (id) => {
+    // Simula o evento que sua função original espera
+    const mockEvent = { currentTarget: { dataset: { id: id } } };
+    handleEditBaseCharacter(mockEvent);
+};
+
+window.handleDeleteBaseCharacterClick = async (id, name) => {
+    const mockEvent = { currentTarget: { dataset: { id: id, name: name } } };
+    handleDeleteBaseCharacter(mockEvent);
+};
+
+// Função para abrir/fechar acordeão
+window.toggleOrigin = function(header) {
+    const content = header.nextElementSibling;
+    const icon = header.querySelector('.fa-chevron-down');
+    
+    content.classList.toggle('expanded');
+    
+    // Gira o ícone
+    if (content.classList.contains('expanded')) {
+        icon.style.transform = "rotate(180deg)";
+    } else {
+        icon.style.transform = "rotate(0deg)";
+    }
+}
+
+// Wrappers para Cartas (para usar no onclick string)
+window.handleEditCardClick = async (id) => {
+    const mockEvent = { currentTarget: { dataset: { id: id } } };
+    handleEdit(mockEvent); // Chama sua função original de modal de carta
+};
+
+window.handleDeleteCardClick = async (id, name) => {
+    const mockEvent = { currentTarget: { dataset: { id: id, name: name } } };
+    handleDelete(mockEvent);
+};
 
 window.deleteOriginCover = deleteOriginCover;
 
