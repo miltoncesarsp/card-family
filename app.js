@@ -2258,7 +2258,7 @@ async function finishJokenpoGame() {
     if (jokenpoState.playerScore > jokenpoState.cpuScore) {
         msg = "VITÓRIA ELEMENTAL! 🏆";
         const config = minigameConfig['jokenpo'] || { reward: 120 };
-        prize = config.reward;
+        prize = Math.floor(config.reward * config.multi); // <--- IMPORTANTE TER ISSO
         await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
         player.moedas += prize;
     } else {
