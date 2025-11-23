@@ -407,8 +407,9 @@ h1, h2, h3, h4 {
 
 /* --- AJUSTES PARA CARTA PEQUENA (JOGO) --- */
 .card-preview.card-small {
-    width: 150px;
-    height: 210px;
+width: 80px; 
+    height: 112px;
+    font-size: 0.6em;
 }
 
 .card-preview.card-small .rarity-badge {
@@ -2305,9 +2306,10 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
 }
 
 #zoomed-card .card-preview {
-    width: 280px !important; 
+width: 280px !important; 
     height: 392px !important;
     margin: 0 !important;
+    font-size: 1.1em !important; /* Aumenta o texto para o tamanho grande */
     transform: none !important;
     box-shadow: 0 0 40px rgba(0,0,0,0.8); /* Sombra suave */
 }
@@ -2324,6 +2326,7 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     font-weight: bold;
     cursor: pointer;
     box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+   z-index: 30001;
 }
 
 /* --- TABELAS RESPONSIVAS (Mobile Card View) --- */
@@ -2385,6 +2388,28 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
         overflow-x: auto;
         padding-bottom: 10px;
     }
+
+   /* Cartas de Visualização (Mão de Defesa) */
+#dungeon-hand .card-preview {
+    width: 80px !important; 
+    height: 112px !important;
+    font-size: 0.65em !important;
+}
+
+/* Cartas de Combate (Mão Interativa no Overlay) */
+#dungeon-hand-combat .card-preview {
+    width: 90px !important; 
+    height: 126px !important;
+    font-size: 0.7em !important;
+}
+
+/* Slots de Monstro e Jogador no Combate */
+#dungeon-monster-card, 
+#dungeon-player-slot {
+    width: 100px !important;
+    height: 140px !important;
+    font-size: 0.8em !important;
+}
     
     /* 1. Ajuste da Janela do Modal no Celular */
     #trade-offer-modal .modal-content {
