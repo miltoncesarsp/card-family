@@ -311,10 +311,16 @@
         </div>
 </div>
 
-    <div id="tab-daily" class="tab-content">
-    <h3>📅 Recompensas de Login (7 Dias)</h3>
+<div id="tab-daily" class="tab-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3>📅 Recompensas de Login</h3>
+        <button class="btn-save" id="addDailyBtn" style="width: auto; margin: 0; background: #2ecc71;">
+            <i class="fas fa-plus"></i> Adicionar Dia
+        </button>
+    </div>
+    
     <p style="color:#aaa; font-size:0.9em; margin-bottom:20px;">
-        Defina o que o jogador ganha em cada dia consecutivo. No dia 7, recomenda-se um prêmio especial!
+        Defina a sequência de prêmios. Se o jogador passar do último dia definido, a lógica do jogo repetirá o último prêmio.
     </p>
     
     <div id="dailyListContainer" class="bases-grid"></div>
