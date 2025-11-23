@@ -2174,14 +2174,14 @@ async function playJokenpoRound(playerCard, cardEl) {
     
     jokenpoState.isProcessing = true;
     
-    // --- MUDANÇA VISUAL: Marca carta como usada na hora ---
-    cardEl.classList.add('played'); // Adiciona classe CSS que deixa cinza
-    cardEl.style.pointerEvents = "none"; // Trava clique
-    // -----------------------------------------------------
+    // Marca visualmente como usada
+    cardEl.classList.add('played'); 
+    cardEl.style.pointerEvents = "none"; 
 
     // 1. Escolha da CPU
     let cpuCard = jokenpoState.cpuDeck[jokenpoState.round - 1];
     
+    // Fallback de segurança
     if (!cpuCard) {
         const { data: allCards } = await supabase.from('cards').select('*').limit(20);
         cpuCard = allCards[Math.floor(Math.random() * allCards.length)];
@@ -2210,44 +2210,39 @@ async function playJokenpoRound(playerCard, cardEl) {
     document.getElementById('jk-enemy-element').innerHTML = getElementIcon(cpuCard.element);
     document.getElementById('jk-enemy-element').style.background = getElementStyles(cpuCard.element).primary;
 
-// --- 4. LÓGICA DE COMBATE ROBUSTA ---
+    // --- 4. LÓGICA DE COMBATE (PURAMENTE ELEMENTAL) ---
     let result = 0; // 0=Empate, 1=Player, -1=CPU
     let reason = "";
 
-    // Função para limpar o texto (Tira acento e põe minúsculo)
-    // Ex: "Água" vira "agua", "Fogo" vira "fogo"
+    // Função de Limpeza (Normaliza texto para evitar erros de 'Água' vs 'Agua')
     const clean = (str) => str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
     const pEl = clean(playerCard.element);
     const cEl = clean(cpuCard.element);
 
-    console.log(`Combate: ${pEl} vs ${cEl}`); // Debug no console
-
     if (pEl === cEl) {
-        // MESMO ELEMENTO: Desempata na força
-        if (playerCard.power > cpuCard.power) { result = 1; reason = "Mesmo Elemento: Vitória por Força!"; }
-        else if (playerCard.power < cpuCard.power) { result = -1; reason = "Mesmo Elemento: Derrota por Força!"; }
-        else { result = 0; reason = "Empate Total!"; }
+        // MESMO ELEMENTO = EMPATE (Sem desempate por força)
+        result = 0;
+        reason = "Elementos Iguais: Empate!";
     } else {
-        // BUSCA REGRA USANDO O TEXTO LIMPO
-        // Precisamos normalizar as regras também na hora de comparar
+        // Busca regra nas regras carregadas (normalizando tudo)
         const myAdvantage = jokenpoState.rules.find(r => clean(r.atacante) === pEl && clean(r.defensor) === cEl);
         const cpuAdvantage = jokenpoState.rules.find(r => clean(r.atacante) === cEl && clean(r.defensor) === pEl);
 
         if (myAdvantage && myAdvantage.resultado === 1) {
-            result = 1; 
-            reason = `Vantagem Elemental! (${playerCard.element} vence ${cpuCard.element})`;
+            result = 1;
+            reason = `Vantagem! (${playerCard.element} vence ${cpuCard.element})`;
         } else if (cpuAdvantage && cpuAdvantage.resultado === 1) {
-            result = -1; 
-            reason = `Desvantagem Elemental! (${cpuCard.element} vence ${playerCard.element})`;
+            result = -1;
+            reason = `Desvantagem! (${cpuCard.element} vence ${playerCard.element})`;
         } else {
-            // Se não achou regra nenhuma (o que não deve acontecer com seu JSON perfeito), vai na força
-            console.warn("Nenhuma regra encontrada para este par. Usando Força.");
-            if (playerCard.power > cpuCard.power) { result = 1; reason = "Neutro: Vitória por Força!"; }
-            else if (playerCard.power < cpuCard.power) { result = -1; reason = "Neutro: Derrota por Força!"; }
-            else { result = 0; reason = "Empate Total"; }
+            // Se cair aqui, seu banco de dados está incompleto (faltou cadastrar a relação)
+            // Mas como fallback, declaramos empate em vez de força.
+            result = 0;
+            reason = "Sem vantagem clara: Empate.";
         }
     }
+
     // 5. Aplica Resultado Visual
     const statusEl = document.getElementById('jk-status');
     const pElemIcon = document.getElementById('jk-player-element');
@@ -2272,15 +2267,13 @@ async function playJokenpoRound(playerCard, cardEl) {
 
     updateJokenpoScore();
 
-    // --- 6. AUTOMATIZAÇÃO DA PRÓXIMA RODADA ---
+    // 6. Próxima Rodada Automática
     if (jokenpoState.round < 3) {
-        // Espera 2 segundos e vai para a próxima
         setTimeout(() => {
             nextJokenpoRound();
-        }, 2000);
+        }, 2500); // 2.5 segundos para ler o resultado
     } else {
-        // Fim de Jogo
-        setTimeout(finishJokenpoGame, 2000);
+        setTimeout(finishJokenpoGame, 2500);
     }
 }
 
