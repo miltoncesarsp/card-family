@@ -2429,19 +2429,26 @@ function quitJokenpoGame() {
 // =================================================
 
 // Renderiza a mão VISUAL (Exploração)
-function renderDungeonHandVisual() {
-    const container = document.getElementById('dungeon-hand-preview');
-    if (!container) return;
-    container.innerHTML = '';
+function renderDungeonHand() {
+    const handContainer = document.getElementById('dungeon-hand');
+    handContainer.innerHTML = '';
+    
+    // Ordena para melhor visualização do jogador
+    const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
 
-    // Ordena por força
-    const sortedHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
-
-    sortedHand.forEach(card => {
-        const div = document.createElement('div');
-        // Apenas visual, sem wrapper de interação
-        div.innerHTML = createCardHTML(card, false, null, false);
-        container.appendChild(div);
+    displayHand.forEach(card => {
+        const rarityStyles = getRarityStyles(card.rarity);
+        
+        // A carta aqui é apenas um visual na mão, não interativa
+        const cardHtml = `
+            <div class="card-preview card-small" 
+                 style="background-image: url('${card.image_url}'); border: 2px solid ${rarityStyles.primary};"
+                 title="${card.name}">
+                <div class="card-quantity" style="top: 0; right: 0; font-size: 0.8em; padding: 2px 5px;">${card.power} POW</div>
+                <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+            </div>
+        `;
+        handContainer.innerHTML += cardHtml;
     });
 }
 
@@ -2591,8 +2598,11 @@ else if (type === 'trap') {
         if (dungeonState.playerHand.length > 0) {
             const randomIndex = Math.floor(Math.random() * dungeonState.playerHand.length);
             const removedCard = dungeonState.playerHand.splice(randomIndex, 1)[0];
+            
+            // --- CHAMADA PARA ATUALIZAR O VISUAL DA MÃO ---
+            renderDungeonHand(); 
+            
             showNotification(`ARMADILHA! Perdeu: ${removedCard.name}`, true);
-           renderDungeonHandVisual(); // Atualiza a lateral
         } else {
             showNotification("Armadilha vazia (sem cartas).");
         }
@@ -2840,16 +2850,21 @@ function viewBigCard(cardId) {
     if (!card || !card.owned) return;
 
     const container = document.getElementById('zoomed-card');
-    // Limpa estilos manuais que estavam no HTML
-    container.removeAttribute('style'); 
     
-    // Gera a carta sem botões
+    // 1. Gera o HTML da carta
     container.innerHTML = createCardHTML(card, false, null, false);
     
-    // Remove a classe 'card-small' para o CSS do modal aplicar o tamanho grande
+    // 2. Aplica os estilos necessários (cor da borda)
     const innerCard = container.querySelector('.card-preview');
+    const rarityStyles = getRarityStyles(card.rarity);
+    
+    // Remove a classe 'card-small' para usar o tamanho grande
     innerCard.classList.remove('card-small'); 
     
+    // Adiciona a borda dinâmica e desativa o clique
+    innerCard.style.border = `4px solid ${rarityStyles.primary}`; 
+    innerCard.style.cursor = 'default'; 
+
     document.getElementById('card-zoom-modal').classList.remove('hidden');
 }
 
