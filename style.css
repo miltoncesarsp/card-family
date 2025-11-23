@@ -2405,22 +2405,6 @@ width: 280px !important;
         padding-bottom: 10px;
     }
 
-   /* Cartas de Visualização (Mão de Defesa) */
-#dungeon-hand .card-preview {
-    width: 80px !important; 
-    height: 112px !important;
-    font-size: 0.65em !important;
-}
-
-/* Cartas de Combate (Mão Interativa no Overlay) */
-#dungeon-hand .card-preview {
-    /* Força o uso dos tamanhos .card-small definidos globalmente */
-    width: 80px !important; 
-    height: 112px !important;
-    font-size: 0.6em !important; 
-    margin: 5px !important; /* Adiciona um respiro */
-}
-
 /* Slots de Monstro e Jogador no Combate */
 #dungeon-monster-card, 
 #dungeon-player-slot {
