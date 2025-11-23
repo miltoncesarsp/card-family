@@ -447,17 +447,52 @@ function resetBaseFormState() {
     document.getElementById("baseFormContainer").classList.remove("editing-mode");
 }
 
+/* === UTILITÁRIO DE MODAL GENÉRICO === */
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+    // Limpa variáveis globais se necessário
+    if(modalId === 'editPackModal') currentEditPackId = null;
+    if(modalId === 'editPlayerModal') currentEditPlayerId = null;
+    if(modalId === 'editBaseModal') currentEditBaseCharacterId = null;
+}
+window.closeModal = closeModal; // Exporta para o HTML
+
+/* ==========================================================
+   1. BASE CHARACTERS (MODAL)
+   ========================================================== */
 async function handleEditBaseCharacter(event) {
     const baseId = event.currentTarget.dataset.id;
     currentEditBaseCharacterId = baseId;
-    const { data: baseData } = await supabase.from('personagens_base').select('*').eq('id_base', baseId).single();
-    if (baseData) {
-        document.getElementById("basePersonagem").value = baseData.personagem;
-        document.getElementById("baseOrigem").value = baseData.origem;
-        document.getElementById("baseElemento").value = baseData.elemento;
-        document.getElementById("saveBaseBtn").textContent = "Atualizar Personagem Base";
-        document.getElementById("baseFormContainer").classList.add("editing-mode");
-        document.getElementById('baseFormContainer').scrollIntoView({ behavior: 'smooth' });
+
+    const { data: baseData, error } = await supabase.from('personagens_base').select('*').eq('id_base', baseId).single();
+    
+    if (error) { showToast("Erro ao carregar base", "error"); return; }
+
+    // Preenche o modal
+    document.getElementById('modalBaseId').value = baseData.id_base;
+    document.getElementById('modalBasePersonagem').value = baseData.personagem;
+    document.getElementById('modalBaseOrigem').value = baseData.origem;
+    document.getElementById('modalBaseElemento').value = baseData.elemento;
+
+    // Abre modal
+    document.getElementById('editBaseModal').classList.remove('hidden');
+}
+
+async function saveBaseFromModal() {
+    const id = document.getElementById('modalBaseId').value;
+    const personagem = document.getElementById('modalBasePersonagem').value;
+    const origem = document.getElementById('modalBaseOrigem').value;
+    const elemento = document.getElementById('modalBaseElemento').value;
+
+    const { error } = await supabase.from('personagens_base')
+        .update({ personagem, origem, elemento })
+        .eq('id_base', id);
+
+    if (error) showToast("Erro: " + error.message, "error");
+    else {
+        showToast("Personagem Base atualizado!");
+        closeModal('editBaseModal');
+        loadUnifiedView();
     }
 }
 
@@ -503,17 +538,37 @@ async function loadRarityRules() {
     document.getElementById('rarityRulesFormSection').style.display = 'none';
 }
 
+/* ==========================================================
+   4. REGRAS (MODAL)
+   ========================================================== */
 async function handleEditRarity(event) {
     const name = event.currentTarget.dataset.name;
-    currentEditRarityName = name;
     const { data: rule } = await supabase.from('regras_raridade').select('*').eq('raridade_nome', name).single();
+    
     if (rule) {
-        document.getElementById('rarityNameInput').value = rule.raridade_nome;
-        document.getElementById('evolutionCostInput').value = rule.repetidas_para_evoluir;
-        document.getElementById('orderInput').value = rule.ordem_evolucao;
-        document.getElementById('saveRarityBtn').textContent = `Atualizar ${name}`;
-        document.getElementById('rarityRulesFormSection').style.display = 'block';
-        document.getElementById('rarityRulesFormSection').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('modalRuleName').value = rule.raridade_nome;
+        document.getElementById('modalRuleCost').value = rule.repetidas_para_evoluir;
+        document.getElementById('modalRuleOrder').value = rule.ordem_evolucao;
+        
+        document.getElementById('editRuleModal').classList.remove('hidden');
+    }
+}
+
+async function saveRarityFromModal() {
+    const name = document.getElementById('modalRuleName').value;
+    const custo = document.getElementById('modalRuleCost').value;
+    const ordem = document.getElementById('modalRuleOrder').value;
+
+    const { error } = await supabase.from('regras_raridade')
+        .update({ repetidas_para_evoluir: custo, ordem_evolucao: ordem })
+        .eq('raridade_nome', name);
+
+    if (error) showToast("Erro: " + error.message, "error");
+    else {
+        showToast("Regra atualizada!");
+        closeModal('editRuleModal');
+        loadRarityRules();
+        loadEvolutionCosts(); // Atualiza cache global
     }
 }
 
@@ -568,23 +623,61 @@ async function handleEditPack(event) {
     const { data: pack } = await supabase.from('pacotes').select('*').eq('id', id).single();
     
     if(pack) {
-        document.getElementById('packNameInput').value = pack.nome;
-        document.getElementById('packPriceInput').value = pack.preco_moedas;
-        document.getElementById('packTotalCardsInput').value = pack.cartas_total;
+        document.getElementById('modalPackId').value = pack.id;
+        document.getElementById('modalPackName').value = pack.nome;
+        document.getElementById('modalPackPrice').value = pack.preco_moedas;
+        document.getElementById('modalPackTotal').value = pack.cartas_total;
         
         // Chances
-        document.getElementById('chanceComumInput').value = (pack.chance_comum * 100).toFixed(1);
-        document.getElementById('chanceRaraInput').value = (pack.chance_rara * 100).toFixed(1);
-        document.getElementById('chanceEpicaInput').value = (pack.chance_epica * 100).toFixed(1);
-        document.getElementById('chanceLendariaInput').value = (pack.chance_lendaria * 100).toFixed(1);
-        document.getElementById('chanceMiticaInput').value = (pack.chance_mitica * 100).toFixed(1);
+        document.getElementById('modalChanceComum').value = (pack.chance_comum * 100).toFixed(1);
+        document.getElementById('modalChanceRara').value = (pack.chance_rara * 100).toFixed(1);
+        document.getElementById('modalChanceEpica').value = (pack.chance_epica * 100).toFixed(1);
+        document.getElementById('modalChanceLendaria').value = (pack.chance_lendaria * 100).toFixed(1);
+        document.getElementById('modalChanceMitica').value = (pack.chance_mitica * 100).toFixed(1);
         
-        // Imagem (Novo)
-        document.getElementById('packCurrentImageUrl').value = pack.imagem_url || "";
+        document.getElementById('modalPackCurrentUrl').value = pack.imagem_url || "";
         
-        document.getElementById('savePackBtn').textContent = `Atualizar Pacote ${pack.nome}`;
-        document.getElementById('packFormContainer').style.display = 'block';
-        document.getElementById('packFormContainer').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('editPackModal').classList.remove('hidden');
+    }
+}
+
+async function savePackFromModal() {
+    const id = document.getElementById('modalPackId').value;
+    const nome = document.getElementById('modalPackName').value;
+    const preco = document.getElementById('modalPackPrice').value;
+    const total = document.getElementById('modalPackTotal').value;
+    
+    // Imagem
+    const file = document.getElementById('modalPackFile').files[0];
+    let imgUrl = document.getElementById('modalPackCurrentUrl').value;
+    
+    if (file) {
+        const compressed = await compressImage(file);
+        const fileName = `packs/pack_${Date.now()}.jpeg`;
+        const { error } = await supabase.storage.from(BUCKET_NAME).upload(fileName, compressed);
+        if(!error) {
+            const { data } = supabase.storage.from(BUCKET_NAME).getPublicUrl(fileName);
+            imgUrl = data.publicUrl;
+        }
+    }
+
+    const chances = {
+        chance_comum: parseFloat(document.getElementById('modalChanceComum').value) / 100,
+        chance_rara: parseFloat(document.getElementById('modalChanceRara').value) / 100,
+        chance_epica: parseFloat(document.getElementById('modalChanceEpica').value) / 100,
+        chance_lendaria: parseFloat(document.getElementById('modalChanceLendaria').value) / 100,
+        chance_mitica: parseFloat(document.getElementById('modalChanceMitica').value) / 100
+    };
+
+    const { error } = await supabase.from('pacotes').update({
+        nome, preco_moedas: preco, cartas_total: total, imagem_url: imgUrl, ...chances
+    }).eq('id', id);
+
+    if (error) showToast("Erro: " + error.message, "error");
+    else {
+        showToast("Pacote atualizado!");
+        closeModal('editPackModal');
+        loadPacks();
     }
 }
 
@@ -674,24 +767,40 @@ async function loadPlayers() {
     document.querySelectorAll('.edit-player-btn').forEach(button => button.addEventListener('click', handleEditPlayer));
 }
 
+/* ==========================================================
+   3. JOGADORES (MODAL)
+   ========================================================== */
 async function handleEditPlayer(event) {
     const id = event.currentTarget.dataset.id;
-    // Garanta que você busca o NOME no select abaixo se necessário,
-    // mas vamos assumir que o *.* já traz ele
-    const { data: player } = await supabase.from('jogadores').select('*').eq('id', id).single(); 
+    currentEditPlayerId = id;
+    const { data: player } = await supabase.from('jogadores').select('*').eq('id', id).single();
     
     if(player) {
-        document.getElementById('playerEditId').value = player.id;
-        document.getElementById('playerEditEmail').value = player.email;
+        document.getElementById('modalPlayerId').value = player.id;
+        document.getElementById('modalPlayerEmail').value = player.email;
+        document.getElementById('modalPlayerName').value = player.nome;
+        document.getElementById('modalPlayerMoedas').value = player.moedas;
+        document.getElementById('modalPlayerNivel').value = player.nivel;
         
-        // 🚨 MUDANÇA 1: Carrega o nome do jogador para o input
-        document.getElementById('playerEditName').value = player.nome || ''; 
-        
-        document.getElementById('playerEditMoedas').value = player.moedas;
-        document.getElementById('playerEditNivel').value = player.nivel;
-        
-        document.getElementById('playerEditFormSection').style.display = 'block';
-        document.getElementById('playerEditFormSection').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('editPlayerModal').classList.remove('hidden');
+    }
+}
+
+async function savePlayerFromModal() {
+    const id = document.getElementById('modalPlayerId').value;
+    const nome = document.getElementById('modalPlayerName').value;
+    const moedas = document.getElementById('modalPlayerMoedas').value;
+    const nivel = document.getElementById('modalPlayerNivel').value;
+
+    const { error } = await supabase.from('jogadores')
+        .update({ nome, moedas, nivel })
+        .eq('id', id);
+
+    if (error) showToast("Erro: " + error.message, "error");
+    else {
+        showToast("Jogador atualizado!");
+        closeModal('editPlayerModal');
+        loadPlayers();
     }
 }
 
@@ -830,6 +939,10 @@ document.getElementById("saveCardBtn").addEventListener("click", saveNewCard);
 document.getElementById("saveBaseBtn").addEventListener("click", saveBasePersonagem);
 // Botão do MODAL (EDITAR)
 document.getElementById("modalSaveBtn").addEventListener("click", saveCardFromModal);
+document.getElementById('modalSaveBaseBtn').addEventListener('click', saveBaseFromModal);
+document.getElementById('modalSavePackBtn').addEventListener('click', savePackFromModal);
+document.getElementById('modalSavePlayerBtn').addEventListener('click', savePlayerFromModal);
+document.getElementById('modalSaveRuleBtn').addEventListener('click', saveRarityFromModal);
 
 document.getElementById("cancelEditBtn").addEventListener("click", cancelEditCard); 
 document.getElementById("saveRarityBtn").addEventListener("click", saveRarityRule);
