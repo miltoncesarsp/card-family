@@ -2270,44 +2270,56 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
 
 /* === CORREÇÃO MÃO MASMORRA (Lado a Lado) === */
 #dungeon-hand {
+    /* Força as cartas a se alinharem, mesmo se o JS não tiver o flex-direction */
     display: flex !important;
-    flex-direction: row !important; /* Força linha */
-    flex-wrap: wrap; /* Quebra linha se não couber */
+    flex-direction: row !important; 
+    flex-wrap: wrap; 
     justify-content: center;
     gap: 10px;
+    /* Adicione estas linhas para permitir scroll no mobile se a mão for muito grande */
+    overflow-x: auto; 
+    padding: 5px;
 }
 
 /* === MODAL DE ZOOM (CARD GRANDE) === */
+/* === CORREÇÃO ZOOM (Borda, Artefato e Botão) === */
 #card-zoom-modal {
-    flex-direction: column; /* Botão embaixo da carta */
-    background: rgba(0, 0, 0, 0.92); /* Fundo bem escuro */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed; 
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 30000 !important;
+    background: rgba(0, 0, 0, 0.95); /* Fundo bem escuro */
+    flex-direction: column; 
 }
 
 .card-zoom-content {
+    /* MANTÉM O CONTEÚDO MINIMALISTA PARA EVITAR ARTEFATOS */
     display: flex;
     flex-direction: column;
-    align-items: center; /* Centraliza tudo */
-    width: auto; /* Remove largura 100% que esticava */
+    align-items: center;
+    justify-content: center;
+    padding: 0; /* Remove padding que poderia criar a "borda" */
+    background: transparent; /* Garante que não tenha fundo próprio */
 }
 
 #zoomed-card .card-preview {
-    width: 280px !important;
+    width: 280px !important; 
     height: 392px !important;
     margin: 0 !important;
-    border: none !important; /* Remove borda branca extra se tiver */
-    box-shadow: 0 0 30px rgba(0,0,0,0.8);
-    font-size: 1.1em;
-    /* Garante que a borda da raridade apareça */
+    transform: none !important;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8); /* Sombra suave */
 }
 
 .close-zoom-btn {
-    margin-top: 20px;
-    width: auto; /* Não estica */
-    min-width: 120px;
-    background: #e74c3c; /* Vermelho botão */
+    margin-top: 25px; /* Mais espaço do card */
+    width: auto; 
+    min-width: 180px; /* Deixando um pouco maior */
+    background: #e74c3c;
     color: white;
     border: none;
-    padding: 12px 20px;
+    padding: 12px 25px;
     border-radius: 30px;
     font-weight: bold;
     cursor: pointer;
