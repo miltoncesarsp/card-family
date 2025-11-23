@@ -1156,15 +1156,19 @@ function resetUI() {
     
     // Limpa a mão e slots
     if(handContainer) handContainer.innerHTML = '';
+    
     if(playerSlot) {
-        playerSlot.innerHTML = '';
+        playerSlot.removeAttribute('style');
+        playerSlot.innerHTML = '<div class="slot-placeholder">Sua Carta</div>';
         playerSlot.className = 'card-slot empty';
     }
     if(enemySlot) {
+        enemySlot.removeAttribute('style');
         enemySlot.innerHTML = '<div class="card-back-pattern"></div>';
+        enemySlot.className = 'card-slot empty';
     }
     
-    // Reseta placar
+    // Reseta placar visualmente
     const scoreP = document.getElementById('score-player');
     const scoreE = document.getElementById('score-enemy');
     const roundEl = document.getElementById('current-round');
@@ -1172,11 +1176,10 @@ function resetUI() {
 
     if(scoreP) scoreP.textContent = '0';
     if(scoreE) scoreE.textContent = '0';
-    if(roundEl) roundEl.textContent = '- / -';
+    if(roundEl) roundEl.textContent = '1 / 3';
     if(enemyName) enemyName.textContent = 'RIVAL';
 
-    // --- AQUI ERA ONDE DAVA O ERRO ---
-    // Agora usamos verificação (if) antes de tentar limpar
+    // Limpa indicadores de força
     const pPower = document.getElementById('player-battle-power');
     const cPower = document.getElementById('cpu-battle-power');
     
@@ -1188,11 +1191,9 @@ function resetUI() {
         cPower.textContent = '?';
         cPower.classList.remove('winner');
     }
-    // --------------------------------
 
-    document.getElementById('btnStartBattle').classList.remove('hidden');
-    const handCont = document.querySelector('.player-hand-container');
-    if(handCont) handCont.classList.add('hidden');
+    // --- CORREÇÃO: NÃO ESCONDER MAIS A MÃO AQUI ---
+    // A lógica de esconder/mostrar agora é feita pelo #battle-game-area
 }
 
 async function initBattleMatch() {
