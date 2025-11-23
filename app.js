@@ -2445,43 +2445,46 @@ function renderDungeonHandVisual() {
     });
 }
 
-async function startDungeonGame() {
+function startDungeonGame() {
+    document.getElementById('games-menu').classList.add('hidden');
+    document.getElementById('dungeon-arena').classList.remove('hidden');
+    
+    // Mostra Menu, Esconde Jogo
+    document.getElementById('dungeon-menu-screen').classList.remove('hidden');
+    document.getElementById('dungeon-game-area').classList.add('hidden');
+}
+
+async function initDungeonRun() {
     const ownedCards = cardsInAlbum.filter(c => c.owned);
     if (ownedCards.length < 5) {
         await showGameAlert("PERIGO!", "Você precisa de 5 cartas para entrar!");
         return;
     }
 
-  dungeonState.playerHand = [...ownedCards].sort(() => 0.5 - Math.random()).slice(0, 5);
+    // COBRANÇA DE ENERGIA AQUI
+    if (!await checkAndSpendEnergy('dungeon')) return;
 
-    // Setup UI
-    document.getElementById('games-menu').classList.add('hidden');
-    document.getElementById('dungeon-arena').classList.remove('hidden');
+    // Sorteia Mão
+    dungeonState.playerHand = [...ownedCards].sort(() => 0.5 - Math.random()).slice(0, 5);
+
+    // Troca Tela (Menu -> Jogo)
+    document.getElementById('dungeon-menu-screen').classList.add('hidden');
+    document.getElementById('dungeon-game-area').classList.remove('hidden');
     document.getElementById('dungeon-combat-overlay').classList.add('hidden');
 
-    // Reset
+    // Reset Estado
     dungeonState.lives = 3;
     dungeonState.currentLoot = 0;
     dungeonState.foundTreasures = 0;
     dungeonState.isLocked = false;
     dungeonState.combatMonster = null;
-    
-    // --- NOVO: TRAVA DE ENERGIA ---
-    dungeonState.firstMove = true; 
-    // ------------------------------
-    
-    updateDungeonUI();
-    renderDungeonHand();
+    dungeonState.firstMove = false; // Já pagou na entrada
 
-    // 4. Gera o Tabuleiro (4x4 = 16 tiles)
-    // NOVA DISTRIBUIÇÃO:
-    // 6 Tesouros (Ouro)
-    // 5 Monstros (Perigo)
-    // 2 Poções (Vida)
-    // 2 Armadilhas (Perde Carta) <--- NOVO
-    // 1 Reforço (Ganha Carta)   <--- NOVO
-    
- let contents = [];
+    updateDungeonUI();
+    renderDungeonHand(); 
+
+    // Gera Grid
+    let contents = [];
     for(let i=0; i<6; i++) contents.push('treasure');
     for(let i=0; i<5; i++) contents.push('monster');
     for(let i=0; i<2; i++) contents.push('potion');
@@ -2555,15 +2558,6 @@ function renderDungeonHand() {
 
 async function handleDungeonClick(tile) {
     if (tile.classList.contains('revealed') || dungeonState.isLocked) return;
-
-    // --- COBRANÇA DE ENERGIA NO PRIMEIRO CLIQUE ---
-    if (dungeonState.firstMove) {
-        const pagou = await checkAndSpendEnergy('dungeon');
-        if (!pagou) return; // Se não pagar, não revela nada
-        
-        dungeonState.firstMove = false; // Marca como pago
-    }
-    // ----------------------------------------------
 
     tile.classList.add('revealed');
     const type = tile.dataset.type;
