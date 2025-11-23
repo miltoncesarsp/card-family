@@ -1507,62 +1507,6 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     filter: grayscale(1);
 }
 
-/* Ajuste Mobile */
-@media (max-width: 600px) {
-.combat-zone { gap: 5px; transform: scale(0.9); }
-    
-    /* 🚨 MUDE ISTO: Alinha no começo para permitir rolagem correta */
-    .hand-grid { 
-        justify-content: flex-start; 
-        padding-left: 10px; /* Um respiro na esquerda */
-        padding-right: 10px;
-    }
-
-   /* --- JOGO DA MEMÓRIA --- */
-    .memory-grid-container {
-        /* Diminui o espaço entre as cartas */
-        gap: 5px !important; 
-        padding: 5px !important;
-        /* Garante que não ultrapasse a largura da tela */
-        width: 100% !important;
-        box-sizing: border-box;
-    }
-
-    /* --- JOGO PUZZLE --- */
-    .puzzle-grid {
-        /* Muda de largura fixa (300px) para fluida */
-        width: 90% !important; 
-        max-width: 300px; /* Trava no máximo, mas encolhe se precisar */
-        margin: 0 auto; /* Centraliza */
-    }
-
-    /* --- JOGO O ALVO --- */
-    .target-game-container {
-        /* Diminui o espaçamento interno */
-        padding: 10px !important;
-        gap: 10px !important;
-    }
-
-    .target-tube {
-        /* Tubo um pouco menor no celular para caber na tela vertical */
-        height: 250px !important;
-    }
-
-    /* Força a carta do Alvo a ficar menor no celular */
-    #target-card-display {
-        transform: scale(0.7) !important; /* Reduz para 70% do tamanho */
-        margin-top: -20px !important; /* Puxa um pouco pra cima */
-    }
-    
-    /* Ajuste dos botões para não ficarem gigantes */
-    .battle-controls button {
-        padding: 10px 15px;
-        font-size: 0.9em;
-    }
-   
-
-   
-}
 
 /* === EFEITOS DE RESULTADO NA BATALHA === */
 .card-slot.win {
@@ -1624,13 +1568,14 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
 
 /* === JOGO DA MEMÓRIA === */
 
+/* Ajuste dinâmico do Grid de Memória */
 .memory-grid-container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 Colunas */
     gap: 10px;
     padding: 10px;
-    max-width: 500px; /* Não ficar gigante no PC */
+    max-width: 500px;
     margin: 0 auto;
+    /* O JS vai definir as colunas (grid-template-columns) */
 }
 
 /* Carta do Jogo da Memória */
@@ -2072,6 +2017,57 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     /* Diminui um pouco a fonte/ícones no mobile para caber 4 colunas */
     .tile-back i { font-size: 20px !important; }
     .tile-back { font-size: 0.8em; }
+
+   .combat-zone { gap: 5px; transform: scale(0.9); }
+    
+    /* 🚨 MUDE ISTO: Alinha no começo para permitir rolagem correta */
+    .hand-grid { 
+        justify-content: flex-start; 
+        padding-left: 10px; /* Um respiro na esquerda */
+        padding-right: 10px;
+    }
+
+   /* --- JOGO DA MEMÓRIA --- */
+.memory-grid-container {
+        gap: 5px !important;
+    }
+
+   .memory-card {
+        min-height: 70px; /* Altura mínima para não ficar achatada */
+    }
+
+    /* --- JOGO PUZZLE --- */
+    .puzzle-grid {
+        /* Muda de largura fixa (300px) para fluida */
+        width: 90% !important; 
+        max-width: 300px; /* Trava no máximo, mas encolhe se precisar */
+        margin: 0 auto; /* Centraliza */
+    }
+
+    /* --- JOGO O ALVO --- */
+    .target-game-container {
+        /* Diminui o espaçamento interno */
+        padding: 10px !important;
+        gap: 10px !important;
+    }
+
+    .target-tube {
+        /* Tubo um pouco menor no celular para caber na tela vertical */
+        height: 250px !important;
+    }
+
+    /* Força a carta do Alvo a ficar menor no celular */
+    #target-card-display {
+        transform: scale(0.7) !important; /* Reduz para 70% do tamanho */
+        margin-top: -20px !important; /* Puxa um pouco pra cima */
+    }
+    
+    /* Ajuste dos botões para não ficarem gigantes */
+    .battle-controls button {
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+   
 }
 
 /* Peça na posição CORRETA */
