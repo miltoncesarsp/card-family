@@ -1845,40 +1845,33 @@ async function endTargetGame(survived) {
 
     if (!survived) {
         title = "QUEBROU! 💥";
-        message = "O tubo estourou. Você foi ganancioso!";
+        message = "O tubo estourou. Você foi ganancioso e perdeu tudo!";
     } else {
         const diff = targetState.goal - targetState.current;
-        // Calcula o erro em porcentagem (ex: era 50, parei em 48, erro de 4%)
         const errorPercentage = (diff / targetState.goal) * 100;
 
-        // --- LÓGICA DE PRÊMIO DINÂMICO ---
-        // 1. Pega o valor configurado no Admin (ex: 300)
+        // 1. Pega o valor configurado no Admin
         const config = minigameConfig['target'] || { reward: 150, multi: 1.0 };
         const maxPrize = Math.floor(config.reward * config.multi);
 
-        // 2. Fatias do Prêmio
+        // 2. Fatias do Prêmio e Mensagens com VALOR
         if (diff === 0) { 
-            // PERFEITO: 100% do valor
             prize = maxPrize; 
             title = "PERFEITO! 🎯"; 
-            message = "Na mosca! Prêmio Máximo!";
+            message = `Na mosca! Você ganhou o prêmio máximo: +${prize} moedas!`;
         } else if (errorPercentage <= 5) { 
-            // MUITO PERTO (Erro até 5%): 70% do valor
             prize = Math.floor(maxPrize * 0.70); 
             title = "INCRÍVEL! 🔥"; 
-            message = "Muito perto! Ganhou 70% do prêmio.";
+            message = `Muito perto! Você garantiu +${prize} moedas.`;
         } else if (errorPercentage <= 15) { 
-            // PERTO (Erro até 15%): 30% do valor
             prize = Math.floor(maxPrize * 0.30); 
             title = "BOA! 👍"; 
-            message = "Jogou seguro. Ganhou 30% do prêmio.";
+            message = `Jogou seguro. Você ganhou +${prize} moedas.`;
         } else { 
-            // LONGE: 5% do valor (Consolação)
             prize = Math.floor(maxPrize * 0.05); 
             title = "LONGE... 😐"; 
-            message = "Valeu o esforço. Prêmio de consolação.";
+            message = `Valeu o esforço. Prêmio de consolação: +${prize} moedas.`;
         }
-        // ----------------------------------
 
         if (prize > 0) {
             await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
@@ -1892,7 +1885,6 @@ async function endTargetGame(survived) {
         document.getElementById('btn-target-exit').classList.remove('hidden');
     }, 500);
 }
-
 function quitTargetGame() {
     document.getElementById('target-arena').classList.add('hidden');
     document.getElementById('games-menu').classList.remove('hidden');
