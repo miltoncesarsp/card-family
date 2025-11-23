@@ -22,12 +22,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadRarityRules(); 
     loadPacks(); 
     loadPlayers();
+
+    document.getElementById('adminSearchInput').addEventListener('keyup', filterCards);
 });
 
 // FUNÇÕES AUXILIARES
 function slugify(text) {
     return text.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
 }
+
+/* === UTILITÁRIOS === */
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    let icon = type === 'success' ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-exclamation-circle"></i>';
+    
+    toast.innerHTML = `${icon} <span>${message}</span>`;
+    container.appendChild(toast);
+
+    // Remove após 3 segundos
+    setTimeout(() => {
+        toast.style.animation = 'fadeOutToast 0.5s forwards';
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
 
 function compressImage(file) {
     return new Promise((resolve) => {
@@ -44,6 +65,30 @@ function compressImage(file) {
             canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.8);
         };
     });
+}
+
+/* === LÓGICA DE BUSCA === */
+function filterCards() {
+    const term = document.getElementById('adminSearchInput').value.toLowerCase();
+    const containers = document.querySelectorAll('.personagem-base-container');
+    const titles = document.querySelectorAll('.group-title');
+
+    containers.forEach(container => {
+        const text = container.textContent.toLowerCase();
+        container.style.display = text.includes(term) ? "" : "none";
+    });
+}
+
+/* === MODAL DE EDIÇÃO === */
+function openEditModal() {
+    document.getElementById('editCardModal').classList.remove('hidden');
+}
+
+window.closeEditModal = function() {
+    document.getElementById('editCardModal').classList.add('hidden');
+    currentEditCardId = null;
+    document.getElementById('modalCardForm').reset();
+    document.getElementById('modalImagePreview').style.backgroundImage = 'none';
 }
 
 function getElementIcon(element) {
@@ -96,22 +141,125 @@ function updateNameDatalist(baseCharacters) {
 async function handleEdit(event) {
     const cardId = event.currentTarget.dataset.id;
     currentEditCardId = cardId;
+
+    // Busca dados frescos do banco
     const { data: cardData, error } = await supabase.from('cards').select('*').eq('id', cardId).single();
-    if (error || !cardData) { console.error(error); alert("Erro ao carregar carta."); return; }
     
-    document.getElementById("cardName").value = cardData.name;
-    document.getElementById("cardPower").value = cardData.power;
-    document.getElementById("cardRarity").value = cardData.rarity;
-    document.getElementById("saveCardBtn").textContent = "Atualizar Carta";
-    document.getElementById("cardForm").classList.add("editing-mode", "card-form-fixed");
-    document.getElementById("cancelEditBtn").style.display = 'inline-block';
+    if (error || !cardData) { 
+        console.error(error); 
+        showToast("Erro ao carregar carta.", "error"); 
+        return; 
+    }
     
-    previewCard(cardData.image_url);
-    window.scrollTo(0,0);
+    // Popula o MODAL
+    document.getElementById("modalCardId").value = cardData.id;
+    document.getElementById("modalBaseId").value = cardData.id_base;
+    document.getElementById("modalCardName").value = cardData.name;
+    document.getElementById("modalCardPower").value = cardData.power;
+    document.getElementById("modalCardRarity").value = cardData.rarity;
+    
+    if(cardData.image_url) {
+        document.getElementById('modalImagePreview').style.backgroundImage = `url('${cardData.image_url}')`;
+    }
+
+    openEditModal();
 }
 
 function cancelEditCard() {
     resetFormState();
+}
+
+// 2. Salvar NOVA Carta (Formulário do Topo)
+async function saveNewCard() {
+    const name = document.getElementById("cardName").value.trim();
+    const rarity = document.getElementById("cardRarity").value;
+    const power = parseInt(document.getElementById("cardPower").value);
+    const fileInput = document.getElementById("fileInput");
+    const file = fileInput.files[0];
+
+    if (!name || !rarity || !power || !file) { 
+        showToast("Para criar: Nome, Raridade, Força e Imagem são obrigatórios!", "error"); 
+        return; 
+    }
+
+    const { data: baseDataArray, error: baseError } = await supabase
+        .from("personagens_base").select("id_base, origem, elemento").ilike("personagem", name).limit(1);
+
+    if (baseError || baseDataArray.length === 0) {
+        showToast("Personagem Base não encontrado! Crie-o primeiro.", "error");
+        return;
+    }
+
+    const { id_base, elemento, origem } = baseDataArray[0];
+
+    // Upload
+    const compressed = await compressImage(file);
+    const safeRarity = slugify(rarity); 
+    const uniqueFileName = `${id_base}_${safeRarity}_${Date.now()}.jpeg`;
+    const filePath = `${slugify(origem)}/${uniqueFileName}`;
+
+    const { error: uploadError } = await supabase.storage.from(BUCKET_NAME).upload(filePath, compressed, { upsert: true });
+    if (uploadError) { showToast(`Erro upload: ${uploadError.message}`, "error"); return; }
+
+    const { data: publicUrlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filePath);
+    
+    const cardData = { name, rarity, element: elemento, power, id_base: id_base, image_url: publicUrlData.publicUrl };
+
+    const { error } = await supabase.from("cards").insert([cardData]);
+
+    if (error) { showToast(`Erro ao salvar: ${error.message}`, "error"); return; }
+
+    showToast(`Carta criada com sucesso!`);
+    
+    // Limpa form de criação
+    document.getElementById("cardForm").reset();
+    document.getElementById("cardPreviewContainer").innerHTML = "";
+    await loadUnifiedView();
+}
+
+// 3. Salvar EDIÇÃO (Vindo do Modal)
+async function saveCardFromModal() {
+    const id = document.getElementById("modalCardId").value;
+    const power = parseInt(document.getElementById("modalCardPower").value);
+    const rarity = document.getElementById("modalCardRarity").value;
+    const fileInput = document.getElementById("modalFileInput");
+    const file = fileInput.files[0];
+    const name = document.getElementById("modalCardName").value; // Apenas leitura visual, mas usado para log
+
+    if (!id) return;
+
+    let updateData = { power, rarity };
+
+    // Se tiver imagem nova, faz upload
+    if (file) {
+        // Precisamos da origem para a pasta. Busca rápido do elemento base (poderia otimizar, mas ok)
+        const baseId = document.getElementById("modalBaseId").value;
+        const { data: baseData } = await supabase.from('personagens_base').select('origem').eq('id_base', baseId).single();
+        
+        if (baseData) {
+            const compressed = await compressImage(file);
+            const safeRarity = slugify(rarity);
+            const fileName = `${baseId}_${safeRarity}_EDIT_${Date.now()}.jpeg`;
+            const filePath = `${slugify(baseData.origem)}/${fileName}`;
+            
+            const { error: uploadError } = await supabase.storage.from(BUCKET_NAME).upload(filePath, compressed);
+            
+            if (!uploadError) {
+                const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filePath);
+                updateData.image_url = urlData.publicUrl;
+            }
+        }
+    }
+
+    const { error } = await supabase.from("cards").update(updateData).eq('id', id);
+
+    if (error) {
+        showToast("Erro ao atualizar: " + error.message, "error");
+    } else {
+        showToast("Carta atualizada com sucesso!");
+        closeEditModal();
+        await loadUnifiedView(); // Recarrega a lista para mostrar mudanças
+    }
 }
 
 function previewCard(imageUrl = null) {
@@ -332,8 +480,11 @@ async function handleDelete(event) {
     const cardName = event.currentTarget.dataset.name;
     if (confirm(`Deletar carta ${cardName}?`)) {
         const { error } = await supabase.from('cards').delete().eq('id', cardId);
-        if (error) alert("Erro ao deletar. Verifique permissões.");
-        else { await loadUnifiedView(); }
+        if (error) showToast("Erro ao deletar.", "error");
+        else { 
+            showToast("Carta deletada.");
+            await loadUnifiedView(); 
+        }
     }
 }
 
@@ -698,8 +849,14 @@ document.getElementById("fileInput").addEventListener("change", previewCard);
 document.getElementById("cardName").addEventListener("input", previewCard);
 document.getElementById("cardPower").addEventListener("input", previewCard);
 document.getElementById("cardRarity").addEventListener("change", previewCard);
-document.getElementById("saveCardBtn").addEventListener("click", saveOrUpdateCard);
+
+// Botão do formulário do TOPO (CRIAR)
+document.getElementById("saveCardBtn").addEventListener("click", saveNewCard); 
+// Botão do formulário de BASE
 document.getElementById("saveBaseBtn").addEventListener("click", saveBasePersonagem);
+// Botão do MODAL (EDITAR)
+document.getElementById("modalSaveBtn").addEventListener("click", saveCardFromModal);
+
 document.getElementById("cancelEditBtn").addEventListener("click", cancelEditCard); 
 document.getElementById("saveRarityBtn").addEventListener("click", saveRarityRule);
 document.getElementById("savePackBtn").addEventListener("click", saveOrUpdatePack);
