@@ -1192,7 +1192,7 @@ async function initBattleMatch() {
         return;
     }
 
-    // 2. COBRANÇA DE ENERGIA (Nova posição)
+    // 2. COBRANÇA DE ENERGIA
     if (!await checkAndSpendEnergy('battle')) return;
 
     // 3. Setup Visual
@@ -1200,7 +1200,7 @@ async function initBattleMatch() {
     const battleStatus = document.getElementById('battle-status');
     
     btnStart.classList.add('hidden');
-    document.querySelector('#battle-arena .player-hand-container').classList.remove('hidden'); // Mostra a mão
+    document.querySelector('#battle-arena .player-hand-container').classList.remove('hidden');
     
     battleState.isProcessing = false;
     
@@ -1209,21 +1209,28 @@ async function initBattleMatch() {
         battleStatus.style.color = "#FFD700";
     }
 
-    // 4. Sorteia Mão e Busca Oponente
+    // 4. Sorteia Mão do Jogador
     const shuffled = [...myPlayableCards].sort(() => 0.5 - Math.random());
     battleState.myHand = shuffled.slice(0, 5);
 
+    // 5. Busca Oponente e Configura Deck da CPU
     const { data: enemyData, error: enemyError } = await supabase.rpc('buscar_oponente_batalha');
     
     if (enemyError) {
         showNotification("Erro ao achar oponente.", true);
-        resetUI(); // Devolve estado inicial se der erro (idealmente devolveria energia, mas ok por enquanto)
+        resetUI();
         return;
     }
 
-    // 5. Configura Estado
     battleState.enemyName = enemyData.nome;
-    battleState.enemyDeck = enemyData.cartas;
+    
+    // --- AQUI ESTÁ A MÁGICA DA CPU NÃO REPETIR ---
+    // Pegamos as 5 cartas dele e embaralhamos AGORA.
+    // Nas rodadas 1, 2 e 3, pegaremos os índices 0, 1 e 2.
+    // Isso garante aleatoriedade dentro do deck dele e zero repetição.
+    battleState.enemyDeck = [...enemyData.cartas].sort(() => 0.5 - Math.random());
+    // ---------------------------------------------
+
     battleState.round = 1;
     battleState.playerScore = 0;
     battleState.enemyScore = 0;
@@ -1232,7 +1239,7 @@ async function initBattleMatch() {
     if (enemyNameDisplay) enemyNameDisplay.textContent = battleState.enemyName.toUpperCase();
     
     updateRoundDisplay();
-    renderPlayerHand(); // Renderiza com o novo estilo
+    renderPlayerHand(); 
     
     if (battleStatus) battleStatus.textContent = "Sua vez! Escolha uma carta.";
 }
@@ -2141,18 +2148,20 @@ function renderJokenpoHand() {
 }
 
 async function playJokenpoRound(playerCard, cardEl) {
-    // Bloqueio de duplo clique
-    if (jokenpoState.isProcessing) return;
+    // Bloqueio de duplo clique e carta usada
+    if (jokenpoState.isProcessing || cardEl.classList.contains('played')) return;
+    
     jokenpoState.isProcessing = true;
+    
+    // --- MUDANÇA VISUAL: Marca carta como usada na hora ---
+    cardEl.classList.add('played'); // Adiciona classe CSS que deixa cinza
+    cardEl.style.pointerEvents = "none"; // Trava clique
+    // -----------------------------------------------------
 
     // 1. Escolha da CPU
-    // Pega a carta correspondente à rodada atual (Índice 0, 1 ou 2)
-    // jokenpoState.round começa em 1, então subtraímos 1 para pegar o índice do array
     let cpuCard = jokenpoState.cpuDeck[jokenpoState.round - 1];
-
-    // Fallback de segurança: Se por algum motivo o deck vier vazio ou menor
+    
     if (!cpuCard) {
-        // Pega uma carta aleatória do sistema só pra não travar
         const { data: allCards } = await supabase.from('cards').select('*').limit(20);
         cpuCard = allCards[Math.floor(Math.random() * allCards.length)];
     }
@@ -2180,33 +2189,21 @@ async function playJokenpoRound(playerCard, cardEl) {
     document.getElementById('jk-enemy-element').innerHTML = getElementIcon(cpuCard.element);
     document.getElementById('jk-enemy-element').style.background = getElementStyles(cpuCard.element).primary;
 
-    // --- 4. LÓGICA DE COMBATE HIERÁRQUICA ---
-    let result = 0; // 0=Empate, 1=Player, -1=CPU
+    // 4. Lógica de Combate (Mantida Igual)
+    let result = 0; 
     let reason = "";
 
-    // A. Verifica Vantagem de ELEMENTO (Prioridade Máxima)
     const myAdvantage = jokenpoState.rules.find(r => r.atacante === playerCard.element && r.defensor === cpuCard.element);
     const cpuAdvantage = jokenpoState.rules.find(r => r.atacante === cpuCard.element && r.defensor === playerCard.element);
 
     if (myAdvantage && myAdvantage.resultado === 1) {
-        result = 1;
-        reason = `Vantagem Elemental! (${playerCard.element} > ${cpuCard.element})`;
+        result = 1; reason = `Vantagem Elemental!`;
     } else if (cpuAdvantage && cpuAdvantage.resultado === 1) {
-        result = -1;
-        reason = `Desvantagem Elemental! (${cpuCard.element} > ${playerCard.element})`;
-    } 
-    // B. Se não houve vantagem elemental (Neutro ou Mesmo Elemento), usa a FORÇA
-    else {
-        if (playerCard.power > cpuCard.power) {
-            result = 1;
-            reason = "Elementos Neutros: Vitória por Força!";
-        } else if (playerCard.power < cpuCard.power) {
-            result = -1;
-            reason = "Elementos Neutros: Derrota por Força!";
-        } else {
-            result = 0;
-            reason = "Empate Total (Elemento e Força)";
-        }
+        result = -1; reason = `Desvantagem Elemental!`;
+    } else {
+        if (playerCard.power > cpuCard.power) { result = 1; reason = "Vitória por Força!"; }
+        else if (playerCard.power < cpuCard.power) { result = -1; reason = "Derrota por Força!"; }
+        else { result = 0; reason = "Empate Total"; }
     }
 
     // 5. Aplica Resultado Visual
@@ -2233,16 +2230,15 @@ async function playJokenpoRound(playerCard, cardEl) {
 
     updateJokenpoScore();
 
-    // 6. Controle de Rodadas
+    // --- 6. AUTOMATIZAÇÃO DA PRÓXIMA RODADA ---
     if (jokenpoState.round < 3) {
-        // Prepara próxima rodada
-        document.getElementById('btn-jk-next').classList.remove('hidden');
-        // Remove a carta usada da mão (visual)
-        cardEl.style.opacity = "0.3";
-        cardEl.style.pointerEvents = "none";
+        // Espera 2 segundos e vai para a próxima
+        setTimeout(() => {
+            nextJokenpoRound();
+        }, 2000);
     } else {
         // Fim de Jogo
-        setTimeout(finishJokenpoGame, 1500);
+        setTimeout(finishJokenpoGame, 2000);
     }
 }
 
