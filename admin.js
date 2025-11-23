@@ -1185,3 +1185,80 @@ window.handleEditGameClick = async (id) => {
 window.deleteOriginCover = deleteOriginCover;
 
 document.getElementById("cardName").addEventListener("input", previewCard);
+
+// --- LISTENERS ---
+
+// 1. Inputs de Preview (Seguro)
+const fileInput = document.getElementById("fileInput");
+if (fileInput) fileInput.addEventListener("change", previewCard);
+
+const inputsPreview = ["cardName", "cardPower", "cardRarity"];
+inputsPreview.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener("input", previewCard);
+        if (id === "cardRarity") el.addEventListener("change", previewCard);
+    }
+});
+
+// 2. Botões Principais (Seguro com Optional Chaining '?.')
+document.getElementById("saveCardBtn")?.addEventListener("click", saveNewCard);
+document.getElementById("saveBaseBtn")?.addEventListener("click", saveBasePersonagem);
+document.getElementById("savePackBtn")?.addEventListener("click", saveOrUpdatePack);
+document.getElementById("newPackBtn")?.addEventListener("click", resetPackForm);
+document.getElementById("savePlayerEditBtn")?.addEventListener("click", savePlayerEdit);
+document.getElementById("saveOriginCoverBtn")?.addEventListener("click", saveOriginCover);
+document.getElementById("cancelEditBtn")?.addEventListener("click", cancelEditCard);
+document.getElementById("saveRarityBtn")?.addEventListener("click", saveRarityRule);
+
+// 3. Botões de Salvar dos Modais
+document.getElementById("modalSaveBtn")?.addEventListener("click", saveCardFromModal);
+document.getElementById('modalSaveBaseBtn')?.addEventListener('click', saveBaseFromModal);
+document.getElementById('modalSavePackBtn')?.addEventListener('click', savePackFromModal);
+document.getElementById('modalSavePlayerBtn')?.addEventListener('click', savePlayerFromModal);
+document.getElementById('modalSaveRuleBtn')?.addEventListener('click', saveRarityFromModal);
+
+// 4. Botão Salvar Game (Economia)
+document.getElementById('modalSaveGameBtn')?.addEventListener('click', async () => {
+    const id = document.getElementById('modalGameId').value;
+    const reward = document.getElementById('modalGameReward').value;
+    const multi = document.getElementById('modalGameMulti').value;
+
+    const { error } = await supabase.from('minigame')
+        .update({ moedas_recompensa: reward, multiplicador: multi })
+        .eq('id', id);
+
+    if (error) showToast("Erro ao salvar game", "error");
+    else {
+        showToast("Economia atualizada!");
+        closeModal('editGameModal');
+        loadMinigames();
+    }
+});
+
+// 5. Botão Salvar Dia (Recompensa Diária)
+document.getElementById('modalSaveDailyBtn')?.addEventListener('click', async () => {
+    const dia = document.getElementById('modalDailyDay').value;
+    const desc = document.getElementById('modalDailyDesc').value;
+    const tipo = document.getElementById('modalDailyType').value;
+    const valor = parseInt(document.getElementById('modalDailyValue').value);
+
+    const { error } = await supabase.from('recompensas_diarias')
+        .update({ descricao: desc, tipo: tipo, valor: valor })
+        .eq('dia', dia);
+
+    if (error) showToast("Erro ao salvar", "error");
+    else {
+        showToast(`Dia ${dia} atualizado!`);
+        closeModal('editDailyModal');
+        loadDailyRewards();
+    }
+});
+
+// 6. Listener do Select de Tipo (Diário)
+const typeSelect = document.getElementById('modalDailyType');
+if (typeSelect) {
+    typeSelect.addEventListener('change', (e) => {
+        toggleDailyInputs(e.target.value);
+    });
+}
