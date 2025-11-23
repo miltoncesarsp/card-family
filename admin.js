@@ -1031,9 +1031,8 @@ async function loadDailyRewards() {
 
     let html = '';
     days.forEach(day => {
-        // Define cor e ícone baseados no tipo
         const isPack = day.tipo === 'pacote';
-        const color = isPack ? '#9b59b6' : '#f1c40f'; // Roxo para pacote, Amarelo para moeda
+        const color = isPack ? '#9b59b6' : '#f1c40f';
         const icon = isPack ? '<i class="fas fa-box-open"></i>' : '<i class="fas fa-coins"></i>';
         const valueText = isPack ? `Pacote ID: ${day.valor}` : `${day.valor} Moedas`;
 
@@ -1045,8 +1044,11 @@ async function loadDailyRewards() {
                     <span style="font-size:0.9em; opacity:0.8;">${icon} ${valueText}</span>
                 </div>
                 <div class="base-actions">
-                    <button class="btn-edit-base" onclick="handleEditDailyClick(${day.dia})">
+                    <button class="btn-edit-base" onclick="handleEditDailyClick(${day.dia})" title="Editar">
                         <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-delete-base" onclick="handleDeleteDailyClick(${day.dia})" title="Excluir Dia">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </div>
             </div>
@@ -1054,6 +1056,19 @@ async function loadDailyRewards() {
     });
     container.innerHTML = html;
 }
+
+// Função para Deletar Dia
+window.handleDeleteDailyClick = async (dia) => {
+    if(confirm(`Tem certeza que deseja excluir o Dia ${dia}? Isso pode criar um buraco na sequência.`)) {
+        const { error } = await supabase.from('recompensas_diarias').delete().eq('dia', dia);
+        
+        if(error) showToast("Erro ao excluir", "error");
+        else {
+            showToast("Dia removido.");
+            loadDailyRewards();
+        }
+    }
+};
 
 // Wrapper para o clique
 window.handleEditDailyClick = async (dia) => {
@@ -1065,10 +1080,7 @@ window.handleEditDailyClick = async (dia) => {
         document.getElementById('modalDailyDesc').value = dayData.descricao;
         document.getElementById('modalDailyType').value = dayData.tipo;
         document.getElementById('modalDailyValue').value = dayData.valor;
-        
-        // Ajusta visual se for pacote
         toggleDailyInputs(dayData.tipo);
-        
         document.getElementById('editDailyModal').classList.remove('hidden');
     }
 };
@@ -1085,6 +1097,36 @@ function toggleDailyInputs(type) {
         hint.style.display = 'none';
     }
 }
+
+// Função para Adicionar Novo Dia (Pega o último + 1)
+document.getElementById('addDailyBtn').addEventListener('click', async () => {
+    // 1. Descobre qual é o último dia atual
+    const { data: maxData } = await supabase
+        .from('recompensas_diarias')
+        .select('dia')
+        .order('dia', { ascending: false })
+        .limit(1);
+    
+    let nextDay = 1;
+    if (maxData && maxData.length > 0) {
+        nextDay = maxData[0].dia + 1;
+    }
+
+    // 2. Cria o novo dia com valor padrão
+    const { error } = await supabase.from('recompensas_diarias').insert([{
+        dia: nextDay,
+        tipo: 'moedas',
+        valor: 100,
+        descricao: `Prêmio do Dia ${nextDay}`
+    }]);
+
+    if (error) {
+        showToast("Erro ao criar dia: " + error.message, "error");
+    } else {
+        showToast(`Dia ${nextDay} adicionado!`);
+        loadDailyRewards(); // Recarrega a lista
+    }
+});
 
 // Wrappers globais para os onlicks do HTML funcionarem
 window.handleEditBaseCharacterClick = async (id) => {
