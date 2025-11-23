@@ -1558,24 +1558,32 @@ async function attemptPlay(gameType) {
     // Jogos DIRETOS (Batalha, Alvo, Jokenpo, Masmorra) cobram aqui.
 
 // ROTEADOR DE JOGOS (Ajustado)
-    switch (gameType) {
+switch (gameType) {
         case 'battle':
-            startBattleGame(); // Só abre a tela, não cobra
+            // Batalha cobra na hora (MANTIDO)
+            if(await checkAndSpendEnergy('battle')) startBattleGame();
             break;
+            
         case 'memory':
-            startMemoryGame(); 
+            startMemoryGame(); // Menu
             break;
+            
         case 'puzzle':
-            startPuzzleGame(); 
+            startPuzzleGame(); // Menu
             break;
+            
         case 'jokenpo':
-             startJokenpoGame(); // Só abre a tela, não cobra
+             // Jokenpo cobra ao buscar (MANTIDO - ajustamos isso antes)
+             startJokenpoGame(); 
              break;
+             
+        // --- ALTERAÇÃO AQUI: ALVO E MASMORRA AGORA SÃO DIRETOS (SEM COBRANÇA INICIAL) ---
         case 'target':
-            if(await checkAndSpendEnergy('target')) startTargetGame(); // Esse mantém direto
+            startTargetGame(); 
             break;
+            
         case 'dungeon':
-             if(await checkAndSpendEnergy('dungeon')) startDungeonGame(); // Esse mantém direto
+             startDungeonGame();
              break;
     }
 }
@@ -1758,10 +1766,9 @@ function quitMemoryGame() {
 // MINIGAME: O ALVO (BLACKJACK VISUAL)
 // =================================================
 
-async function startTargetGame() { // 🚨 Adicione 'async'
+async function startTargetGame() { 
     const myDeck = cardsInAlbum.filter(c => c.owned);
     
-    // 🚨 SUBSTIUIÇÃO AQUI
     if (myDeck.length === 0) {
         await showGameAlert("SEM CARTAS", "Você precisa de cartas na coleção para jogar!");
         return;
@@ -1769,43 +1776,36 @@ async function startTargetGame() { // 🚨 Adicione 'async'
 
     // --- LÓGICA INTELIGENTE DE ALVO ---
     // Calcula a força média das cartas do jogador
-    const totalPower = myDeck.reduce((sum, card) => sum + card.power, 0);
+const totalPower = myDeck.reduce((sum, card) => sum + card.power, 0);
     const avgPower = Math.ceil(totalPower / myDeck.length);
-
-    // Define o alvo para ser algo entre "3 a 5 cartas médias"
-    // Ex: Se a média é 10, o alvo será entre 30 e 50.
     const minTarget = avgPower * 3;
     const maxTarget = avgPower * 5;
-    
     targetState.goal = Math.floor(Math.random() * (maxTarget - minTarget + 1)) + minTarget;
-    
-    // Define o tamanho do tubo visual (Alvo + 30% de folga para dar medo de estourar)
     targetMaxScale = Math.ceil(targetState.goal * 1.3);
-    // ----------------------------------
 
-    // UI Setup (Igual ao anterior)
+    // UI Setup
     document.getElementById('games-menu').classList.add('hidden');
     document.getElementById('target-arena').classList.remove('hidden');
     document.getElementById('btn-hit').classList.remove('hidden');
     document.getElementById('btn-stand').classList.remove('hidden');
     document.getElementById('btn-target-exit').classList.add('hidden');
     
-// Limpa a carta da mesa
     const cardSlot = document.getElementById('target-card-display');
     cardSlot.innerHTML = '<div class="card-back-pattern"></div>';
-    
-    // Remove apenas a imagem de fundo, mas mantém o tamanho (transform)
     cardSlot.style.backgroundImage = ''; 
     cardSlot.className = 'card-slot empty';
 
     targetState.current = 0;
     targetState.isGameOver = false;
+    
+    // --- NOVO: TRAVA DE ENERGIA ---
+    targetState.firstMove = true; // Indica que ainda não pagou
+    // ------------------------------
 
     // Renderiza
     document.getElementById('target-goal').textContent = targetState.goal;
     document.getElementById('target-current').textContent = '0';
 
-    // Posiciona a linha vermelha baseada na nova escala dinâmica
     const linePercent = (targetState.goal / targetMaxScale) * 100;
     document.getElementById('target-line').style.bottom = `${linePercent}%`;
 
@@ -1814,11 +1814,19 @@ async function startTargetGame() { // 🚨 Adicione 'async'
     liquid.className = 'target-liquid-fill';
 }
 
-function targetHit() {
+async function targetHit() { // <--- AGORA É ASYNC
     if (targetState.isGameOver) return;
 
+    // --- COBRANÇA DE ENERGIA NO PRIMEIRO CLIQUE ---
+    if (targetState.firstMove) {
+        const pagou = await checkAndSpendEnergy('target');
+        if (!pagou) return; // Se não tiver energia, não deixa jogar
+        
+        targetState.firstMove = false; // Já pagou, libera o resto
+    }
+    // ----------------------------------------------
+
     const myDeck = cardsInAlbum.filter(c => c.owned);
-    // Pega carta da coleção
     const randomCard = myDeck[Math.floor(Math.random() * myDeck.length)];
     
     renderCardInSlot(randomCard, 'target-card-display');
@@ -1826,14 +1834,13 @@ function targetHit() {
     targetState.current += randomCard.power;
     document.getElementById('target-current').textContent = targetState.current;
 
-    // Atualiza Visual usando a escala dinâmica
     let fillPercent = (targetState.current / targetMaxScale) * 100;
     if (fillPercent > 100) fillPercent = 100; 
     
     const liquid = document.getElementById('target-liquid');
     liquid.style.height = `${fillPercent}%`;
 
-    if (targetState.current >= targetState.goal - (targetState.goal * 0.15)) { // 15% de margem
+    if (targetState.current >= targetState.goal - (targetState.goal * 0.15)) { 
         liquid.classList.add('danger');
     }
 
@@ -2445,10 +2452,7 @@ async function startDungeonGame() {
         return;
     }
 
-    // COBRANÇA DE ENERGIA (Adicione se ainda não tiver)
-    if (!await checkAndSpendEnergy('dungeon')) return;
-
-dungeonState.playerHand = [...ownedCards].sort(() => 0.5 - Math.random()).slice(0, 5);
+  dungeonState.playerHand = [...ownedCards].sort(() => 0.5 - Math.random()).slice(0, 5);
 
     // Setup UI
     document.getElementById('games-menu').classList.add('hidden');
@@ -2460,10 +2464,14 @@ dungeonState.playerHand = [...ownedCards].sort(() => 0.5 - Math.random()).slice(
     dungeonState.currentLoot = 0;
     dungeonState.foundTreasures = 0;
     dungeonState.isLocked = false;
-    updateDungeonUI();
+    dungeonState.combatMonster = null;
     
-    // RENDERIZA A MÃO VISUAL
-    renderDungeonHandVisual();
+    // --- NOVO: TRAVA DE ENERGIA ---
+    dungeonState.firstMove = true; 
+    // ------------------------------
+    
+    updateDungeonUI();
+    renderDungeonHand();
 
     // 4. Gera o Tabuleiro (4x4 = 16 tiles)
     // NOVA DISTRIBUIÇÃO:
@@ -2473,55 +2481,44 @@ dungeonState.playerHand = [...ownedCards].sort(() => 0.5 - Math.random()).slice(
     // 2 Armadilhas (Perde Carta) <--- NOVO
     // 1 Reforço (Ganha Carta)   <--- NOVO
     
-    let contents = [];
+ let contents = [];
     for(let i=0; i<6; i++) contents.push('treasure');
     for(let i=0; i<5; i++) contents.push('monster');
     for(let i=0; i<2; i++) contents.push('potion');
-    for(let i=0; i<2; i++) contents.push('trap');      // Armadilha
-    for(let i=0; i<1; i++) contents.push('reinforce'); // Reforço
-    
-    dungeonState.totalTreasures = 6; // Define o objetivo
-
-    contents.sort(() => 0.5 - Math.random()); 
+    for(let i=0; i<2; i++) contents.push('trap');
+    for(let i=0; i<1; i++) contents.push('reinforce');
+    dungeonState.totalTreasures = 6;
+    contents.sort(() => 0.5 - Math.random());
 
     const grid = document.getElementById('dungeon-grid');
     grid.innerHTML = '';
 
     contents.forEach((type, index) => {
-        const tile = document.createElement('div');
-        tile.className = 'dungeon-tile';
-        tile.dataset.index = index;
-        tile.dataset.type = type;
-        
-        let contentHTML = '';
-        
-        if (type === 'treasure') {
-            const config = minigameConfig['dungeon'] || { multi: 1.0 };
-            let amount = Math.floor(Math.random() * 41) + 10;
-            amount = Math.ceil(amount * config.multi); // Aplica o multiplicador do Admin
-            tile.dataset.amount = amount;
-            contentHTML = `<div class="tile-back treasure"><i class="fas fa-coins" style="font-size:24px; margin-bottom:5px;"></i>+${amount}</div>`;
-        
-        } else if (type === 'potion') {
-            contentHTML = `<div class="tile-back potion"><i class="fas fa-heart" style="font-size:24px; margin-bottom:5px;"></i>CURA</div>`;
-        
-        } else if (type === 'trap') {
-            contentHTML = `<div class="tile-back trap"><i class="fas fa-shoe-prints" style="font-size:24px; margin-bottom:5px;"></i>-1 CARTA</div>`;
-        
-        } else if (type === 'reinforce') {
-            contentHTML = `<div class="tile-back reinforce"><i class="fas fa-user-plus" style="font-size:24px; margin-bottom:5px;"></i>ALIADO</div>`;
-        
-        } else {
-            contentHTML = `<div class="tile-back monster"><i class="fas fa-dragon" style="font-size:24px; margin-bottom:5px;"></i>MONSTRO</div>`;
-        }
-
-        tile.innerHTML = `
-            <div class="tile-front"></div>
-            ${contentHTML}
-        `;
-
-        tile.onclick = () => handleDungeonClick(tile);
-        grid.appendChild(tile);
+       const tile = document.createElement('div');
+       tile.className = 'dungeon-tile';
+       tile.dataset.index = index;
+       tile.dataset.type = type;
+       
+       let contentHTML = '';
+       if (type === 'treasure') {
+           const config = minigameConfig['dungeon'] || { multi: 1.0 };
+           let amount = Math.floor(Math.random() * 41) + 10;
+           amount = Math.ceil(amount * config.multi);
+           tile.dataset.amount = amount;
+           contentHTML = `<div class="tile-back treasure"><i class="fas fa-coins" style="font-size:24px; margin-bottom:5px;"></i>+${amount}</div>`;
+       } else if (type === 'potion') {
+           contentHTML = `<div class="tile-back potion"><i class="fas fa-heart" style="font-size:24px; margin-bottom:5px;"></i>CURA</div>`;
+       } else if (type === 'trap') {
+           contentHTML = `<div class="tile-back trap"><i class="fas fa-shoe-prints" style="font-size:24px; margin-bottom:5px;"></i>-1 CARTA</div>`;
+       } else if (type === 'reinforce') {
+           contentHTML = `<div class="tile-back reinforce"><i class="fas fa-user-plus" style="font-size:24px; margin-bottom:5px;"></i>ALIADO</div>`;
+       } else {
+           contentHTML = `<div class="tile-back monster"><i class="fas fa-dragon" style="font-size:24px; margin-bottom:5px;"></i>MONSTRO</div>`;
+       }
+       
+       tile.innerHTML = `<div class="tile-front"></div>${contentHTML}`;
+       tile.onclick = () => handleDungeonClick(tile);
+       grid.appendChild(tile);
     });
 }
 
@@ -2559,26 +2556,32 @@ function renderDungeonHand() {
 async function handleDungeonClick(tile) {
     if (tile.classList.contains('revealed') || dungeonState.isLocked) return;
 
+    // --- COBRANÇA DE ENERGIA NO PRIMEIRO CLIQUE ---
+    if (dungeonState.firstMove) {
+        const pagou = await checkAndSpendEnergy('dungeon');
+        if (!pagou) return; // Se não pagar, não revela nada
+        
+        dungeonState.firstMove = false; // Marca como pago
+    }
+    // ----------------------------------------------
+
     tile.classList.add('revealed');
     const type = tile.dataset.type;
 
     // --- 1. TESOURO ---
-    if (type === 'treasure') {
+if (type === 'treasure') {
         const amount = parseInt(tile.dataset.amount);
         dungeonState.currentLoot += amount;
-        dungeonState.foundTreasures++; // Conta +1 achado
+        dungeonState.foundTreasures++; 
         updateDungeonUI();
 
-        // VERIFICAÇÃO DE VITÓRIA AUTOMÁTICA
-        // Se achou todos os tesouros, sai automaticamente
-if (dungeonState.foundTreasures >= dungeonState.totalTreasures) {
+        if (dungeonState.foundTreasures >= dungeonState.totalTreasures) {
             setTimeout(async () => {
-                // 🚨 SUBSTIUIÇÃO AQUI
                 await showGameAlert("MAPA LIMPO! 🗺️", "Você encontrou todos os tesouros!");
                 forceDungeonExit();
             }, 500);
         }
-    } 
+    }
     // --- 2. POÇÃO (Vida) ---
     else if (type === 'potion') {
         if (dungeonState.lives < 3) {
