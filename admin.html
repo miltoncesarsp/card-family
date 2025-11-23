@@ -94,7 +94,16 @@
 
     
     <hr>
-    
+
+    <div class="admin-search-container">
+    <input type="text" id="adminSearchInput" class="admin-search-input" placeholder="🔍 Buscar personagem, origem ou raridade...">
+</div>
+
+<section class="management-section">
+    <h2>📊 Linha de Evolução e Gestão de Cartas</h2>
+    <div id="unifiedListContainer"></div>
+</section>
+    <hr>
     <section class="management-section">
         <h2>📊 Linha de Evolução e Gestão de Cartas</h2>
         <div id="unifiedListContainer"></div>
@@ -188,3 +197,40 @@
     <script src="supabaseClient-v2.js?v=2"></script>
     <script src="admin.js?v=3"></script> </body>
 </html>
+
+<div id="editCardModal" class="modal-overlay hidden">
+    <div class="admin-modal-content">
+        <div class="admin-modal-header">
+            <h3>✏️ Editar Carta</h3>
+            <button type="button" class="close-admin-modal" onclick="closeEditModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form class="card-form" id="modalCardForm" style="box-shadow: none; padding: 0; margin: 0;">
+            <input type="hidden" id="modalCardId">
+            <input type="hidden" id="modalBaseId"> <label>Nome (Visualização):</label>
+            <input id="modalCardName" type="text" disabled style="background: #eee;">
+
+            <label>Força:</label>
+            <input id="modalCardPower" type="number" min="0">
+            
+            <label>Raridade:</label>
+            <select id="modalCardRarity">
+                <option value="Comum">Comum</option>
+                <option value="Rara">Rara</option>
+                <option value="Épica">Épica</option>
+                <option value="Lendária">Lendária</option>
+                <option value="Mítica">Mítica</option>
+            </select>
+            
+            <label>Atualizar Imagem (Opcional):</label>
+            <input id="modalFileInput" type="file" accept="image/*">
+            <div id="modalImagePreview" style="margin-top: 10px; height: 100px; background-size: contain; background-repeat: no-repeat;"></div>
+
+            <button type="button" id="modalSaveBtn" class="btn-primary" style="margin-top: 20px;">💾 Salvar Alterações</button>
+        </form>
+    </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
