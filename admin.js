@@ -301,67 +301,6 @@ div.innerHTML = `
     container.appendChild(div);
 }
 
-async function saveOrUpdateCard() {
-    const name = document.getElementById("cardName").value.trim();
-    const rarity = document.getElementById("cardRarity").value;
-    const power = parseInt(document.getElementById("cardPower").value);
-    const fileInput = document.getElementById("fileInput");
-    const file = fileInput.files[0];
-    const isEditing = currentEditCardId !== null;
-    let existingImageUrl = null;
-
-    if (!name || !rarity || !power) { alert("Preencha Nome, Raridade e Força!"); return; }
-    if (!isEditing && !file) { alert("Selecione uma imagem para a nova carta!"); return; }
-
-    const { data: baseDataArray, error: baseError } = await supabase
-        .from("personagens_base").select("id_base, origem, elemento").ilike("personagem", name).limit(1);
-
-    if (baseError || baseDataArray.length === 0) {
-        alert("Personagem Base não encontrado! Crie-o primeiro.");
-        return;
-    }
-
-    const { id_base, elemento, origem } = baseDataArray[0];
-    let imageUrlToSave = null;
-
-    if (isEditing) {
-        const { data: existingCard } = await supabase.from('cards').select('image_url').eq('id', currentEditCardId).single();
-        existingImageUrl = existingCard ? existingCard.image_url : null;
-    }
-
-    if (file) {
-        const compressed = await compressImage(file);
-        const safeRarity = slugify(rarity); 
-        const uniqueFileName = `${id_base}_${safeRarity}_${Date.now()}.jpeg`;
-        const filePath = `${slugify(origem)}/${uniqueFileName}`;
-
-        const { error: uploadError } = await supabase.storage.from(BUCKET_NAME).upload(filePath, compressed, { upsert: true });
-        if (uploadError) { alert(`Erro upload: ${uploadError.message}`); return; }
-
-        const { data: publicUrlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filePath);
-        imageUrlToSave = publicUrlData.publicUrl;
-    } else {
-        imageUrlToSave = existingImageUrl;
-    }
-    
-    const cardData = { name, rarity, element: elemento, power, id_base: id_base, image_url: imageUrlToSave };
-    let dbError;
-
-    if (isEditing) {
-        const { error } = await supabase.from("cards").update(cardData).eq('id', currentEditCardId);
-        dbError = error;
-    } else {
-        const { error } = await supabase.from("cards").insert([cardData]);
-        dbError = error;
-    }
-
-    if (dbError) { console.error(dbError); alert(`Erro ao salvar: ${dbError.message}`); return; }
-
-    alert(`Carta ${isEditing ? 'atualizada' : 'salva'} com sucesso!`);
-    resetFormState();
-    await loadUnifiedView();
-}
-
 async function saveBasePersonagem() {
     const personagem = document.getElementById("basePersonagem").value.trim();
     const origem = document.getElementById("baseOrigem").value.trim();
@@ -843,6 +782,8 @@ async function deleteOriginCover(id) {
         loadOriginCovers();
     }
 }
+
+window.deleteOriginCover = deleteOriginCover;
 
 // --- LISTENERS ---
 document.getElementById("fileInput").addEventListener("change", previewCard);
