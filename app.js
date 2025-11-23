@@ -2210,23 +2210,44 @@ async function playJokenpoRound(playerCard, cardEl) {
     document.getElementById('jk-enemy-element').innerHTML = getElementIcon(cpuCard.element);
     document.getElementById('jk-enemy-element').style.background = getElementStyles(cpuCard.element).primary;
 
-    // 4. Lógica de Combate (Mantida Igual)
-    let result = 0; 
+// --- 4. LÓGICA DE COMBATE ROBUSTA ---
+    let result = 0; // 0=Empate, 1=Player, -1=CPU
     let reason = "";
 
-    const myAdvantage = jokenpoState.rules.find(r => r.atacante === playerCard.element && r.defensor === cpuCard.element);
-    const cpuAdvantage = jokenpoState.rules.find(r => r.atacante === cpuCard.element && r.defensor === playerCard.element);
+    // Função para limpar o texto (Tira acento e põe minúsculo)
+    // Ex: "Água" vira "agua", "Fogo" vira "fogo"
+    const clean = (str) => str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
-    if (myAdvantage && myAdvantage.resultado === 1) {
-        result = 1; reason = `Vantagem Elemental!`;
-    } else if (cpuAdvantage && cpuAdvantage.resultado === 1) {
-        result = -1; reason = `Desvantagem Elemental!`;
+    const pEl = clean(playerCard.element);
+    const cEl = clean(cpuCard.element);
+
+    console.log(`Combate: ${pEl} vs ${cEl}`); // Debug no console
+
+    if (pEl === cEl) {
+        // MESMO ELEMENTO: Desempata na força
+        if (playerCard.power > cpuCard.power) { result = 1; reason = "Mesmo Elemento: Vitória por Força!"; }
+        else if (playerCard.power < cpuCard.power) { result = -1; reason = "Mesmo Elemento: Derrota por Força!"; }
+        else { result = 0; reason = "Empate Total!"; }
     } else {
-        if (playerCard.power > cpuCard.power) { result = 1; reason = "Vitória por Força!"; }
-        else if (playerCard.power < cpuCard.power) { result = -1; reason = "Derrota por Força!"; }
-        else { result = 0; reason = "Empate Total"; }
-    }
+        // BUSCA REGRA USANDO O TEXTO LIMPO
+        // Precisamos normalizar as regras também na hora de comparar
+        const myAdvantage = jokenpoState.rules.find(r => clean(r.atacante) === pEl && clean(r.defensor) === cEl);
+        const cpuAdvantage = jokenpoState.rules.find(r => clean(r.atacante) === cEl && clean(r.defensor) === pEl);
 
+        if (myAdvantage && myAdvantage.resultado === 1) {
+            result = 1; 
+            reason = `Vantagem Elemental! (${playerCard.element} vence ${cpuCard.element})`;
+        } else if (cpuAdvantage && cpuAdvantage.resultado === 1) {
+            result = -1; 
+            reason = `Desvantagem Elemental! (${cpuCard.element} vence ${playerCard.element})`;
+        } else {
+            // Se não achou regra nenhuma (o que não deve acontecer com seu JSON perfeito), vai na força
+            console.warn("Nenhuma regra encontrada para este par. Usando Força.");
+            if (playerCard.power > cpuCard.power) { result = 1; reason = "Neutro: Vitória por Força!"; }
+            else if (playerCard.power < cpuCard.power) { result = -1; reason = "Neutro: Derrota por Força!"; }
+            else { result = 0; reason = "Empate Total"; }
+        }
+    }
     // 5. Aplica Resultado Visual
     const statusEl = document.getElementById('jk-status');
     const pElemIcon = document.getElementById('jk-player-element');
