@@ -1219,41 +1219,58 @@ document.getElementById('modalSavePlayerBtn')?.addEventListener('click', savePla
 document.getElementById('modalSaveRuleBtn')?.addEventListener('click', saveRarityFromModal);
 
 // 4. Botão Salvar Game (Economia)
-document.getElementById('modalSaveGameBtn')?.addEventListener('click', async () => {
-    const id = document.getElementById('modalGameId').value;
-    const reward = document.getElementById('modalGameReward').value;
-    const multi = document.getElementById('modalGameMulti').value;
+// 1. Listener do Botão Salvar Game
+const btnSaveGame = document.getElementById('modalSaveGameBtn');
+if (btnSaveGame) {
+    console.log("✅ Botão Salvar Game ENCONTRADO!");
+    btnSaveGame.addEventListener('click', async () => {
+        console.log("Clicou em Salvar Game...");
+        const id = document.getElementById('modalGameId').value;
+        const reward = document.getElementById('modalGameReward').value;
+        const multi = document.getElementById('modalGameMulti').value;
+        
+        const { error } = await supabase.from('minigame')
+            .update({ moedas_recompensa: reward, multiplicador: multi })
+            .eq('id', id);
+            
+        if(error) {
+            console.error(error);
+            showToast("Erro ao salvar game: " + error.message, "error");
+        } else {
+            showToast("Economia atualizada!");
+            closeModal('editGameModal');
+            loadMinigames();
+        }
+    });
+} else {
+    console.error("❌ ERRO CRÍTICO: Botão 'modalSaveGameBtn' NÃO existe no HTML.");
+}
 
-    const { error } = await supabase.from('minigame')
-        .update({ moedas_recompensa: reward, multiplicador: multi })
-        .eq('id', id);
+// 2. Listener do Botão Salvar Diário
+const btnSaveDaily = document.getElementById('modalSaveDailyBtn');
+if (btnSaveDaily) {
+    console.log("✅ Botão Salvar Diário ENCONTRADO!");
+    btnSaveDaily.addEventListener('click', async () => {
+        console.log("Clicou em Salvar Diário...");
+        const dia = document.getElementById('modalDailyDay').value;
+        const desc = document.getElementById('modalDailyDesc').value;
+        const tipo = document.getElementById('modalDailyType').value;
+        const valor = parseInt(document.getElementById('modalDailyValue').value);
 
-    if (error) showToast("Erro ao salvar game", "error");
-    else {
-        showToast("Economia atualizada!");
-        closeModal('editGameModal');
-        loadMinigames();
-    }
-});
+        const { error } = await supabase.from('recompensas_diarias')
+            .update({ descricao: desc, tipo: tipo, valor: valor })
+            .eq('dia', dia);
 
-// 5. Botão Salvar Dia (Recompensa Diária)
-document.getElementById('modalSaveDailyBtn')?.addEventListener('click', async () => {
-    const dia = document.getElementById('modalDailyDay').value;
-    const desc = document.getElementById('modalDailyDesc').value;
-    const tipo = document.getElementById('modalDailyType').value;
-    const valor = parseInt(document.getElementById('modalDailyValue').value);
-
-    const { error } = await supabase.from('recompensas_diarias')
-        .update({ descricao: desc, tipo: tipo, valor: valor })
-        .eq('dia', dia);
-
-    if (error) showToast("Erro ao salvar", "error");
-    else {
-        showToast(`Dia ${dia} atualizado!`);
-        closeModal('editDailyModal');
-        loadDailyRewards();
-    }
-});
+        if (error) showToast("Erro ao salvar", "error");
+        else {
+            showToast(`Dia ${dia} atualizado!`);
+            closeModal('editDailyModal');
+            loadDailyRewards();
+        }
+    });
+} else {
+    console.error("❌ ERRO CRÍTICO: Botão 'modalSaveDailyBtn' NÃO existe no HTML.");
+}
 
 // 6. Listener do Select de Tipo (Diário)
 const typeSelect = document.getElementById('modalDailyType');
