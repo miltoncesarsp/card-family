@@ -942,28 +942,48 @@ async function loadBasesList() {
     if (error) { container.innerHTML = "Erro ao carregar."; return; }
     if (!bases.length) { container.innerHTML = "Nenhuma base cadastrada."; return; }
 
+    updateNameDatalist(bases); // Atualiza o autocomplete
+
+    // 1. Agrupa por Origem
+    const grouped = bases.reduce((acc, base) => {
+        (acc[base.origem] = acc[base.origem] || []).push(base);
+        return acc;
+    }, {});
+
     let html = '';
-    bases.forEach(base => {
-        const elementStyles = getElementStyles(base.elemento); // Usa sua função existente
+
+    // 2. Gera HTML agrupado
+    for (const [origem, baseList] of Object.entries(grouped)) {
         html += `
-            <div class="base-item-card" style="border-left-color: ${elementStyles.primary}">
-                <div class="base-info">
-                    <h4>${base.personagem}</h4>
-                    <span>${base.origem} • ${base.elemento}</span>
-                </div>
-                <div class="base-actions">
-                    <button class="btn-edit-base" onclick="handleEditBaseCharacterClick('${base.id_base}')" title="Editar">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn-delete-base" onclick="handleDeleteBaseCharacterClick('${base.id_base}', '${base.personagem}')" title="Excluir">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
+            <div class="origin-group-bases">
+                <h3>${origem}</h3>
+                <div class="bases-grid">
         `;
-    });
+
+        baseList.forEach(base => {
+            const elementStyles = getElementStyles(base.elemento);
+            html += `
+                <div class="base-item-card" style="border-left-color: ${elementStyles.primary}">
+                    <div class="base-info">
+                        <h4>${base.personagem}</h4>
+                        <span>${base.elemento}</span>
+                    </div>
+                    <div class="base-actions">
+                        <button class="btn-edit-base" onclick="handleEditBaseCharacterClick('${base.id_base}')" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-delete-base" onclick="handleDeleteBaseCharacterClick('${base.id_base}', '${base.personagem}')" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div></div>`; // Fecha grid e group
+    }
+
     container.innerHTML = html;
-    updateNameDatalist(bases); // Atualiza o autocomplete do form de cartas também
 }
 
 // Wrappers globais para os onlicks do HTML funcionarem
