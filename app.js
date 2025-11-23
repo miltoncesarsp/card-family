@@ -151,20 +151,23 @@ const { data: playerData, error: playerError } = await supabase
 
     await checkDailyReward(); // Verifica se tem prêmio assim que carrega os dados
 
-    // 2. Carrega Regras de Evolução
+// 2. Carrega Regras de Evolução
     await loadEvolutionRules();
+    
+    // 3. Carrega Configuração de Economia (ADICIONE ISTO AQUI)
+    await loadGameConfig();
 
-    // 3. Carrega TODAS as cartas do jogo
+    // 4. Carrega TODAS as cartas do jogo
     const { data: allCardsData } = await supabase.from('cards').select('*, personagens_base(origem)').order('power', { ascending: true });
     if (allCardsData) allGameCards = allCardsData;
 
-    // 4. Carrega as cartas do Jogador
+    // 5. Carrega as cartas do Jogador
     const { data: playerCardData } = await supabase
         .from('cartas_do_jogador')
         .select(`quantidade, card_id, is_new`) // <--- MUDANÇA AQUI
         .eq('jogador_id', userId);
 
-    // 5. Cruza os dados
+    // 6. Cruza os dados
 if (allGameCards.length > 0) {
         cardsInAlbum = allGameCards.map(gameCard => {
             // Encontra a carta no inventário do jogador
