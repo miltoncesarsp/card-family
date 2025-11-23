@@ -1519,26 +1519,25 @@ async function attemptPlay(gameType) {
     // Jogos com MENU (Puzzle e Memória) NÃO cobram aqui. Cobram no 'init'.
     // Jogos DIRETOS (Batalha, Alvo, Jokenpo, Masmorra) cobram aqui.
 
+// ROTEADOR DE JOGOS (Ajustado)
     switch (gameType) {
+        case 'battle':
+            startBattleGame(); // Só abre a tela, não cobra
+            break;
         case 'memory':
-            startMemoryGame(); // Abre menu (sem cobrar)
+            startMemoryGame(); 
             break;
         case 'puzzle':
-            startPuzzleGame(); // Abre menu (sem cobrar)
-            break;
-
-        // JOGOS DIRETOS (Cobra Agora)
-        case 'battle':
-            if(await checkAndSpendEnergy('battle')) startBattleGame();
-            break;
-        case 'target':
-            if(await checkAndSpendEnergy('target')) startTargetGame();
+            startPuzzleGame(); 
             break;
         case 'jokenpo':
-             if(await checkAndSpendEnergy('jokenpo')) startJokenpoGame();
+             startJokenpoGame(); // Só abre a tela, não cobra
              break;
+        case 'target':
+            if(await checkAndSpendEnergy('target')) startTargetGame(); // Esse mantém direto
+            break;
         case 'dungeon':
-             if(await checkAndSpendEnergy('dungeon')) startDungeonGame();
+             if(await checkAndSpendEnergy('dungeon')) startDungeonGame(); // Esse mantém direto
              break;
     }
 }
