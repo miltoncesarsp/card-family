@@ -1550,7 +1550,7 @@ async function attemptPlay(gameType) {
 
     // --- 2. VERIFICAÇÃO DE ENERGIA (Visual) ---
     if (minigameStatus[gameType] && minigameStatus[gameType].energia <= 0) {
-        showNotification("Sem energia! Espere regenerar (1 a cada 10h).", true);
+        showNotification("Sem energia! Espere regenerar (1 a cada 2h).", true);
         return;
     }
 
