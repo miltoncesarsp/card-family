@@ -1128,7 +1128,20 @@ function closeTradeModal() {
 function startBattleGame() {
     document.getElementById('games-menu').classList.add('hidden');
     document.getElementById('battle-arena').classList.remove('hidden');
-    resetUI();
+    
+    // --- ESTADO INICIAL LIMPO ---
+    document.getElementById('battle-game-area').classList.add('hidden'); // Esconde a mesa
+    document.getElementById('btnStartBattle').classList.remove('hidden'); // Mostra o botão Buscar
+    document.getElementById('battle-status').textContent = "Encontre um oponente...";
+    document.getElementById('battle-status').style.color = "#FFD700";
+    
+    // Zera placar visual
+    document.getElementById('score-player').textContent = '0';
+    document.getElementById('score-enemy').textContent = '0';
+    document.getElementById('current-round').textContent = '1 / 3';
+    document.getElementById('enemy-name-display').textContent = 'RIVAL';
+    
+    resetUI(); // Limpa slots internos
 }
 
 function exitGame() {
@@ -1193,41 +1206,36 @@ async function initBattleMatch() {
     // 2. COBRANÇA DE ENERGIA
     if (!await checkAndSpendEnergy('battle')) return;
 
-    // 3. Setup Visual
+    // 3. Setup Visual (AQUI MUDA)
     const btnStart = document.getElementById('btnStartBattle');
     const battleStatus = document.getElementById('battle-status');
     
-    btnStart.classList.add('hidden');
-    document.querySelector('#battle-arena .player-hand-container').classList.remove('hidden');
+    btnStart.classList.add('hidden'); // Some o botão
+    document.getElementById('battle-game-area').classList.remove('hidden'); // Aparece a mesa
     
     battleState.isProcessing = false;
     
     if (battleStatus) {
-        battleStatus.textContent = "Buscando oponente...";
-        battleStatus.style.color = "#FFD700";
+        battleStatus.textContent = "Buscando...";
     }
 
-    // 4. Sorteia Mão do Jogador
+    // ... (O RESTO DA FUNÇÃO CONTINUA IGUAL AO QUE VOCÊ JÁ TINHA) ...
+    // 4. Sorteia Mão do Jogador...
     const shuffled = [...myPlayableCards].sort(() => 0.5 - Math.random());
     battleState.myHand = shuffled.slice(0, 5);
 
-    // 5. Busca Oponente e Configura Deck da CPU
     const { data: enemyData, error: enemyError } = await supabase.rpc('buscar_oponente_batalha');
     
     if (enemyError) {
         showNotification("Erro ao achar oponente.", true);
-        resetUI();
+        // Se der erro, volta ao estado inicial
+        document.getElementById('battle-game-area').classList.add('hidden');
+        btnStart.classList.remove('hidden');
         return;
     }
 
     battleState.enemyName = enemyData.nome;
-    
-    // --- AQUI ESTÁ A MÁGICA DA CPU NÃO REPETIR ---
-    // Pegamos as 5 cartas dele e embaralhamos AGORA.
-    // Nas rodadas 1, 2 e 3, pegaremos os índices 0, 1 e 2.
-    // Isso garante aleatoriedade dentro do deck dele e zero repetição.
     battleState.enemyDeck = [...enemyData.cartas].sort(() => 0.5 - Math.random());
-    // ---------------------------------------------
 
     battleState.round = 1;
     battleState.playerScore = 0;
@@ -1256,10 +1264,14 @@ function renderPlayerHand() {
         const wrapper = document.createElement('div');
         wrapper.className = 'hand-card-wrapper';
         
-        // AQUI: Passamos 'false' no final para NÃO mostrar quantidade
+        // Gera o HTML
         wrapper.innerHTML = createCardHTML(card, false, null, false); 
 
-        wrapper.onclick = () => playRound(card, wrapper.firstElementChild);
+        // --- CORREÇÃO AQUI ---
+        // Antes estava: wrapper.firstElementChild
+        // Agora é: wrapper (o elemento pai que tem a classe hand-card-wrapper)
+        wrapper.onclick = () => playRound(card, wrapper); 
+        
         handContainer.appendChild(wrapper);
     });
 }
@@ -2138,10 +2150,12 @@ function renderJokenpoHand() {
         const wrapper = document.createElement('div');
         wrapper.className = 'hand-card-wrapper';
         
-        // AQUI: Passamos 'false' no final para NÃO mostrar quantidade
+        // Gera o HTML
         wrapper.innerHTML = createCardHTML(card, false, null, false);
 
-        wrapper.onclick = () => playJokenpoRound(card, wrapper.firstElementChild);
+        // --- CORREÇÃO AQUI ---
+        // Passamos o 'wrapper' para que o CSS .hand-card-wrapper.played funcione
+        wrapper.onclick = () => playJokenpoRound(card, wrapper);
         container.appendChild(wrapper);
     });
 }
