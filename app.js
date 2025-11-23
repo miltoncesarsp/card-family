@@ -374,7 +374,7 @@ function renderAlbum() {
                 const elementStyles = getElementStyles(card.element);
 
 html += `
-                <div class="card-preview card-collected" 
+                <div class="card-preview card-small card-collected" 
                      style="background-image: url('${card.image_url}'); border: 3px solid ${rarityStyles.primary}; cursor: pointer;" 
                      title="${card.name}"
                      onclick="viewBigCard('${card.id}')"> ${newBadgeHTML} ${evolutionBtnHTML}
@@ -2436,21 +2436,20 @@ function renderDungeonHand() {
     // Ordena para melhor visualização do jogador
     const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
 
-displayHand.forEach(card => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'hand-card-wrapper'; // Classe mágica do CSS mobile
-    
-    // Gera o HTML igual ao do Duelo
-    wrapper.innerHTML = createCardHTML(card, false, null, false);
-    
-    // 🚨 GARANTIA 2: ADICIONAMOS A CLASSE SMALL AQUI
-    const innerCard = wrapper.querySelector('.card-preview');
-    if(innerCard) innerCard.classList.add('card-small');
-    
-    // Lógica de Clique:
-    // ...
-    handContainer.appendChild(wrapper);
-});
+    displayHand.forEach(card => {
+        const rarityStyles = getRarityStyles(card.rarity);
+        
+        // A carta aqui é apenas um visual na mão, não interativa
+        const cardHtml = `
+            <div class="card-preview card-small" 
+                 style="background-image: url('${card.image_url}'); border: 2px solid ${rarityStyles.primary};"
+                 title="${card.name}">
+                <div class="card-quantity" style="top: 0; right: 0; font-size: 0.8em; padding: 2px 5px;">${card.power} POW</div>
+                <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+            </div>
+        `;
+        handContainer.innerHTML += cardHtml;
+    });
 }
 
 function startDungeonGame() {
@@ -2530,6 +2529,37 @@ async function initDungeonRun() {
        tile.innerHTML = `<div class="tile-front"></div>${contentHTML}`;
        tile.onclick = () => handleDungeonClick(tile);
        grid.appendChild(tile);
+    });
+}
+
+function renderDungeonHand() {
+    const handContainer = document.getElementById('dungeon-hand');
+    if (!handContainer) return;
+    
+    handContainer.innerHTML = '';
+
+    // Ordena visualmente por força para facilitar a estratégia
+    const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
+
+    displayHand.forEach(card => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'hand-card-wrapper'; // Classe mágica do CSS mobile
+        
+        // Gera o HTML igual ao do Duelo
+        wrapper.innerHTML = createCardHTML(card, false, null, false);
+        
+        // Lógica de Clique:
+        wrapper.onclick = () => {
+            if (dungeonState.isLocked && dungeonState.combatMonster) {
+                // Se estiver em combate, usa a carta
+                resolveDungeonFight(card);
+            } else {
+                // Se estiver explorando, apenas avisa
+                showNotification("Você só pode usar cartas em combate!", true);
+            }
+        };
+        
+        handContainer.appendChild(wrapper);
     });
 }
 
@@ -2649,29 +2679,28 @@ dungeonState.combatMonster = monsterCard;
     pSlot.className = 'card-slot empty';
 
     // --- AQUI: RENDERIZA A MÃO INTERATIVA ---
-   const handContainer = document.getElementById('dungeon-hand-combat');
-handContainer.innerHTML = '';
+    const handContainer = document.getElementById('dungeon-hand-combat');
+    handContainer.innerHTML = '';
 
-// Ordena visualmente
-const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
+    // Ordena visualmente
+    const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
 
-displayHand.forEach(card => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'hand-card-wrapper';
-                
-    // Gera carta com visual completo
-    wrapper.innerHTML = createCardHTML(card, false, null, false);
+    displayHand.forEach(card => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'hand-card-wrapper';
+        
+        // Gera carta com visual completo
+        wrapper.innerHTML = createCardHTML(card, false, null, false);
 
-    // FORÇA O TAMANHO PEQUENO na carta gerada
+        // FORÇA O TAMANHO PEQUENO na carta gerada
     const innerCard = wrapper.querySelector('.card-preview');
-    // 🚨 GARANTIA 1: ADICIONAMOS A CLASSE SMALL AQUI
-    if(innerCard) innerCard.classList.add('card-small'); 
-                
-    // Adiciona clique para atacar
-    wrapper.onclick = () => resolveDungeonFight(card);
-                
-    handContainer.appendChild(wrapper);
-});
+    if(innerCard) innerCard.classList.add('card-small');
+        
+        // Adiciona clique para atacar
+        wrapper.onclick = () => resolveDungeonFight(card);
+        
+        handContainer.appendChild(wrapper);
+    });
 }
 
 async function resolveDungeonFight(playerCard) {
