@@ -10,20 +10,21 @@ let currentEditPlayerId = null;
 document.addEventListener("DOMContentLoaded", async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-        alert("⚠️ Acesso restrito! Você será redirecionado para fazer login.");
-        window.location.href = "index.html"; // Manda pro jogo para logar
+        alert("⚠️ Acesso restrito!"); 
+        window.location.href = "index.html"; 
         return;
     }
     
-    // Se logado, carrega o resto
+    // Carrega apenas o essencial para a primeira aba (Bases/Cartas)
     await loadEvolutionCosts(); 
     loadUnifiedView(); 
-    loadOriginCovers();
-    loadRarityRules(); 
-    loadPacks(); 
-    loadPlayers();
+    // Os outros (Players, Packs, Origins) carregam ao clicar na aba!
 
-    document.getElementById('adminSearchInput').addEventListener('keyup', filterCards);
+    // Listener da busca
+    const searchInput = document.getElementById('adminSearchInput');
+    if(searchInput) {
+        searchInput.addEventListener('keyup', filterCards);
+    }
 });
 
 // FUNÇÕES AUXILIARES
@@ -777,12 +778,43 @@ async function saveOriginCover() {
     }
 }
 
+/* === SISTEMA DE ABAS === */
+function openTab(tabId) {
+    // 1. Esconde todo o conteúdo
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // 2. Remove classe active de todos os botões
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // 3. Mostra o conteúdo alvo
+    document.getElementById(tabId).classList.add('active');
+
+    // 4. Marca o botão clicado como ativo (busca pelo onclick que contém o ID)
+    // Uma forma simples é pegar o event.currentTarget se passado, ou iterar.
+    // Vamos fazer via seletor para garantir:
+    const clickedBtn = document.querySelector(`button[onclick="openTab('${tabId}')"]`);
+    if(clickedBtn) clickedBtn.classList.add('active');
+
+    // 5. OTIMIZAÇÃO: Carrega dados sob demanda (Lazy Loading)
+    // Isso faz o Admin abrir muito rápido, pois só carrega jogadores se clicar na aba
+    if (tabId === 'tab-players') loadPlayers();
+    if (tabId === 'tab-packs') loadPacks();
+    if (tabId === 'tab-origins') loadOriginCovers();
+    if (tabId === 'tab-rules') loadRarityRules();
+    // A aba 'tab-base' e 'tab-cards' carregam o UnifiedView, que já vem no inicio
+}
+
 async function deleteOriginCover(id) {
     if(confirm("Deletar essa capa?")) {
         await supabase.from('capas_origens').delete().eq('id', id);
         loadOriginCovers();
     }
 }
+
 
 window.deleteOriginCover = deleteOriginCover;
 
