@@ -5,6 +5,7 @@ let currentEditBaseCharacterId = null;
 let currentEditRarityName = null; 
 let currentEditPackId = null; 
 let currentEditPlayerId = null;
+let currentEditGameId = null;
 
 // --- 1. VERIFICAÇÃO DE SEGURANÇA (NOVO) ---
 document.addEventListener("DOMContentLoaded", async () => {
@@ -918,6 +919,7 @@ const clickedBtn = document.querySelector(`button[onclick="openTab('${tabId}')"]
     if (tabId === 'tab-packs') loadPacks();
     if (tabId === 'tab-origins') loadOriginCovers();
     if (tabId === 'tab-rules') loadRarityRules();
+    if (tabId === 'tab-games') loadMinigames(); // <--- NOVO
 }
 
 async function deleteOriginCover(id) {
@@ -986,6 +988,34 @@ async function loadBasesList() {
     container.innerHTML = html;
 }
 
+// 2. Função de Carregar
+async function loadMinigames() {
+    const container = document.getElementById("minigamesContainer");
+    container.innerHTML = 'Carregando games...';
+    
+    const { data: games, error } = await supabase.from('minigame').select('*').order('id');
+    
+    if(error) { container.innerHTML = 'Erro ao carregar.'; return; }
+    
+    let html = '';
+    games.forEach(game => {
+        html += `
+            <div class="base-item-card" style="border-left-color: #9b59b6;">
+                <div class="base-info">
+                    <h4>${game.nome}</h4>
+                    <span style="color:#FFD700">💰 ${game.moedas_recompensa} Moedas (x${game.multiplicador})</span>
+                </div>
+                <div class="base-actions">
+                    <button class="btn-edit-base" onclick="handleEditGameClick('${game.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
 // Wrappers globais para os onlicks do HTML funcionarem
 window.handleEditBaseCharacterClick = async (id) => {
     // Simula o evento que sua função original espera
@@ -1024,6 +1054,22 @@ window.handleDeleteCardClick = async (id, name) => {
     handleDelete(mockEvent);
 };
 
+// 4. Handle Click (Wrapper)
+window.handleEditGameClick = async (id) => {
+    currentEditGameId = id;
+    const { data: game } = await supabase.from('minigame').select('*').eq('id', id).single();
+    
+    if(game) {
+        document.getElementById('modalGameId').value = game.id;
+        document.getElementById('modalGameName').value = game.nome;
+        document.getElementById('modalGameDiff').value = game.dificuldade; // No seu SQL é integer, no form input number
+        document.getElementById('modalGameReward').value = game.moedas_recompensa;
+        document.getElementById('modalGameMulti').value = game.multiplicador;
+        
+        document.getElementById('editGameModal').classList.remove('hidden');
+    }
+};
+
 window.deleteOriginCover = deleteOriginCover;
 
 // --- LISTENERS ---
@@ -1042,6 +1088,24 @@ document.getElementById('modalSaveBaseBtn').addEventListener('click', saveBaseFr
 document.getElementById('modalSavePackBtn').addEventListener('click', savePackFromModal);
 document.getElementById('modalSavePlayerBtn').addEventListener('click', savePlayerFromModal);
 document.getElementById('modalSaveRuleBtn').addEventListener('click', saveRarityFromModal);
+
+// 5. Salvar
+document.getElementById('modalSaveGameBtn').addEventListener('click', async () => {
+    const id = document.getElementById('modalGameId').value;
+    const reward = document.getElementById('modalGameReward').value;
+    const multi = document.getElementById('modalGameMulti').value;
+    
+    const { error } = await supabase.from('minigame')
+        .update({ moedas_recompensa: reward, multiplicador: multi })
+        .eq('id', id);
+        
+    if(error) showToast("Erro ao salvar game", "error");
+    else {
+        showToast("Economia do jogo atualizada!");
+        closeModal('editGameModal');
+        loadMinigames();
+    }
+});
 
 document.getElementById("cancelEditBtn").addEventListener("click", cancelEditCard); 
 document.getElementById("saveRarityBtn").addEventListener("click", saveRarityRule);
