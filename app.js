@@ -1185,59 +1185,56 @@ function resetUI() {
 }
 
 async function initBattleMatch() {
-    // 1. Verifica se tem cartas suficientes (5)
+    // 1. Verifica Cartas
     const myPlayableCards = cardsInAlbum.filter(c => c.owned);
     if (myPlayableCards.length < 5) {
-        showNotification("Você precisa de pelo menos 5 cartas para jogar!", true);
+        showNotification("Você precisa de pelo menos 5 cartas!", true);
         return;
     }
 
-    // 🚨 CORREÇÃO PRINCIPAL: Destrava o clique para a nova partida
-    battleState.isProcessing = false; 
+    // 2. COBRANÇA DE ENERGIA (Nova posição)
+    if (!await checkAndSpendEnergy('battle')) return;
 
-    // 2. Prepara o Jogo
+    // 3. Setup Visual
     const btnStart = document.getElementById('btnStartBattle');
     const battleStatus = document.getElementById('battle-status');
     
     btnStart.classList.add('hidden');
-    document.querySelector('.player-hand-container').classList.remove('hidden');
+    document.querySelector('#battle-arena .player-hand-container').classList.remove('hidden'); // Mostra a mão
+    
+    battleState.isProcessing = false;
     
     if (battleStatus) {
         battleStatus.textContent = "Buscando oponente...";
-        battleStatus.style.color = "#FFD700"; // Reseta a cor para amarelo
+        battleStatus.style.color = "#FFD700";
     }
-    showNotification("Iniciando busca...");
 
-    // A. Seleciona 5 cartas aleatórias do jogador
+    // 4. Sorteia Mão e Busca Oponente
     const shuffled = [...myPlayableCards].sort(() => 0.5 - Math.random());
     battleState.myHand = shuffled.slice(0, 5);
 
-    // B. Busca oponente no servidor
     const { data: enemyData, error: enemyError } = await supabase.rpc('buscar_oponente_batalha');
     
     if (enemyError) {
-        if (battleStatus) battleStatus.textContent = "ERRO: Nenhum rival encontrado.";
         showNotification("Erro ao achar oponente.", true);
-        resetUI();
+        resetUI(); // Devolve estado inicial se der erro (idealmente devolveria energia, mas ok por enquanto)
         return;
     }
 
-    // C. Configura Estado Inicial
+    // 5. Configura Estado
     battleState.enemyName = enemyData.nome;
     battleState.enemyDeck = enemyData.cartas;
     battleState.round = 1;
     battleState.playerScore = 0;
     battleState.enemyScore = 0;
 
-    // D. Renderiza a Tela
     const enemyNameDisplay = document.getElementById('enemy-name-display');
-    
     if (enemyNameDisplay) enemyNameDisplay.textContent = battleState.enemyName.toUpperCase();
     
-    updateRoundDisplay(); 
-    renderPlayerHand(); 
+    updateRoundDisplay();
+    renderPlayerHand(); // Renderiza com o novo estilo
     
-    if (battleStatus) battleStatus.textContent = "Escolha sua primeira carta!";
+    if (battleStatus) battleStatus.textContent = "Sua vez! Escolha uma carta.";
 }
 
 function updateRoundDisplay() {
@@ -1251,16 +1248,17 @@ function renderPlayerHand() {
     handContainer.innerHTML = '';
 
     battleState.myHand.forEach((card, index) => {
-        const div = document.createElement('div');
-        div.className = 'hand-card';
-        div.style.backgroundImage = `url('${card.image_url}')`;
-        div.dataset.index = index;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'hand-card-wrapper';
         
-        // Badge de força na mão pra ajudar a escolher
-        div.innerHTML = `<div style="position:absolute; bottom:5px; right:5px; background:white; border-radius:50%; width:20px; height:20px; text-align:center; font-size:10px; line-height:20px; font-weight:bold; color:black;">${card.power}</div>`;
+        // Gera o HTML idêntico ao do álbum
+        // O false indica que não é "minha" no sentido de mercado (sem botão cancelar)
+        wrapper.innerHTML = createCardHTML(card, false); 
 
-        div.onclick = () => playRound(card, div);
-        handContainer.appendChild(div);
+        // Adiciona o evento de clique
+        wrapper.onclick = () => playRound(card, wrapper.firstElementChild); // Passa o filho (card-preview) para manipulação visual
+        
+        handContainer.appendChild(wrapper);
     });
 }
 
@@ -2064,92 +2062,81 @@ function quitPuzzleGame() {
 // MINIGAME: JO-KEN-PO ELEMENTAL
 // =================================================
 
-async function startJokenpoGame() {
-    // 1. Verifica Cartas
-    const allMyOwned = cardsInAlbum.filter(c => c.owned);
-if (allMyOwned.length < 5) {
-        await showGameAlert("FALTAM CARTAS", "Você precisa de pelo menos 5 cartas para jogar Jo-Ken-Po!");
-        return;
-    }
-
-    // 2. Prepara UI
+function startJokenpoGame() {
     document.getElementById('games-menu').classList.add('hidden');
     document.getElementById('jokenpo-arena').classList.remove('hidden');
     
-    document.getElementById('jk-status').textContent = "Buscando Oponente...";
+    // Reseta UI
+    document.getElementById('jk-game-area').classList.add('hidden'); // Esconde jogo
+    document.getElementById('btnStartJokenpo').classList.remove('hidden'); // Mostra botão buscar
+    document.getElementById('jk-status').textContent = "Encontre um oponente...";
     
-    // 🚨 RESETA O ESTADO PARA 3 RODADAS
+    // Zera placar visual
+    document.getElementById('jk-score-player').textContent = '0';
+    document.getElementById('jk-score-cpu').textContent = '0';
+}
+
+async function initJokenpoMatch() {
+    // 1. Verifica Cartas
+    const allMyOwned = cardsInAlbum.filter(c => c.owned);
+    if (allMyOwned.length < 5) {
+        showNotification("Você precisa de 5 cartas!", true);
+        return;
+    }
+
+    // 2. COBRANÇA DE ENERGIA
+    if (!await checkAndSpendEnergy('jokenpo')) return;
+
+    // 3. Prepara Interface
+    document.getElementById('btnStartJokenpo').classList.add('hidden');
+    document.getElementById('jk-game-area').classList.remove('hidden'); // Mostra jogo
+    document.getElementById('jk-status').textContent = "Buscando...";
+
+    // 4. Lógica do Jogo (Igual a antes)
     jokenpoState.playerScore = 0;
     jokenpoState.cpuScore = 0;
     jokenpoState.round = 1; 
     jokenpoState.isProcessing = false;
-    
-    // Reseta visual das rodadas
-    // Se o elemento jk-round-counter não existir, cria ele dentro do round-indicator
-    let roundCounter = document.getElementById('jk-round-counter');
-    if(!roundCounter) {
-        const container = document.querySelector('#jokenpo-arena .round-indicator');
-        // Limpa o conteúdo antigo (o "VS")
-        container.innerHTML = '<span>RODADA</span>';
-        roundCounter = document.createElement('strong');
-        roundCounter.id = 'jk-round-counter';
-        container.appendChild(roundCounter);
-    }
-    roundCounter.textContent = "1 / 3";
 
-    updateJokenpoScore();
-
-    // 3. Carrega Regras (Cache)
     if (jokenpoState.rules.length === 0) {
         const { data } = await supabase.from('elementos').select('*');
         if (data) jokenpoState.rules = data;
     }
 
-    // 4. Prepara Mão do Jogador (5 cartas aleatórias)
-    jokenpoState.myDeck = [...allMyOwned]
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 5);
+    jokenpoState.myDeck = [...allMyOwned].sort(() => 0.5 - Math.random()).slice(0, 5);
 
-    // 5. Busca Oponente Real
     const { data: enemyData, error } = await supabase.rpc('buscar_oponente_batalha');
-    
-if (error || !enemyData) {
-        await showGameAlert("ERRO", "Não foi possível encontrar um oponente.");
+    if (error || !enemyData) {
+        showNotification("Erro ao buscar oponente", true);
         quitJokenpoGame();
         return;
     }
 
-    // SALVA AS CARTAS DO RIVAL NO ESTADO
     jokenpoState.cpuDeck = enemyData.cartas;
-
-    // Mostra o nome do rival
-    const enemyLabel = document.querySelector('#jokenpo-arena .enemy-score small');
-    if(enemyLabel) enemyLabel.textContent = enemyData.nome.toUpperCase();
+    
+    // Atualiza Nome Rival (adicione a classe .enemy-name-display no HTML do jokenpo se não tiver, ou use querySelector correto)
+    const enemyDisplays = document.querySelectorAll('.enemy-name-display');
+    enemyDisplays.forEach(el => el.textContent = enemyData.nome.toUpperCase());
 
     renderJokenpoHand();
     resetJokenpoTable();
+    
+    document.getElementById('jk-status').textContent = "Escolha seu Elemento!";
 }
 
 function renderJokenpoHand() {
     const container = document.getElementById('jk-hand');
     container.innerHTML = '';
     
-    // Mostra as cartas do jogador
     jokenpoState.myDeck.forEach(card => {
-        const div = document.createElement('div');
-        div.className = 'hand-card';
-        div.style.backgroundImage = `url('${card.image_url}')`;
-        div.style.flexShrink = '0'; // Garante mobile
+        const wrapper = document.createElement('div');
+        wrapper.className = 'hand-card-wrapper';
         
-        // Ícone do elemento pequeno na carta
-        div.innerHTML = `
-            <div style="position:absolute; top:2px; right:2px; background:rgba(0,0,0,0.7); border-radius:50%; width:20px; height:20px; display:flex; justify-content:center; align-items:center; font-size:10px; color:white;">
-                ${getElementIcon(card.element)}
-            </div>
-        `;
+        // Usa o HTML do álbum
+        wrapper.innerHTML = createCardHTML(card, false);
 
-        div.onclick = () => playJokenpoRound(card, div);
-        container.appendChild(div);
+        wrapper.onclick = () => playJokenpoRound(card, wrapper.firstElementChild);
+        container.appendChild(wrapper);
     });
 }
 
