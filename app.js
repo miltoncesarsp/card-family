@@ -218,18 +218,68 @@ async function loadEvolutionRules() {
 function updateHeaderInfo() {
     if (!player) return;
     
-    // Alvo: O ID 'player-name' que você tem no HTML
     const nameEl = document.getElementById('player-name'); 
     const coinsEl = document.getElementById('player-coins');
+    // NOVO
+    const dayEl = document.getElementById('current-day-num');
 
     if (nameEl && coinsEl) {
-        // CORREÇÃO: Usa o nome, com fallback para o e-mail (caso o nome esteja vazio)
         nameEl.textContent = player.nome || player.email; 
-        
         coinsEl.innerHTML = `<i class="fas fa-coins"></i> ${player.moedas}`;
         
-        // Se precisar do nível, adicione aqui (você não tem o elemento no HTML)
+        // Atualiza o dia
+        if (dayEl) dayEl.textContent = player.dias_consecutivos;
     }
+}
+
+async function showDailyRewardsList() {
+    const container = document.getElementById('daily-rewards-list');
+    const modal = document.getElementById('daily-list-modal');
+    
+    container.innerHTML = '<p style="color:white;">Carregando...</p>';
+    modal.classList.remove('hidden');
+
+    const { data: rewards } = await supabase.from('recompensas_diarias').select('*').order('dia');
+    
+    if (!rewards) {
+        container.innerHTML = '<p style="color:red;">Erro ao carregar.</p>';
+        return;
+    }
+
+    let html = '';
+    const currentDay = player.dias_consecutivos;
+
+    rewards.forEach(r => {
+        const isPast = r.dia < currentDay;
+        const isToday = r.dia === currentDay;
+        
+        // Estilo visual
+        let style = 'background: #2a2a40; border: 1px solid #444;';
+        let icon = r.tipo === 'pacote' ? '📦' : '💰';
+        let statusIcon = '';
+
+        if (isPast) {
+            style = 'background: #1a1a20; opacity: 0.6; border: 1px solid #333;';
+            statusIcon = '✅';
+        } else if (isToday) {
+            style = 'background: #2a2a40; border: 2px solid #FFD700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);';
+            statusIcon = '📍 HOJE';
+        }
+
+        html += `
+            <div style="${style} padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; color: white;">
+                <div>
+                    <strong style="color: ${isToday ? '#FFD700' : '#aaa'}">Dia ${r.dia}</strong>
+                    <div style="font-size: 0.9em;">${icon} ${r.descricao}</div>
+                </div>
+                <div style="font-size: 0.8em; font-weight: bold; color: #2ecc71;">
+                    ${statusIcon}
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
 }
 
 // ------------------------------------
@@ -1447,56 +1497,42 @@ async function refreshMinigameEnergy() {
 // 2. Tenta Jogar (Hub Central)
 async function attemptPlay(gameType) {
     // --- 1. VERIFICAÇÃO SE O JOGO EXISTE ---
-    // Lista aqui apenas os jogos que já funcionam
-const jogosProntos = ['battle', 'memory', 'target', 'puzzle', 'jokenpo', 'dungeon'];
-
-if (!jogosProntos.includes(gameType)) {
+    const jogosProntos = ['battle', 'memory', 'target', 'puzzle', 'jokenpo', 'dungeon'];
+    if (!jogosProntos.includes(gameType)) {
         await showGameAlert("EM BREVE 🚧", "Este jogo ainda está em construção.\nGuarde sua energia!");
         return; 
     }
 
-    // --- 2. VERIFICAÇÃO DE ENERGIA ---
-    // Verifica localmente primeiro
+    // --- 2. VERIFICAÇÃO DE ENERGIA (Visual) ---
     if (minigameStatus[gameType] && minigameStatus[gameType].energia <= 0) {
         showNotification("Sem energia! Espere regenerar (1 a cada 10h).", true);
         return;
     }
 
-    // --- 3. COBRANÇA NO BANCO DE DADOS ---
-    // Só chega aqui se o jogo estiver na lista de 'jogosProntos'
-    const { data: sucesso, error } = await supabase.rpc('gastar_energia_minigame', { tipo_jogo: gameType });
+    // --- 3. ROTEADOR DE JOGOS ---
+    // Jogos com MENU (Puzzle e Memória) NÃO cobram aqui. Cobram no 'init'.
+    // Jogos DIRETOS (Batalha, Alvo, Jokenpo, Masmorra) cobram aqui.
 
-    if (!sucesso || error) {
-        showNotification("Erro ou sem energia.", true);
-        return;
-    }
-
-    // --- 4. SUCESSO: ATUALIZA E INICIA ---
-    minigameStatus[gameType].energia--; 
-    refreshMinigameEnergy(); // Atualiza visual
-
-    // ROTEADOR DE JOGOS (Switch Case)
-switch (gameType) {
-        case 'battle':
-            // Batalha cobra na hora (lógica antiga mantida)
-            if(checkAndSpendEnergy(gameType)) startBattleGame();
-            break;
+    switch (gameType) {
         case 'memory':
-            // Memória NÃO COBRA AQUI, só abre o menu
-            startMemoryGame(); 
+            startMemoryGame(); // Abre menu (sem cobrar)
             break;
         case 'puzzle':
-            // Puzzle NÃO COBRA AQUI, só abre o menu
-            startPuzzleGame();
+            startPuzzleGame(); // Abre menu (sem cobrar)
+            break;
+
+        // JOGOS DIRETOS (Cobra Agora)
+        case 'battle':
+            if(await checkAndSpendEnergy('battle')) startBattleGame();
             break;
         case 'target':
-            if(checkAndSpendEnergy(gameType)) startTargetGame();
+            if(await checkAndSpendEnergy('target')) startTargetGame();
             break;
         case 'jokenpo':
-             if(checkAndSpendEnergy(gameType)) startJokenpoGame();
+             if(await checkAndSpendEnergy('jokenpo')) startJokenpoGame();
              break;
         case 'dungeon':
-             if(checkAndSpendEnergy(gameType)) startDungeonGame();
+             if(await checkAndSpendEnergy('dungeon')) startDungeonGame();
              break;
     }
 }
@@ -1540,21 +1576,16 @@ async function initMemoryGame(pairsCount) {
         return;
     }
 
-    // COBRANÇA DE ENERGIA (Só cobra agora que escolheu o nível)
-    if (minigameStatus['memory'] && minigameStatus['memory'].energia <= 0) {
-        showNotification("Sem energia!", true);
-        return;
-    }
-    // Desconta energia no banco
-    const { data: sucesso } = await supabase.rpc('gastar_energia_minigame', { tipo_jogo: 'memory' });
-    if (!sucesso) { showNotification("Erro de energia.", true); return; }
-    
-    // Atualiza localmente
-    minigameStatus['memory'].energia--; 
-    refreshMinigameEnergy();
+    // --- COBRANÇA DE ENERGIA ---
+    // Tenta gastar energia. Se não conseguir, para a função.
+    const pagou = await checkAndSpendEnergy('memory');
+    if (!pagou) return;
+    // ---------------------------
 
     // Configura o Jogo
     currentMemoryLevel = pairsCount;
+    
+    // Troca visual: Some Menu, Aparece Jogo
     document.getElementById('memory-difficulty-menu').classList.add('hidden');
     document.getElementById('memory-game-board').classList.remove('hidden');
     document.getElementById('memory-score').textContent = `0 / ${pairsCount}`;
@@ -1564,7 +1595,7 @@ async function initMemoryGame(pairsCount) {
 
     // Configura Grid CSS
     if (pairsCount === 8) grid.style.gridTemplateColumns = "repeat(4, 1fr)";
-    else if (pairsCount === 6) grid.style.gridTemplateColumns = "repeat(4, 1fr)"; // 4x3
+    else if (pairsCount === 6) grid.style.gridTemplateColumns = "repeat(4, 1fr)"; // 4x3 (ou 3x4 no mobile via CSS)
     else grid.style.gridTemplateColumns = "repeat(4, 1fr)"; // 4x2
 
     // Reseta Lógica
@@ -1841,33 +1872,42 @@ async function startPuzzleGame() { // 🚨 Adicione 'async'
     document.getElementById('puzzle-board-container').classList.add('hidden');
 }
 
-function initPuzzle(size) {
+async function initPuzzle(size) { // <--- 1. Adicione ASYNC aqui
+    const myDeck = cardsInAlbum.filter(c => c.owned);
+
+    // Validação de Cartas
+    if (myDeck.length === 0) {
+        await showGameAlert("SEM CARTAS", "Você precisa de cartas na coleção para jogar!");
+        return;
+    }
+
+    // --- 2. COBRANÇA DE ENERGIA ---
+    // Tenta gastar energia. Se não conseguir (sem saldo ou erro), para a função.
+    const pagou = await checkAndSpendEnergy('puzzle');
+    if (!pagou) return; 
+    // ------------------------------
+
     puzzleState.gridSize = size;
     
-    // 1. Escolhe carta aleatória da coleção
-    const myDeck = cardsInAlbum.filter(c => c.owned);
+    // Escolhe carta aleatória da coleção
     const randomCard = myDeck[Math.floor(Math.random() * myDeck.length)];
     puzzleState.originalImage = randomCard.image_url;
 
-    // 2. Setup Visual
+    // Setup Visual
     document.getElementById('puzzle-difficulty-menu').classList.add('hidden');
     document.getElementById('puzzle-board-container').classList.remove('hidden');
     document.getElementById('puzzle-target-img').src = puzzleState.originalImage;
 
-    // 3. Cria as peças (Lógica Matemática)
+    // Cria as peças
     const totalPieces = size * size;
     puzzleState.pieces = [];
 
-    // Cria array ordenado [0, 1, 2, ..., 35]
     for (let i = 0; i < totalPieces; i++) {
         puzzleState.pieces.push(i);
     }
 
-    // Embaralha (Garante que não comece resolvido)
-    // Dica: Se fosse aquele puzzle de deslizar, precisaria verificar solubilidade.
-    // Como é troca livre, qualquer embaralhamento é solúvel.
+    // Embaralha
     puzzleState.pieces.sort(() => 0.5 - Math.random());
-
     puzzleState.selectedPieceIndex = null;
     
     renderPuzzleBoard();
