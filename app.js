@@ -13,6 +13,7 @@ let marketCards = [];
 let pendingTradeId = null; // Guarda qual troca o usuário clicou
 let minigameStatus = {}; // Vai guardar a energia: { battle: 5, memory: 3... }
 let targetMaxScale = 50;
+let currentMemoryLevel = 0; // 4, 6 ou 8 pares
 let puzzleState = {
     gridSize: 3, // Ex: 3x3
     pieces: [], // Array com a ordem atual das peças
@@ -1497,121 +1498,123 @@ if (!jogosProntos.includes(gameType)) {
 // MINIGAME: MEMÓRIA
 // =================================================
 
-async function startMemoryGame() {
+// 1. Abre o Menu de Dificuldade (Não inicia o jogo direto)
+function startMemoryGame() {
+    document.getElementById('games-menu').classList.add('hidden');
+    document.getElementById('memory-arena').classList.remove('hidden');
+    
+    // Mostra o Menu, Esconde o Tabuleiro
+    document.getElementById('memory-difficulty-menu').classList.remove('hidden');
+    document.getElementById('memory-game-board').classList.add('hidden');
+}
+
+// 2. Inicia o Jogo com Nível Escolhido
+async function initMemoryGame(pairsCount) {
     let pool = cardsInAlbum.filter(c => c.owned);
 
-    // 🚨 SUBSTIUIÇÃO AQUI
-    if (pool.length < 6) {
-        await showGameAlert("FALTAM CARTAS", "Você precisa de pelo menos 6 cartas na coleção para jogar Memória!");
-        
-        minigameStatus['memory'].energia++;
-        refreshMinigameEnergy();
+    // Verifica se tem cartas suficientes
+    if (pool.length < pairsCount) {
+        await showGameAlert("FALTAM CARTAS", `Você precisa de pelo menos ${pairsCount} cartas na coleção para este nível!`);
         return;
     }
 
-    // 3. Prepara a Tela
-    document.getElementById('games-menu').classList.add('hidden');
-    document.getElementById('memory-arena').classList.remove('hidden');
-    document.getElementById('memory-score').textContent = '0';
+    // COBRANÇA DE ENERGIA (Só cobra agora que escolheu o nível)
+    if (minigameStatus['memory'] && minigameStatus['memory'].energia <= 0) {
+        showNotification("Sem energia!", true);
+        return;
+    }
+    // Desconta energia no banco
+    const { data: sucesso } = await supabase.rpc('gastar_energia_minigame', { tipo_jogo: 'memory' });
+    if (!sucesso) { showNotification("Erro de energia.", true); return; }
     
+    // Atualiza localmente
+    minigameStatus['memory'].energia--; 
+    refreshMinigameEnergy();
+
+    // Configura o Jogo
+    currentMemoryLevel = pairsCount;
+    document.getElementById('memory-difficulty-menu').classList.add('hidden');
+    document.getElementById('memory-game-board').classList.remove('hidden');
+    document.getElementById('memory-score').textContent = `0 / ${pairsCount}`;
+
     const grid = document.getElementById('memory-grid');
     grid.innerHTML = 'Carregando...';
 
-    // 4. Reseta Estado
+    // Configura Grid CSS
+    if (pairsCount === 8) grid.style.gridTemplateColumns = "repeat(4, 1fr)";
+    else if (pairsCount === 6) grid.style.gridTemplateColumns = "repeat(4, 1fr)"; // 4x3
+    else grid.style.gridTemplateColumns = "repeat(4, 1fr)"; // 4x2
+
+    // Reseta Lógica
     memoryState = {
-        cards: [],
-        hasFlippedCard: false,
-        lockBoard: false,
-        firstCard: null,
-        secondCard: null,
-        matchesFound: 0
+        cards: [], hasFlippedCard: false, lockBoard: false,
+        firstCard: null, secondCard: null, matchesFound: 0
     };
 
-    // 5. Embaralha a coleção do jogador e pega 6 cartas
+    // Sorteia Cartas
     pool.sort(() => 0.5 - Math.random());
-    const selected = pool.slice(0, 6);
-
-    // 6. Duplica para criar os pares (6 x 2 = 12 cartas)
-    let gameCards = [...selected, ...selected].map((card, index) => ({
-        ...card,
-        tempId: index
-    }));
-
-    // Embaralha as 12 cartas da mesa
+    const selected = pool.slice(0, pairsCount);
+    
+    // Duplica e Embaralha
+    let gameCards = [...selected, ...selected].map((card, index) => ({ ...card, tempId: index }));
     gameCards.sort(() => 0.5 - Math.random());
 
-    // 7. Renderiza na Tela
+    // Renderiza
     grid.innerHTML = '';
     gameCards.forEach(card => {
         const cardEl = document.createElement('div');
         cardEl.classList.add('memory-card');
-        cardEl.dataset.cardId = card.id; 
+        cardEl.dataset.cardId = card.id;
         
-        // Usa a imagem e cor da carta do jogador
         cardEl.innerHTML = `
             <div class="memory-front" style="background-image: url('${card.image_url}'); border-color: ${getRarityColors(card.rarity).primary}"></div>
             <div class="memory-back"></div>
         `;
-
         cardEl.addEventListener('click', () => flipCard(cardEl));
         grid.appendChild(cardEl);
     });
 }
 
 function flipCard(cardElement) {
-    // Regras de Bloqueio:
-    // 1. Se o tabuleiro tá travado (esperando desvirar)
-    // 2. Se clicou na mesma carta 2 vezes
     if (memoryState.lockBoard) return;
     if (cardElement === memoryState.firstCard) return;
+    if (cardElement.classList.contains('flipped')) return;
 
     cardElement.classList.add('flipped');
 
     if (!memoryState.hasFlippedCard) {
-        // Primeira carta virada
         memoryState.hasFlippedCard = true;
         memoryState.firstCard = cardElement;
         return;
     }
 
-    // Segunda carta virada
     memoryState.secondCard = cardElement;
     checkForMatch();
 }
 
 function checkForMatch() {
-    // Compara os IDs das cartas originais
     let isMatch = memoryState.firstCard.dataset.cardId === memoryState.secondCard.dataset.cardId;
-
-    if (isMatch) {
-        disableCards();
-    } else {
-        unflipCards();
-    }
+    isMatch ? disableCards() : unflipCards();
 }
 
 function disableCards() {
-    // Travam viradas para sempre
-    // Remove o listener de clique (opcional, pois a lógica já impede)
     memoryState.matchesFound++;
-    document.getElementById('memory-score').textContent = memoryState.matchesFound;
-
+    document.getElementById('memory-score').textContent = `${memoryState.matchesFound} / ${currentMemoryLevel}`;
     resetBoard();
 
-    // Verifica Vitória (6 pares)
-    if (memoryState.matchesFound === 6) {
+    // Vitória
+    if (memoryState.matchesFound === currentMemoryLevel) {
         setTimeout(finishMemoryGame, 500);
     }
 }
 
 function unflipCards() {
-    memoryState.lockBoard = true; // Trava para o jogador não clicar em outra doida
-
+    memoryState.lockBoard = true;
     setTimeout(() => {
         memoryState.firstCard.classList.remove('flipped');
         memoryState.secondCard.classList.remove('flipped');
         resetBoard();
-    }, 1000); // 1 segundo para a criança memorizar
+    }, 1000);
 }
 
 function resetBoard() {
@@ -1620,25 +1623,32 @@ function resetBoard() {
 }
 
 async function finishMemoryGame() {
-    const config = minigameConfig['memory'] || { reward: 50 }; // Fallback seguro
-    const prize = config.reward;
+    // Busca config do nível jogado
+    const configKey = `memory_${currentMemoryLevel}`;
+    const config = minigameConfig[configKey] || { reward: 30, multi: 1 };
+    const prize = Math.floor(config.reward * config.multi);
+
     await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
     player.moedas += prize;
     updateHeaderInfo();
     
-    showNotification(`MEMÓRIA COMPLETA! +${prize} moedas!`);
+    showNotification(`VITÓRIA! +${prize} moedas!`);
     
     setTimeout(async () => {
-        // 🚨 SUBSTIUIÇÃO AQUI
-        await showGameAlert("PARABÉNS! 🧠", `Você encontrou todos os pares!\nGanhou ${prize} moedas.`);
-        quitMemoryGame();
+        await showGameAlert("PARABÉNS! 🧠", `Você completou o nível ${currentMemoryLevel} pares!\nGanhou ${prize} moedas.`);
+        resetMemoryMenu(); 
     }, 300);
+}
+
+function resetMemoryMenu() {
+    document.getElementById('memory-difficulty-menu').classList.remove('hidden');
+    document.getElementById('memory-game-board').classList.add('hidden');
 }
 
 function quitMemoryGame() {
     document.getElementById('memory-arena').classList.add('hidden');
     document.getElementById('games-menu').classList.remove('hidden');
-    refreshMinigameEnergy(); // Atualiza energia visualmente
+    refreshMinigameEnergy();
 }
 
 // =================================================
@@ -2571,18 +2581,23 @@ async function loadGameConfig() {
         data.forEach(game => {
             let key = '';
             
-            // Mapeamento exato dos novos nomes
-            if(game.nome.includes('Memória')) key = 'memory';
+            // Jogos Padrão
             if(game.nome.includes('Alvo')) key = 'target';
             if(game.nome.includes('Jo-Ken-Po')) key = 'jokenpo';
             if(game.nome.includes('Masmorra')) key = 'dungeon';
             if(game.nome.includes('Batalha')) key = 'battle'; 
+            if(game.nome === 'Jogo da Memória') key = 'memory'; // Fallback antigo
 
-            // Lógica especial para os 3 Puzzles
+            // Puzzle Níveis
             if(game.nome.includes('Puzzle') && game.nome.includes('3x3')) key = 'puzzle_3';
             if(game.nome.includes('Puzzle') && game.nome.includes('4x4')) key = 'puzzle_4';
             if(game.nome.includes('Puzzle') && game.nome.includes('5x5')) key = 'puzzle_5';
             
+            // MEMÓRIA NÍVEIS (NOVO)
+            if(game.nome.includes('Memória') && game.nome.includes('Fácil')) key = 'memory_4';
+            if(game.nome.includes('Memória') && game.nome.includes('Médio')) key = 'memory_6';
+            if(game.nome.includes('Memória') && game.nome.includes('Difícil')) key = 'memory_8';
+
             if(key) {
                 minigameConfig[key] = {
                     reward: game.moedas_recompensa,
