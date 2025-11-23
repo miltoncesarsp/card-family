@@ -179,6 +179,120 @@
 
     </div>
 
+    <div id="editBaseModal" class="modal-overlay hidden">
+    <div class="admin-modal-content">
+        <div class="admin-modal-header">
+            <h3>🧬 Editar Base</h3>
+            <button class="close-admin-modal" onclick="closeModal('editBaseModal')">&times;</button>
+        </div>
+        <form class="modern-form">
+            <input type="hidden" id="modalBaseId">
+            
+            <label>Nome do Personagem:</label>
+            <input id="modalBasePersonagem" type="text">
+            
+            <label>Origem:</label>
+            <input id="modalBaseOrigem" type="text">
+            
+            <label>Elemento Padrão:</label>
+            <select id="modalBaseElemento">
+                <option value="Terra">Terra</option>
+                <option value="Fogo">Fogo</option>
+                <option value="Água">Água</option>
+                <option value="Ar">Ar</option>
+                <option value="Tecnologia">Tecnologia</option>
+                <option value="Luz">Luz</option>
+                <option value="Sombra">Sombra</option>
+            </select>
+            
+            <button type="button" id="modalSaveBaseBtn" class="btn-save">Atualizar Base</button>
+        </form>
+    </div>
+</div>
+
+<div id="editPackModal" class="modal-overlay hidden">
+    <div class="admin-modal-content">
+        <div class="admin-modal-header">
+            <h3>📦 Editar Pacote</h3>
+            <button class="close-admin-modal" onclick="closeModal('editPackModal')">&times;</button>
+        </div>
+        <form class="modern-form">
+            <input type="hidden" id="modalPackId">
+            
+            <div class="form-row">
+                <div><label>Nome:</label><input id="modalPackName" type="text"></div>
+                <div><label>Preço:</label><input id="modalPackPrice" type="number"></div>
+            </div>
+            
+            <label>Total de Cartas:</label>
+            <input id="modalPackTotal" type="number">
+            
+            <label style="color:var(--coin-color); margin-top:10px;">Chances de Drop (%):</label>
+            <div class="form-row">
+                <div><label>Comum:</label><input id="modalChanceComum" type="number"></div>
+                <div><label>Rara:</label><input id="modalChanceRara" type="number"></div>
+                <div><label>Épica:</label><input id="modalChanceEpica" type="number"></div>
+            </div>
+            <div class="form-row">
+                <div><label>Lendária:</label><input id="modalChanceLendaria" type="number"></div>
+                <div><label>Mítica:</label><input id="modalChanceMitica" type="number"></div>
+            </div>
+
+            <label>Alterar Capa (Opcional):</label>
+            <input id="modalPackFile" type="file" accept="image/*">
+            <input type="hidden" id="modalPackCurrentUrl">
+
+            <button type="button" id="modalSavePackBtn" class="btn-save">Atualizar Pacote</button>
+        </form>
+    </div>
+</div>
+
+<div id="editPlayerModal" class="modal-overlay hidden">
+    <div class="admin-modal-content">
+        <div class="admin-modal-header">
+            <h3>👤 Editar Jogador</h3>
+            <button class="close-admin-modal" onclick="closeModal('editPlayerModal')">&times;</button>
+        </div>
+        <form class="modern-form">
+            <input type="hidden" id="modalPlayerId">
+            
+            <label>Email (Somente Leitura):</label>
+            <input id="modalPlayerEmail" type="text" disabled>
+            
+            <label>Nome:</label>
+            <input id="modalPlayerName" type="text">
+            
+            <div class="form-row">
+                <div><label>Moedas:</label><input id="modalPlayerMoedas" type="number"></div>
+                <div><label>Nível:</label><input id="modalPlayerNivel" type="number"></div>
+            </div>
+            
+            <button type="button" id="modalSavePlayerBtn" class="btn-save">Salvar Jogador</button>
+        </form>
+    </div>
+</div>
+
+<div id="editRuleModal" class="modal-overlay hidden">
+    <div class="admin-modal-content">
+        <div class="admin-modal-header">
+            <h3>⚖️ Regra de Evolução</h3>
+            <button class="close-admin-modal" onclick="closeModal('editRuleModal')">&times;</button>
+        </div>
+        <form class="modern-form">
+            <label>Raridade:</label>
+            <input id="modalRuleName" type="text" disabled>
+            
+            <label>Cartas Repetidas para Evoluir:</label>
+            <input id="modalRuleCost" type="number">
+            
+            <label>Ordem de Força:</label>
+            <input id="modalRuleOrder" type="number">
+            
+            <button type="button" id="modalSaveRuleBtn" class="btn-save">Atualizar Regra</button>
+        </form>
+    </div>
+</div>
+
     
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <script src="supabaseClient-v2.js?v=2"></script>
