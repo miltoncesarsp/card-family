@@ -1057,81 +1057,7 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     margin: 0 auto;
 }
 
-/* --- REGRAS ESPECÍFICAS PARA CELULAR (Tela < 600px) --- */
-@media (max-width: 600px) {
-    
-    /* 1. Ajuste da Janela do Modal no Celular */
-    #trade-offer-modal .modal-content {
-        width: 95% !important;
-        padding: 15px !important;
-    }
 
-    /* 2. Grid de "Meus Anúncios" no Celular */
-    .trade-slots-row {
-        grid-template-columns: 1fr 1fr !important; /* 2 Colunas fixas */
-        gap: 10px;
-    }
-
-    /* 3. Grid do Modal de Escolha no Celular */
-    #my-offer-grid {
-        grid-template-columns: repeat(2, 1fr) !important; /* 2 Colunas fixas */
-        gap: 8px;
-        max-height: 300px;
-    }
-
-    /* 4. Carta dentro do Modal (Celular) - Anti-Esmagamento */
-    #my-offer-grid .card-preview.card-small {
-        width: 100% !important;
-        min-height: 130px !important; /* Força altura mínima */
-        max-width: 100%;
-        font-size: 0.8em; /* Fonte menor */
-    }
-
-    /* Ajustes finos de fonte no celular */
-    #my-offer-grid .card-name-footer { font-size: 9px; padding: 3px 0; }
-    #my-offer-grid .card-quantity { width: 20px; height: 20px; font-size: 10px; }
-    #my-offer-grid .card-force-circle { width: 25px; height: 25px; font-size: 10px; bottom: 25px; }
-
-   /* Garante que o container fique no canto certo */
-    .folder-notifications {
-        top: 5px !important;
-        right: 5px !important;
-        gap: 3px !important;
-    }
-
-    /* Força o visual de "Botãozinho" colorido */
-    .notif-badge-new, 
-    .notif-badge-evo {
-        font-size: 8px !important;       /* Fonte menor para não tapar a capa */
-        padding: 3px 6px !important;     /* Espaçamento interno */
-        color: white !important;         /* FORÇA TEXTO BRANCO */
-        border-radius: 10px !important;  /* Arredondado */
-        border: 1px solid white !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
-        
-        /* Garante que o flex funcione para alinhar o ícone e o texto */
-        display: flex !important;
-        align-items: center !important;
-        width: fit-content !important;   /* Apenas o tamanho do texto */
-        margin-left: auto !important;    /* Alinha à direita */
-    }
-
-    /* Garante as cores de fundo */
-    .notif-badge-new {
-        background-color: #ff0000 !important; /* Vermelho */
-    }
-
-    .notif-badge-evo {
-        background-color: #2ecc71 !important; /* Verde */
-    }
-
-    /* Ajusta o ícone dentro do badge */
-    .notif-badge-new i, 
-    .notif-badge-evo i {
-        font-size: 9px !important;
-        margin-right: 3px !important;
-    }
-}
 
 /* Container da carta no modal (para centralizar os efeitos) */
 .modal-card-container {
@@ -2218,6 +2144,18 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     to { opacity: 0; transform: translateY(-10px); }
 }
 
+/* Ajuste para cartas na mão parecerem com o álbum */
+.hand-card-wrapper {
+    cursor: pointer;
+    transition: transform 0.2s;
+    transform-origin: center bottom;
+}
+
+.hand-card-wrapper:hover {
+    transform: translateY(-20px) scale(1.1);
+    z-index: 100;
+}
+
 /* --- TABELAS RESPONSIVAS (Mobile Card View) --- */
 @media (max-width: 768px) {
     /* Força a tabela a agir como blocos */
@@ -2261,4 +2199,91 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
         margin-left: 5px;
         padding: 8px 12px;
     }
+}
+
+/* --- REGRAS ESPECÍFICAS PARA CELULAR (Tela < 600px) --- */
+@media (max-width: 600px) {
+    
+    /* 1. Ajuste da Janela do Modal no Celular */
+    #trade-offer-modal .modal-content {
+        width: 95% !important;
+        padding: 15px !important;
+    }
+
+    /* 2. Grid de "Meus Anúncios" no Celular */
+    .trade-slots-row {
+        grid-template-columns: 1fr 1fr !important; /* 2 Colunas fixas */
+        gap: 10px;
+    }
+
+    /* 3. Grid do Modal de Escolha no Celular */
+    #my-offer-grid {
+        grid-template-columns: repeat(2, 1fr) !important; /* 2 Colunas fixas */
+        gap: 8px;
+        max-height: 300px;
+    }
+
+    /* 4. Carta dentro do Modal (Celular) - Anti-Esmagamento */
+    #my-offer-grid .card-preview.card-small {
+        width: 100% !important;
+        min-height: 130px !important; /* Força altura mínima */
+        max-width: 100%;
+        font-size: 0.8em; /* Fonte menor */
+    }
+
+    /* Ajustes finos de fonte no celular */
+    #my-offer-grid .card-name-footer { font-size: 9px; padding: 3px 0; }
+    #my-offer-grid .card-quantity { width: 20px; height: 20px; font-size: 10px; }
+    #my-offer-grid .card-force-circle { width: 25px; height: 25px; font-size: 10px; bottom: 25px; }
+
+   /* Garante que o container fique no canto certo */
+    .folder-notifications {
+        top: 5px !important;
+        right: 5px !important;
+        gap: 3px !important;
+    }
+
+    /* Força o visual de "Botãozinho" colorido */
+    .notif-badge-new, 
+    .notif-badge-evo {
+        font-size: 8px !important;       /* Fonte menor para não tapar a capa */
+        padding: 3px 6px !important;     /* Espaçamento interno */
+        color: white !important;         /* FORÇA TEXTO BRANCO */
+        border-radius: 10px !important;  /* Arredondado */
+        border: 1px solid white !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
+        
+        /* Garante que o flex funcione para alinhar o ícone e o texto */
+        display: flex !important;
+        align-items: center !important;
+        width: fit-content !important;   /* Apenas o tamanho do texto */
+        margin-left: auto !important;    /* Alinha à direita */
+    }
+
+    /* Garante as cores de fundo */
+    .notif-badge-new {
+        background-color: #ff0000 !important; /* Vermelho */
+    }
+
+    .notif-badge-evo {
+        background-color: #2ecc71 !important; /* Verde */
+    }
+
+    /* Ajusta o ícone dentro do badge */
+    .notif-badge-new i, 
+    .notif-badge-evo i {
+        font-size: 9px !important;
+        margin-right: 3px !important;
+    }
+
+   .hand-card-wrapper .card-preview.card-small {
+        width: 100px !important;
+        height: 140px !important;
+        font-size: 0.8em; /* Ajusta fonte interna */
+    }
+    /* Ajusta posições internas para o tamanho reduzido */
+    .hand-card-wrapper .card-element-badge { width: 20px; height: 20px; font-size: 10px; top: 2px; right: 2px; }
+    .hand-card-wrapper .rarity-badge { width: 18px; height: 18px; font-size: 10px; bottom: 30px; left: 2px; }
+    .hand-card-wrapper .card-force-circle { width: 25px; height: 25px; font-size: 10px; bottom: 25px; right: 2px; border-width: 1px; }
+    .hand-card-wrapper .card-name-footer { font-size: 8px; padding: 4px 0; }
 }
