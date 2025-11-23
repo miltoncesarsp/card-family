@@ -407,9 +407,8 @@ h1, h2, h3, h4 {
 
 /* --- AJUSTES PARA CARTA PEQUENA (JOGO) --- */
 .card-preview.card-small {
-width: 80px; 
-    height: 112px;
-    font-size: 0.6em;
+    width: 150px;
+    height: 210px;
 }
 
 .card-preview.card-small .rarity-badge {
@@ -2088,22 +2087,6 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     border: none; /* Remove bordas coloridas de loot */
 }
 
-#dungeon-monster-card, 
-#dungeon-player-slot {
-    /* Força o uso do tamanho do .card-small */
-    width: 90px !important;
-    height: 126px !important;
-    font-size: 0.7em !important;
-    margin: 0 !important; /* Limpa margens */
-}
-/* Ajuste para as cartas do monstro/jogador não saírem da tela */
-#dungeon-combat-overlay .combat-zone {
-    gap: 10px;
-    transform: scale(0.9); /* Reduz levemente para caber em telas pequenas */
-    width: 100%;
-    justify-content: center;
-}
-
 .admin-modal-header {
     display: flex;
     justify-content: space-between;
@@ -2285,64 +2268,42 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     flex-shrink: 0;
 }
 
-/* === CORREÇÃO MÃO MASMORRA (Lado a Lado) === */
-#dungeon-hand {
-    /* Força as cartas a se alinharem, mesmo se o JS não tiver o flex-direction */
-    display: flex !important;
-    flex-direction: row !important; 
-    flex-wrap: wrap; 
-    justify-content: center;
-    gap: 10px;
-    /* Adicione estas linhas para permitir scroll no mobile se a mão for muito grande */
-    overflow-x: auto; 
-    padding: 5px;
-}
-
 /* === MODAL DE ZOOM (CARD GRANDE) === */
-/* === CORREÇÃO ZOOM (Borda, Artefato e Botão) === */
 #card-zoom-modal {
     display: flex;
     justify-content: center;
     align-items: center;
-    position: fixed; 
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 30000 !important;
-    background: rgba(0, 0, 0, 0.95); /* Fundo bem escuro */
-    flex-direction: column; 
+    z-index: 30000 !important; /* Garante que fique acima de tudo */
 }
 
 .card-zoom-content {
-    /* MANTÉM O CONTEÚDO MINIMALISTA PARA EVITAR ARTEFATOS */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 0; /* Remove padding que poderia criar a "borda" */
-    background: transparent; /* Garante que não tenha fundo próprio */
-}
-
-#zoomed-card .card-preview {
-width: 280px !important; 
-    height: 392px !important;
-    margin: 0 !important;
-    font-size: 1.1em !important; /* Aumenta o texto para o tamanho grande */
-    transform: none !important;
-    box-shadow: 0 0 40px rgba(0,0,0,0.8); /* Sombra suave */
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Permite clicar no fundo para fechar */
 }
 
 .close-zoom-btn {
-    margin-top: 25px; /* Mais espaço do card */
-    width: auto; 
-    min-width: 180px; /* Deixando um pouco maior */
-    background: #e74c3c;
-    color: white;
+    background: white;
+    color: black;
     border: none;
-    padding: 12px 25px;
-    border-radius: 30px;
+    padding: 10px 30px;
+    border-radius: 20px;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-   z-index: 30001;
+    margin-top: 50px; /* Espaço pra carta não cobrir */
+}
+
+#zoomed-card .card-preview {
+    width: 300px !important; /* Tamanho Grande */
+    height: 420px !important;
+    transform: none !important; /* Remove escala antiga */
+    margin: 0 !important;
+    pointer-events: auto; /* Permite interagir com a carta se precisar */
+    font-size: 1.2em; /* Aumenta o texto */
 }
 
 /* --- TABELAS RESPONSIVAS (Mobile Card View) --- */
@@ -2397,21 +2358,6 @@ width: 280px !important;
         width: 260px !important;
         height: 364px !important;
     }
-
-   #dungeon-hand {
-        flex-wrap: nowrap; /* No celular, não quebra, faz scroll */
-        justify-content: flex-start;
-        overflow-x: auto;
-        padding-bottom: 10px;
-    }
-
-/* Slots de Monstro e Jogador no Combate */
-#dungeon-monster-card, 
-#dungeon-player-slot {
-    width: 100px !important;
-    height: 140px !important;
-    font-size: 0.8em !important;
-}
     
     /* 1. Ajuste da Janela do Modal no Celular */
     #trade-offer-modal .modal-content {
@@ -2496,4 +2442,3 @@ width: 280px !important;
     .hand-card-wrapper .card-force-circle { width: 25px; height: 25px; font-size: 10px; bottom: 25px; right: 2px; border-width: 1px; }
     .hand-card-wrapper .card-name-footer { font-size: 8px; padding: 4px 0; }
 }
-
