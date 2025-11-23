@@ -1836,6 +1836,7 @@ function targetStand() {
 
 async function endTargetGame(survived) {
     targetState.isGameOver = true;
+    // Esconde os botões de ação
     document.getElementById('btn-hit').classList.add('hidden');
     document.getElementById('btn-stand').classList.add('hidden');
     
@@ -1854,7 +1855,7 @@ async function endTargetGame(survived) {
         const config = minigameConfig['target'] || { reward: 150, multi: 1.0 };
         const maxPrize = Math.floor(config.reward * config.multi);
 
-        // 2. Fatias do Prêmio e Mensagens com VALOR
+        // 2. Fatias do Prêmio
         if (diff === 0) { 
             prize = maxPrize; 
             title = "PERFEITO! 🎯"; 
@@ -1873,18 +1874,26 @@ async function endTargetGame(survived) {
             message = `Valeu o esforço. Prêmio de consolação: +${prize} moedas.`;
         }
 
+        // 3. Processa o pagamento
         if (prize > 0) {
             await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
             player.moedas += prize;
             updateHeaderInfo();
+            
+            // --- NOVO: Notificação flutuante ---
+            showNotification(`+${prize} Moedas!`);
         }
     }
 
     setTimeout(async () => {
+        // Mostra o modal com o resultado e espera o clique no OK
         await showGameAlert(title, message);
-        document.getElementById('btn-target-exit').classList.remove('hidden');
+        
+        // --- NOVO: Sai do jogo automaticamente após o OK ---
+        quitTargetGame();
     }, 500);
 }
+
 function quitTargetGame() {
     document.getElementById('target-arena').classList.add('hidden');
     document.getElementById('games-menu').classList.remove('hidden');
