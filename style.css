@@ -2287,3 +2287,20 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     .hand-card-wrapper .card-force-circle { width: 25px; height: 25px; font-size: 10px; bottom: 25px; right: 2px; border-width: 1px; }
     .hand-card-wrapper .card-name-footer { font-size: 8px; padding: 4px 0; }
 }
+
+/* --- ESTILO PARA CARTAS JOGADAS (Duelo e Jo-Ken-Po) --- */
+.hand-card.played, .hand-card-wrapper.played {
+    filter: grayscale(100%) brightness(0.5); /* Deixa cinza e escura */
+    cursor: not-allowed; /* Mostra ícone de proibido */
+    transform: scale(0.95); /* Diminui um pouco */
+    border-color: #555; /* Borda cinza */
+    opacity: 0.6;
+    pointer-events: none; /* Garante que não clica */
+}
+
+/* Impede a animação de subir (hover) em cartas jogadas */
+.hand-card-wrapper.played:hover {
+    transform: scale(0.95); /* Mantém pequena */
+    border-color: #555 !important;
+    z-index: 1; /* Não sobe acima das outras */
+}
