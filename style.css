@@ -2268,42 +2268,50 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     flex-shrink: 0;
 }
 
+/* === CORREÇÃO MÃO MASMORRA (Lado a Lado) === */
+#dungeon-hand {
+    display: flex !important;
+    flex-direction: row !important; /* Força linha */
+    flex-wrap: wrap; /* Quebra linha se não couber */
+    justify-content: center;
+    gap: 10px;
+}
+
 /* === MODAL DE ZOOM (CARD GRANDE) === */
 #card-zoom-modal {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 30000 !important; /* Garante que fique acima de tudo */
+    flex-direction: column; /* Botão embaixo da carta */
+    background: rgba(0, 0, 0, 0.92); /* Fundo bem escuro */
 }
 
 .card-zoom-content {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    pointer-events: none; /* Permite clicar no fundo para fechar */
-}
-
-.close-zoom-btn {
-    background: white;
-    color: black;
-    border: none;
-    padding: 10px 30px;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 50px; /* Espaço pra carta não cobrir */
+    align-items: center; /* Centraliza tudo */
+    width: auto; /* Remove largura 100% que esticava */
 }
 
 #zoomed-card .card-preview {
-    width: 300px !important; /* Tamanho Grande */
-    height: 420px !important;
-    transform: none !important; /* Remove escala antiga */
+    width: 280px !important;
+    height: 392px !important;
     margin: 0 !important;
-    pointer-events: auto; /* Permite interagir com a carta se precisar */
-    font-size: 1.2em; /* Aumenta o texto */
+    border: none !important; /* Remove borda branca extra se tiver */
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    font-size: 1.1em;
+    /* Garante que a borda da raridade apareça */
+}
+
+.close-zoom-btn {
+    margin-top: 20px;
+    width: auto; /* Não estica */
+    min-width: 120px;
+    background: #e74c3c; /* Vermelho botão */
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 
 /* --- TABELAS RESPONSIVAS (Mobile Card View) --- */
@@ -2357,6 +2365,13 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
    #zoomed-card .card-preview {
         width: 260px !important;
         height: 364px !important;
+    }
+
+   #dungeon-hand {
+        flex-wrap: nowrap; /* No celular, não quebra, faz scroll */
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 10px;
     }
     
     /* 1. Ajuste da Janela do Modal no Celular */
