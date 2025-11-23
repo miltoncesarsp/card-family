@@ -374,7 +374,7 @@ function renderAlbum() {
                 const elementStyles = getElementStyles(card.element);
 
 html += `
-                <div class="card-preview card-small card-collected" 
+                <div class="card-preview card-collected" 
                      style="background-image: url('${card.image_url}'); border: 3px solid ${rarityStyles.primary}; cursor: pointer;" 
                      title="${card.name}"
                      onclick="viewBigCard('${card.id}')"> ${newBadgeHTML} ${evolutionBtnHTML}
