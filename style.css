@@ -2156,6 +2156,45 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     z-index: 100;
 }
 
+/* --- ESTILO PARA CARTAS JOGADAS (Duelo e Jo-Ken-Po) --- */
+.hand-card.played, .hand-card-wrapper.played {
+    filter: grayscale(100%) brightness(0.5); /* Deixa cinza e escura */
+    cursor: not-allowed; /* Mostra ícone de proibido */
+    transform: scale(0.95); /* Diminui um pouco */
+    border-color: #555; /* Borda cinza */
+    opacity: 0.6;
+    pointer-events: none; /* Garante que não clica */
+}
+
+/* Impede a animação de subir (hover) em cartas jogadas */
+.hand-card-wrapper.played:hover {
+    transform: scale(0.95); /* Mantém pequena */
+    border-color: #555 !important;
+    z-index: 1; /* Não sobe acima das outras */
+}
+
+/* === CORREÇÃO DE CAMADAS DA MASMORRA === */
+
+/* 1. Faz a mão "furar" o bloqueio do modal e ficar clicável */
+#dungeon-arena .player-hand-container {
+    position: relative; 
+    z-index: 20005; /* Maior que o modal (20000) */
+}
+
+/* 2. Ajuste opcional: Garante que o fundo do overlay cubra o grid, mas não a mão */
+#dungeon-combat-overlay {
+    /* Se quiser que o fundo escuro vá até o fim da tela, mantenha como está.
+       Se a mão ficar difícil de ver, descomente a linha abaixo para adicionar um fundo nela: */
+    /* backdrop-filter: blur(5px); */
+}
+
+/* 3. Garante que as cartas na mão respondam ao hover mesmo com o monstro na tela */
+#dungeon-arena .hand-card-wrapper {
+    cursor: pointer;
+    pointer-events: auto !important;
+}
+
+
 /* --- TABELAS RESPONSIVAS (Mobile Card View) --- */
 @media (max-width: 768px) {
     /* Força a tabela a agir como blocos */
@@ -2288,19 +2327,3 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     .hand-card-wrapper .card-name-footer { font-size: 8px; padding: 4px 0; }
 }
 
-/* --- ESTILO PARA CARTAS JOGADAS (Duelo e Jo-Ken-Po) --- */
-.hand-card.played, .hand-card-wrapper.played {
-    filter: grayscale(100%) brightness(0.5); /* Deixa cinza e escura */
-    cursor: not-allowed; /* Mostra ícone de proibido */
-    transform: scale(0.95); /* Diminui um pouco */
-    border-color: #555; /* Borda cinza */
-    opacity: 0.6;
-    pointer-events: none; /* Garante que não clica */
-}
-
-/* Impede a animação de subir (hover) em cartas jogadas */
-.hand-card-wrapper.played:hover {
-    transform: scale(0.95); /* Mantém pequena */
-    border-color: #555 !important;
-    z-index: 1; /* Não sobe acima das outras */
-}
