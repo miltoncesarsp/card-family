@@ -1358,11 +1358,16 @@ async function resolveRound(myCard, cpuCard) {
 async function finishBattle() {
     let msg = "";
     let prize = 0;
-    const WIN_PRIZE = 150;
+    
+    // --- MUDANÇA AQUI: LER DO ADMIN ---
+    // Busca a configuração ou usa 150 como padrão se der erro
+    const config = minigameConfig['battle'] || { reward: 150, multi: 1.0 };
+    const WIN_PRIZE = Math.floor(config.reward * config.multi);
+    // ----------------------------------
 
     if (battleState.playerScore > battleState.enemyScore) {
         msg = "VITÓRIA! 🏆";
-        prize = WIN_PRIZE;
+        prize = WIN_PRIZE; // Agora usa o valor do Admin!
         await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
         player.moedas += prize;
         showNotification(`PARABÉNS! Você ganhou +${prize} moedas!`);
@@ -2599,6 +2604,7 @@ async function loadGameConfig() {
             let key = '';
             
             // Jogos Padrão
+            if(game.nome.includes('Duelo') || game.nome.includes('Batalha')) key = 'battle';
             if(game.nome.includes('Alvo')) key = 'target';
             if(game.nome.includes('Jo-Ken-Po')) key = 'jokenpo';
             if(game.nome.includes('Masmorra')) key = 'dungeon';
