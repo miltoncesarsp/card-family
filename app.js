@@ -2169,81 +2169,73 @@ function renderJokenpoHand() {
 }
 
 async function playJokenpoRound(playerCard, cardEl) {
-    // Bloqueio de duplo clique e carta usada
+    // Bloqueio de clique duplo
     if (jokenpoState.isProcessing || cardEl.classList.contains('played')) return;
     
     jokenpoState.isProcessing = true;
     
-    // Marca visualmente como usada
+    // Marca carta visualmente
     cardEl.classList.add('played'); 
     cardEl.style.pointerEvents = "none"; 
 
     // 1. Escolha da CPU
     let cpuCard = jokenpoState.cpuDeck[jokenpoState.round - 1];
     
-    // Fallback de segurança
     if (!cpuCard) {
         const { data: allCards } = await supabase.from('cards').select('*').limit(20);
         cpuCard = allCards[Math.floor(Math.random() * allCards.length)];
     }
 
-    // 2. Visual: Coloca cartas na mesa
+    // 2. Renderiza Mesa
     renderCardInSlot(playerCard, 'jk-player-card');
-    
     const enemySlot = document.getElementById('jk-enemy-card');
     enemySlot.innerHTML = '<div class="card-back-pattern"></div>';
     enemySlot.removeAttribute('style');
     enemySlot.className = 'card-preview card-small';
 
-    // Ícones iniciais
     document.getElementById('jk-player-element').innerHTML = getElementIcon(playerCard.element);
     document.getElementById('jk-player-element').style.background = getElementStyles(playerCard.element).primary;
-    
     document.getElementById('jk-status').textContent = "JO... KEN... PO!";
     document.getElementById('jk-status').style.color = "#FFD700";
     
-    // Suspense
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 1000)); // Suspense...
 
     // 3. Revela CPU
     renderCardInSlot(cpuCard, 'jk-enemy-card');
     document.getElementById('jk-enemy-element').innerHTML = getElementIcon(cpuCard.element);
     document.getElementById('jk-enemy-element').style.background = getElementStyles(cpuCard.element).primary;
 
-    // --- 4. LÓGICA DE COMBATE (PURAMENTE ELEMENTAL) ---
-    let result = 0; // 0=Empate, 1=Player, -1=CPU
+    // --- 4. LÓGICA SIMPLIFICADA ---
+    let result = 0;
     let reason = "";
 
-    // Função de Limpeza (Normaliza texto para evitar erros de 'Água' vs 'Agua')
     const clean = (str) => str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
-
     const pEl = clean(playerCard.element);
     const cEl = clean(cpuCard.element);
 
     if (pEl === cEl) {
-        // MESMO ELEMENTO = EMPATE (Sem desempate por força)
         result = 0;
         reason = "Elementos Iguais: Empate!";
     } else {
-        // Busca regra nas regras carregadas (normalizando tudo)
-        const myAdvantage = jokenpoState.rules.find(r => clean(r.atacante) === pEl && clean(r.defensor) === cEl);
-        const cpuAdvantage = jokenpoState.rules.find(r => clean(r.atacante) === cEl && clean(r.defensor) === pEl);
+        // Agora buscamos apenas UMA regra: Onde EU sou o atacante
+        const rule = jokenpoState.rules.find(r => clean(r.atacante) === pEl && clean(r.defensor) === cEl);
 
-        if (myAdvantage && myAdvantage.resultado === 1) {
-            result = 1;
-            reason = `Vantagem! (${playerCard.element} vence ${cpuCard.element})`;
-        } else if (cpuAdvantage && cpuAdvantage.resultado === 1) {
-            result = -1;
-            reason = `Desvantagem! (${cpuCard.element} vence ${playerCard.element})`;
+        if (rule) {
+            if (rule.resultado === 1) {
+                result = 1; 
+                reason = `Vantagem! (${playerCard.element} vence ${cpuCard.element})`;
+            } else if (rule.resultado === -1) {
+                result = -1; 
+                reason = `Desvantagem! (${playerCard.element} perde para ${cpuCard.element})`;
+            }
         } else {
-            // Se cair aqui, seu banco de dados está incompleto (faltou cadastrar a relação)
-            // Mas como fallback, declaramos empate em vez de força.
+            // Se não achou regra 1 nem -1, é empate (fallback)
             result = 0;
-            reason = "Sem vantagem clara: Empate.";
+            reason = "Sem vantagem: Empate.";
         }
     }
 
-    // 5. Aplica Resultado Visual
+    // 5. Placar e Visual
     const statusEl = document.getElementById('jk-status');
     const pElemIcon = document.getElementById('jk-player-element');
     const cElemIcon = document.getElementById('jk-enemy-element');
@@ -2267,11 +2259,9 @@ async function playJokenpoRound(playerCard, cardEl) {
 
     updateJokenpoScore();
 
-    // 6. Próxima Rodada Automática
+    // 6. Próxima
     if (jokenpoState.round < 3) {
-        setTimeout(() => {
-            nextJokenpoRound();
-        }, 2500); // 2.5 segundos para ler o resultado
+        setTimeout(() => { nextJokenpoRound(); }, 2500);
     } else {
         setTimeout(finishJokenpoGame, 2500);
     }
