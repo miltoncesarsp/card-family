@@ -1539,17 +1539,24 @@ async function attemptPlay(gameType) {
 
 // Função Auxiliar para gastar energia (crie se não tiver)
 async function checkAndSpendEnergy(gameType) {
-    if (minigameStatus[gameType].energia <= 0) {
-        showNotification("Sem energia!", true);
+    // Verifica se tem energia localmente antes de ir ao banco
+    if (minigameStatus[gameType] && minigameStatus[gameType].energia <= 0) {
+        showNotification("Sem energia! Espere regenerar.", true);
         return false;
     }
+
+    // Tenta cobrar no banco
     const { data: sucesso } = await supabase.rpc('gastar_energia_minigame', { tipo_jogo: gameType });
+    
     if(sucesso) {
+        // Se deu certo, atualiza o visual localmente
         minigameStatus[gameType].energia--;
         refreshMinigameEnergy();
-        return true;
+        return true; // Pode jogar
+    } else {
+        showNotification("Erro de energia.", true);
+        return false; // Não pode jogar
     }
-    return false;
 }
 
 // =================================================
