@@ -2175,11 +2175,8 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
 
 /* === CORREÇÃO DE CAMADAS DA MASMORRA === */
 
-/* 1. Faz a mão "furar" o bloqueio do modal e ficar clicável */
-#dungeon-arena .player-hand-container {
-    position: relative; 
-    z-index: 20005; /* Maior que o modal (20000) */
-}
+/* Limpeza do hack antigo (se tiver colado) */
+#dungeon-arena .player-hand-container { z-index: auto; }
 
 /* 2. Ajuste opcional: Garante que o fundo do overlay cubra o grid, mas não a mão */
 #dungeon-combat-overlay {
@@ -2194,6 +2191,75 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     pointer-events: auto !important;
 }
 
+/* Sidebar da Mão (Visualização) */
+.dungeon-sidebar {
+    background: rgba(0,0,0,0.3);
+    padding: 10px;
+    border-radius: 10px;
+    min-width: 120px;
+}
+
+/* Grid Vertical para a mão na sidebar */
+.hand-grid-vertical {
+    display: flex;
+    flex-direction: column; /* Um embaixo do outro no PC */
+    gap: 5px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Carta na Sidebar (bem pequena) */
+.hand-grid-vertical .card-preview {
+    transform: scale(0.6);
+    margin: -30px 0; /* Sobreposição vertical */
+}
+
+/* AJUSTE MOBILE */
+@media (max-width: 700px) {
+    .dungeon-layout-container {
+        flex-direction: column; /* Um embaixo do outro */
+        align-items: center;
+    }
+    
+    .dungeon-sidebar {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 10px;
+    }
+    
+    .hand-grid-vertical {
+        flex-direction: row; /* Volta a ser horizontal no celular */
+        width: 100%;
+        overflow-x: auto;
+        padding: 20px 0;
+    }
+    
+    .hand-grid-vertical .card-preview {
+        transform: scale(0.7);
+        margin: 0 -15px; /* Sobreposição horizontal */
+    }
+}
+
+/* === MODAL DE ZOOM (CARD GRANDE) === */
+.card-zoom-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.close-zoom-btn {
+    background: white;
+    color: black;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 50px; /* Espaço pra carta não cobrir */
+}
 
 /* --- TABELAS RESPONSIVAS (Mobile Card View) --- */
 @media (max-width: 768px) {
