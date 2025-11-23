@@ -33,6 +33,9 @@
             <button class="tab-btn" onclick="openTab('tab-games')">
     <i class="fas fa-gamepad"></i> <span class="tab-text">Games</span>
 </button>
+            <button class="tab-btn" onclick="openTab('tab-daily')">
+    <i class="fas fa-calendar-check"></i> <span class="tab-text">Diário</span>
+</button>
         </div>
     </header>
 
@@ -308,6 +311,14 @@
         </div>
 </div>
 
+    <div id="tab-daily" class="tab-content">
+    <h3>📅 Recompensas de Login (7 Dias)</h3>
+    <p style="color:#aaa; font-size:0.9em; margin-bottom:20px;">
+        Defina o que o jogador ganha em cada dia consecutivo. No dia 7, recomenda-se um prêmio especial!
+    </p>
+    
+    <div id="dailyListContainer" class="bases-grid"></div>
+</div>
     
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <script src="supabaseClient-v2.js?v=2"></script>
@@ -375,6 +386,33 @@
             </div>
             
             <button type="button" id="modalSaveGameBtn" class="btn-save">Atualizar Economia</button>
+        </form>
+    </div>
+</div>
+
+<div id="editDailyModal" class="modal-overlay hidden">
+    <div class="admin-modal-content">
+        <div class="admin-modal-header">
+            <h3>📅 Editar Dia <span id="modalDailyDayDisplay"></span></h3>
+            <button class="close-admin-modal" onclick="closeModal('editDailyModal')">&times;</button>
+        </div>
+        <form class="modern-form">
+            <input type="hidden" id="modalDailyDay"> <label>Descrição (Nome do Prêmio):</label>
+            <input id="modalDailyDesc" type="text" placeholder="Ex: Baú de Ouro">
+            
+            <label>Tipo de Recompensa:</label>
+            <select id="modalDailyType">
+                <option value="moedas">💰 Moedas</option>
+                <option value="pacote">📦 Pacote (Card Pack)</option>
+            </select>
+            
+            <label id="labelDailyValue">Quantidade de Moedas:</label>
+            <input id="modalDailyValue" type="number">
+            <p id="packIdHint" style="font-size:0.8em; color:#e74c3c; display:none;">
+                ⚠️ Insira o <strong>ID</strong> do Pacote que deseja dar.
+            </p>
+            
+            <button type="button" id="modalSaveDailyBtn" class="btn-save">Salvar Dia</button>
         </form>
     </div>
 </div>
