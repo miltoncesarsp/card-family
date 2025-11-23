@@ -2423,29 +2423,32 @@ function quitJokenpoGame() {
 // =================================================
 
 async function startDungeonGame() {
-    // 1. Verifica e Seleciona as 5 Cartas
     const ownedCards = cardsInAlbum.filter(c => c.owned);
-    
-if (ownedCards.length < 5) {
-        await showGameAlert("PERIGO!", "Você precisa de pelo menos 5 cartas para entrar na masmorra!");
+    if (ownedCards.length < 5) {
+        await showGameAlert("PERIGO!", "Você precisa de 5 cartas para entrar!");
         return;
     }
 
-    dungeonState.playerHand = [...ownedCards]
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 5);
+    // COBRANÇA DE ENERGIA (Adicione se ainda não tiver)
+    if (!await checkAndSpendEnergy('dungeon')) return;
 
-    // 2. UI Setup
+    dungeonState.playerHand = [...ownedCards].sort(() => 0.5 - Math.random()).slice(0, 5);
+
+    // Setup UI
     document.getElementById('games-menu').classList.add('hidden');
     document.getElementById('dungeon-arena').classList.remove('hidden');
     document.getElementById('dungeon-combat-overlay').classList.add('hidden');
 
-    // 3. Reset Estado
+    // Reset
     dungeonState.lives = 3;
     dungeonState.currentLoot = 0;
-    dungeonState.foundTreasures = 0; // Reset
+    dungeonState.foundTreasures = 0;
     dungeonState.isLocked = false;
+    dungeonState.combatMonster = null; // Limpa monstro anterior
     updateDungeonUI();
+    
+    // --- NOVO: Renderiza a mão imediatamente ---
+    renderDungeonHand();
 
     // 4. Gera o Tabuleiro (4x4 = 16 tiles)
     // NOVA DISTRIBUIÇÃO:
@@ -2506,6 +2509,38 @@ if (ownedCards.length < 5) {
         grid.appendChild(tile);
     });
 }
+
+function renderDungeonHand() {
+    const handContainer = document.getElementById('dungeon-hand');
+    if (!handContainer) return;
+    
+    handContainer.innerHTML = '';
+
+    // Ordena visualmente por força para facilitar a estratégia
+    const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
+
+    displayHand.forEach(card => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'hand-card-wrapper'; // Classe mágica do CSS mobile
+        
+        // Gera o HTML igual ao do Duelo
+        wrapper.innerHTML = createCardHTML(card, false, null, false);
+        
+        // Lógica de Clique:
+        wrapper.onclick = () => {
+            if (dungeonState.isLocked && dungeonState.combatMonster) {
+                // Se estiver em combate, usa a carta
+                resolveDungeonFight(card);
+            } else {
+                // Se estiver explorando, apenas avisa
+                showNotification("Você só pode usar cartas em combate!", true);
+            }
+        };
+        
+        handContainer.appendChild(wrapper);
+    });
+}
+
 async function handleDungeonClick(tile) {
     if (tile.classList.contains('revealed') || dungeonState.isLocked) return;
 
@@ -2540,29 +2575,23 @@ if (dungeonState.foundTreasures >= dungeonState.totalTreasures) {
         updateDungeonUI();
     }
     // --- 3. ARMADILHA (Perde Carta) ---
-    else if (type === 'trap') {
+else if (type === 'trap') {
         if (dungeonState.playerHand.length > 0) {
-            // Remove carta aleatória da mão
             const randomIndex = Math.floor(Math.random() * dungeonState.playerHand.length);
             const removedCard = dungeonState.playerHand.splice(randomIndex, 1)[0];
-            
-            showNotification(`ARMADILHA! Você derrubou: ${removedCard.name}`, true);
-            
-            // Se ficar sem cartas, morre na hora? Não, deixamos ele tentar fugir ou achar poção.
-            // Só morre se encontrar monstro depois.
+            showNotification(`ARMADILHA! Perdeu: ${removedCard.name}`, true);
+            renderDungeonHand(); // <--- ATUALIZA VISUAL
         } else {
-            showNotification("Ufa! Armadilha vazia (você não tinha cartas).");
+            showNotification("Armadilha vazia (sem cartas).");
         }
     }
     // --- 4. REFORÇO (Ganha Carta) ---
-    else if (type === 'reinforce') {
-        // Pega todas as cartas da coleção
+else if (type === 'reinforce') {
         const ownedCards = cardsInAlbum.filter(c => c.owned);
-        // Sorteia uma nova
         const newCard = ownedCards[Math.floor(Math.random() * ownedCards.length)];
-        
         dungeonState.playerHand.push(newCard);
-        showNotification(`REFORÇO! ${newCard.name} entrou na mão!`);
+        showNotification(`REFORÇO! ${newCard.name} entrou!`);
+        renderDungeonHand(); // <--- ATUALIZA VISUAL
     }
     // --- 5. MONSTRO ---
     else {
