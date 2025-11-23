@@ -1948,24 +1948,28 @@ async function checkPuzzleWin() {
         const grid = document.getElementById('puzzle-grid');
         grid.classList.add('solved');
 
-        const config = minigameConfig['puzzle'] || { reward: 10, multi: 1.2 };
-        const basePrize = config.reward;
-        const difficultyBonus = (puzzleState.gridSize - 2) * (20 * config.multi); 
+        // --- LÓGICA NOVA ---
+        // Pega a config baseada no tamanho atual (3, 4 ou 5)
+        const currentSize = puzzleState.gridSize; // 3, 4 ou 5
+        const configKey = `puzzle_${currentSize}`;
         
-        const totalPrize = Math.floor(basePrize + difficultyBonus);
+        // Busca no cache ou usa fallback se der erro
+        const config = minigameConfig[configKey] || { reward: 50, multi: 1 };
+        
+        // O prêmio é exatamente o que está no banco * multiplicador (opcional)
+        const totalPrize = Math.floor(config.reward * config.multi);
+        // -------------------
 
         await supabase.rpc('atualizar_moedas_jogo', { qtd: totalPrize });
         player.moedas += totalPrize;
         updateHeaderInfo();
 
         setTimeout(async () => {
-            // 🚨 SUBSTIUIÇÃO AQUI
             await showGameAlert("ARTE COMPLETA! 🎨", `Imagem montada com sucesso!\nPrêmio: ${totalPrize} moedas.`);
             quitPuzzleGame();
         }, 500);
     }
 }
-
 function quitPuzzleGame() {
     document.getElementById('puzzle-arena').classList.add('hidden');
     document.getElementById('games-menu').classList.remove('hidden');
