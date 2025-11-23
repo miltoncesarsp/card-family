@@ -1465,18 +1465,37 @@ async function finishBattle() {
     }, 500);
 }
 
-// Helper para desenhar carta na arena
+// Helper universal para desenhar carta em slots (Alvo, Mesa de Batalha, Jokenpo, Monstro)
 function renderCardInSlot(card, slotId) {
     const slot = document.getElementById(slotId);
+    if (!slot) return;
+
     const rarityStyles = getRarityColors(card.rarity);
+    const elementStyles = getElementStyles(card.element);
     
+    // Aplica estilos base
     slot.className = 'card-preview card-small';
     slot.style.backgroundImage = `url('${card.image_url}')`;
     slot.style.border = `3px solid ${rarityStyles.primary}`;
+    slot.style.color = rarityStyles.primary; // Para herança de cor
     
+    // Monta o HTML COMPLETO (igual ao do álbum)
     slot.innerHTML = `
-        <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white;">${card.power}</div>
-        <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+        <div class="card-element-badge" style="background: ${elementStyles.background};">
+            ${getElementIcon(card.element)}
+        </div>
+        
+        <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">
+            ${card.rarity.substring(0,1)}
+        </div>
+
+        <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">
+            ${card.power}
+        </div>
+        
+        <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">
+            ${card.name}
+        </div>
     `;
 }
 
@@ -2583,12 +2602,10 @@ async function forceDungeonExit() {
 }
 
 
-async function startDungeonCombat(monsterCard) { // 🚨 Adicione 'async'
+async function startDungeonCombat(monsterCard) {
     // VERIFICAÇÃO DE MORTE SÚBITA
     if (dungeonState.playerHand.length === 0) {
-        // 🚨 SUBSTIUIÇÃO AQUI
         await showGameAlert("SEM DEFESA! 😱", "O monstro te atacou e você não tem mais cartas para se defender.");
-        
         dungeonState.lives = 0; 
         updateDungeonUI();
         gameOverDungeon();
@@ -2600,7 +2617,7 @@ async function startDungeonCombat(monsterCard) { // 🚨 Adicione 'async'
     const overlay = document.getElementById('dungeon-combat-overlay');
     overlay.classList.remove('hidden');
 
-    // Mostra Monstro
+    // 1. Mostra Monstro (Agora usa a função corrigida acima, então vai ter elemento!)
     renderCardInSlot(monsterCard, 'dungeon-monster-card');
     
     const powerDisplay = document.getElementById('monster-power-display');
@@ -2614,27 +2631,25 @@ async function startDungeonCombat(monsterCard) { // 🚨 Adicione 'async'
     pSlot.removeAttribute('style');
     pSlot.className = 'card-slot empty';
 
-    // RENDERIZA A MÃO FIXA (Ordenada por força)
+    // 2. RENDERIZA A MÃO (VISUAL PADRONIZADO)
     const handContainer = document.getElementById('dungeon-hand');
     handContainer.innerHTML = '';
 
-    // Ordena apenas visualmente para ajudar a escolher
+    // Ordena visualmente por força
     const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
 
     displayHand.forEach(card => {
-        const div = document.createElement('div');
-        div.className = 'hand-card';
-        div.style.backgroundImage = `url('${card.image_url}')`;
-        div.style.flexShrink = '0';
+        // Usa o mesmo Wrapper do Duelo para ficar no tamanho certo
+        const wrapper = document.createElement('div');
+        wrapper.className = 'hand-card-wrapper';
         
-        const rarityColor = getRarityColors(card.rarity).primary;
+        // Gera o HTML padrão do álbum (sem quantidade)
+        wrapper.innerHTML = createCardHTML(card, false, null, false);
         
-        div.innerHTML = `
-            <div style="position: absolute; bottom: 5px; right: 5px; background: ${rarityColor}; color: white; border: 2px solid white; border-radius: 50%; width: 25px; height: 25px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 12px;">${card.power}</div>
-        `;
+        // Adiciona o clique
+        wrapper.onclick = () => resolveDungeonFight(card);
         
-        div.onclick = () => resolveDungeonFight(card);
-        handContainer.appendChild(div);
+        handContainer.appendChild(wrapper);
     });
 }
 
