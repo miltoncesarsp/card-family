@@ -2436,20 +2436,21 @@ function renderDungeonHand() {
     // Ordena para melhor visualização do jogador
     const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
 
-    displayHand.forEach(card => {
-        const rarityStyles = getRarityStyles(card.rarity);
-        
-        // A carta aqui é apenas um visual na mão, não interativa
-        const cardHtml = `
-            <div class="card-preview card-small" 
-                 style="background-image: url('${card.image_url}'); border: 2px solid ${rarityStyles.primary};"
-                 title="${card.name}">
-                <div class="card-quantity" style="top: 0; right: 0; font-size: 0.8em; padding: 2px 5px;">${card.power} POW</div>
-                <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
-            </div>
-        `;
-        handContainer.innerHTML += cardHtml;
-    });
+displayHand.forEach(card => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'hand-card-wrapper'; // Classe mágica do CSS mobile
+    
+    // Gera o HTML igual ao do Duelo
+    wrapper.innerHTML = createCardHTML(card, false, null, false);
+    
+    // 🚨 GARANTIA 2: ADICIONAMOS A CLASSE SMALL AQUI
+    const innerCard = wrapper.querySelector('.card-preview');
+    if(innerCard) innerCard.classList.add('card-small');
+    
+    // Lógica de Clique:
+    // ...
+    handContainer.appendChild(wrapper);
+});
 }
 
 function startDungeonGame() {
@@ -2529,41 +2530,6 @@ async function initDungeonRun() {
        tile.innerHTML = `<div class="tile-front"></div>${contentHTML}`;
        tile.onclick = () => handleDungeonClick(tile);
        grid.appendChild(tile);
-    });
-}
-
-function renderDungeonHand() {
-    const handContainer = document.getElementById('dungeon-hand');
-    if (!handContainer) return;
-    
-    handContainer.innerHTML = '';
-
-    // Ordena visualmente por força para facilitar a estratégia
-    const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
-
-displayHand.forEach(card => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'hand-card-wrapper'; // Classe mágica do CSS mobile
-    
-    // Gera o HTML igual ao do Duelo
-    wrapper.innerHTML = createCardHTML(card, false, null, false);
-    
-    // 🚨 GARANTIA 2: ADICIONAMOS A CLASSE SMALL AQUI
-    const innerCard = wrapper.querySelector('.card-preview');
-    if(innerCard) innerCard.classList.add('card-small');
-        
-        // Lógica de Clique:
-        wrapper.onclick = () => {
-            if (dungeonState.isLocked && dungeonState.combatMonster) {
-                // Se estiver em combate, usa a carta
-                resolveDungeonFight(card);
-            } else {
-                // Se estiver explorando, apenas avisa
-                showNotification("Você só pode usar cartas em combate!", true);
-            }
-        };
-        
-        handContainer.appendChild(wrapper);
     });
 }
 
@@ -2706,6 +2672,7 @@ displayHand.forEach(card => {
                 
     handContainer.appendChild(wrapper);
 });
+}
 
 async function resolveDungeonFight(playerCard) {
     // Remove carta usada
