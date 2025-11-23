@@ -2209,9 +2209,20 @@ async function playJokenpoRound(playerCard, cardEl) {
     let result = 0;
     let reason = "";
 
-    const clean = (str) => str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
-    const pEl = clean(playerCard.element);
+    const clean = (str) => str ? str.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+const pEl = clean(playerCard.element);
     const cEl = clean(cpuCard.element);
+
+    // ADICIONE ISTO PARA DEBUGAR:
+    console.log('-------------------');
+    console.log(`Eu joguei: "${pEl}" (${playerCard.element})`);
+    console.log(`CPU jogou: "${cEl}" (${cpuCard.element})`);
+    
+    // Tenta achar a regra e mostra no console se achou ou não
+    const debugRule = jokenpoState.rules.find(r => clean(r.atacante) === pEl && clean(r.defensor) === cEl);
+    console.log("Regra encontrada no banco?", debugRule);
+    console.log("Total de regras carregadas:", jokenpoState.rules.length);
+    console.log('-------------------');
 
     if (pEl === cEl) {
         result = 0;
