@@ -2541,12 +2541,16 @@ function renderDungeonHand() {
     // Ordena visualmente por força para facilitar a estratégia
     const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
 
-    displayHand.forEach(card => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'hand-card-wrapper'; // Classe mágica do CSS mobile
-        
-        // Gera o HTML igual ao do Duelo
-        wrapper.innerHTML = createCardHTML(card, false, null, false);
+displayHand.forEach(card => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'hand-card-wrapper'; // Classe mágica do CSS mobile
+    
+    // Gera o HTML igual ao do Duelo
+    wrapper.innerHTML = createCardHTML(card, false, null, false);
+    
+    // 🚨 GARANTIA 2: ADICIONAMOS A CLASSE SMALL AQUI
+    const innerCard = wrapper.querySelector('.card-preview');
+    if(innerCard) innerCard.classList.add('card-small');
         
         // Lógica de Clique:
         wrapper.onclick = () => {
@@ -2679,29 +2683,29 @@ dungeonState.combatMonster = monsterCard;
     pSlot.className = 'card-slot empty';
 
     // --- AQUI: RENDERIZA A MÃO INTERATIVA ---
-    const handContainer = document.getElementById('dungeon-hand-combat');
-    handContainer.innerHTML = '';
+   const handContainer = document.getElementById('dungeon-hand-combat');
+handContainer.innerHTML = '';
 
-    // Ordena visualmente
-    const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
+// Ordena visualmente
+const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
 
-    displayHand.forEach(card => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'hand-card-wrapper';
-        
-        // Gera carta com visual completo
-        wrapper.innerHTML = createCardHTML(card, false, null, false);
+displayHand.forEach(card => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'hand-card-wrapper';
+                
+    // Gera carta com visual completo
+    wrapper.innerHTML = createCardHTML(card, false, null, false);
 
-        // FORÇA O TAMANHO PEQUENO na carta gerada
+    // FORÇA O TAMANHO PEQUENO na carta gerada
     const innerCard = wrapper.querySelector('.card-preview');
-    if(innerCard) innerCard.classList.add('card-small');
-        
-        // Adiciona clique para atacar
-        wrapper.onclick = () => resolveDungeonFight(card);
-        
-        handContainer.appendChild(wrapper);
-    });
-}
+    // 🚨 GARANTIA 1: ADICIONAMOS A CLASSE SMALL AQUI
+    if(innerCard) innerCard.classList.add('card-small'); 
+                
+    // Adiciona clique para atacar
+    wrapper.onclick = () => resolveDungeonFight(card);
+                
+    handContainer.appendChild(wrapper);
+});
 
 async function resolveDungeonFight(playerCard) {
     // Remove carta usada
