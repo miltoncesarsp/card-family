@@ -5,6 +5,7 @@ let player = null;
 let cardsInAlbum = [];
 let allGameCards = []; 
 let packsAvailable = [];
+let minigameConfig = {}; // Cache das configurações (recompensa/multiplicador)
 let evolutionRules = {}; // Regras de evolução (ex: {Comum: 5})
 let currentOriginView = null; // Controla em qual pasta estamos
 const BUCKET_NAME = 'cards';
@@ -1616,7 +1617,8 @@ function resetBoard() {
 }
 
 async function finishMemoryGame() {
-    const prize = 50;
+    const config = minigameConfig['memory'] || { reward: 50 }; // Fallback seguro
+    const prize = config.reward;
     await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
     player.moedas += prize;
     updateHeaderInfo();
@@ -1749,15 +1751,17 @@ async function endTargetGame(survived) {
     } else {
         const diff = targetState.goal - targetState.current;
         const errorPercentage = (diff / targetState.goal) * 100;
+        const config = minigameConfig['target'] || { reward: 100, multi: 1.5 };
+        const base = config.reward;
 
         if (diff === 0) { 
-            prize = 100; title = "PERFEITO! 🎯"; message = "Na mosca! Prêmio Máximo!";
+            prize = base; // Prêmio total
         } else if (errorPercentage <= 5) { 
-            prize = 60; title = "INCRÍVEL! 🔥"; message = "Muito perto!";
+            prize = Math.floor(base * 0.6); // 60%
         } else if (errorPercentage <= 15) { 
-            prize = 30; title = "BOA! 👍"; message = "Jogou seguro.";
+            prize = Math.floor(base * 0.3); // 30%
         } else { 
-            prize = 10; title = "LONGE... 😐"; message = "Valeu o esforço.";
+            prize = Math.floor(base * 0.1); // 10%
         }
 
         if (prize > 0) {
@@ -1941,9 +1945,11 @@ async function checkPuzzleWin() {
         const grid = document.getElementById('puzzle-grid');
         grid.classList.add('solved');
 
-        const basePrize = 10;
-        const difficultyBonus = (puzzleState.gridSize - 2) * 20; 
-        const totalPrize = basePrize + difficultyBonus;
+        const config = minigameConfig['puzzle'] || { reward: 10, multi: 1.2 };
+        const basePrize = config.reward;
+        const difficultyBonus = (puzzleState.gridSize - 2) * (20 * config.multi); 
+        
+        const totalPrize = Math.floor(basePrize + difficultyBonus);
 
         await supabase.rpc('atualizar_moedas_jogo', { qtd: totalPrize });
         player.moedas += totalPrize;
@@ -2212,7 +2218,8 @@ async function finishJokenpoGame() {
 
     if (jokenpoState.playerScore > jokenpoState.cpuScore) {
         msg = "VITÓRIA ELEMENTAL! 🏆";
-        prize = 120;
+        const config = minigameConfig['jokenpo'] || { reward: 120 };
+        prize = config.reward;
         await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
         player.moedas += prize;
     } else {
@@ -2291,7 +2298,9 @@ if (ownedCards.length < 5) {
         let contentHTML = '';
         
         if (type === 'treasure') {
-            const amount = Math.floor(Math.random() * 41) + 10;
+            const config = minigameConfig['dungeon'] || { multi: 1.0 };
+            let amount = Math.floor(Math.random() * 41) + 10;
+            amount = Math.ceil(amount * config.multi); // Aplica o multiplicador do Admin
             tile.dataset.amount = amount;
             contentHTML = `<div class="tile-back treasure"><i class="fas fa-coins" style="font-size:24px; margin-bottom:5px;"></i>+${amount}</div>`;
         
@@ -2547,6 +2556,33 @@ function quitDungeonGame() {
     document.getElementById('dungeon-arena').classList.add('hidden');
     document.getElementById('games-menu').classList.remove('hidden');
     refreshMinigameEnergy();
+}
+
+async function loadGameConfig() {
+    const { data } = await supabase.from('minigame').select('*');
+    if(data) {
+        // Transforma em objeto fácil: { 'Jogo da Memória': {reward: 50, multi: 1.0} }
+        // Ou melhor, mapeia pelo tipo de jogo se você tiver coluna 'slug' ou pelo nome
+        // Vamos assumir mapeamento manual por nome para simplificar agora:
+        
+        data.forEach(game => {
+            // Normaliza nomes para chaves internas
+            let key = '';
+            if(game.nome.includes('Memória')) key = 'memory';
+            if(game.nome.includes('Alvo')) key = 'target';
+            if(game.nome.includes('Puzzle') || game.nome.includes('Quebra')) key = 'puzzle';
+            if(game.nome.includes('Jo-Ken-Po')) key = 'jokenpo';
+            if(game.nome.includes('Masmorra')) key = 'dungeon';
+            if(game.nome.includes('Batalha')) key = 'battle'; // Se tiver batalha pvp
+            
+            if(key) {
+                minigameConfig[key] = {
+                    reward: game.moedas_recompensa,
+                    multi: game.multiplicador
+                };
+            }
+        });
+    }
 }
 
 // --- SISTEMA DE ALERTAS (SUBSTITUI O NATIVO) ---
