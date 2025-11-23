@@ -16,450 +16,2253 @@ body {
     font-family: 'Poppins', sans-serif;
     margin: 0;
     background-color: var(--bg-color);
-    color: #f0f0f0;
+    color: #f0f0f0; /* Texto padrão escuro (para áreas brancas) */
 }
 
-h1, h2, h3, h4 { margin: 0; }
-.hidden { display: none !important; }
+h1, h2, h3, h4 {
+    margin: 0;
+}
+
+/* Classe utilitária para esconder elementos */
+.hidden {
+    display: none !important;
+}
 
 /* =========================================
    2. TELA DE LOGIN
    ========================================= */
 .login-container {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
     background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
-    display: flex; justify-content: center; align-items: center; z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
 }
+
 .login-box {
-    background: white; padding: 2rem; border-radius: 15px;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.5); text-align: center;
-    width: 90%; max-width: 350px; display: flex; flex-direction: column; gap: 15px;
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+    text-align: center;
+    width: 90%;
+    max-width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
-.login-box h1 { font-family: 'Bungee', cursive; color: var(--primary-color); font-size: 1.8rem; }
+
+.login-box h1 {
+    font-family: 'Bungee', cursive;
+    color: var(--primary-color);
+    font-size: 1.8rem;
+}
+
 .login-box input {
-    width: 100%; padding: 12px; border: 1px solid #ccc;
-    border-radius: 8px; font-size: 1rem; box-sizing: border-box;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
 }
-.login-actions { display: flex; gap: 10px; }
+
+.login-actions {
+    display: flex;
+    gap: 10px;
+}
+
 .login-actions button {
-    flex: 1; padding: 12px; border: none; border-radius: 8px;
-    cursor: pointer; font-weight: bold; transition: 0.2s;
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
 }
+
 .btn-primary { background-color: var(--secondary-color); color: white; }
 .btn-primary:hover { background-color: #388E3C; }
+
 .btn-secondary { background-color: var(--primary-color); color: white; }
 .btn-secondary:hover { background-color: #0056b3; }
+
 .error-msg { color: #e74c3c; font-size: 0.9em; margin-top: 5px; }
 
+
 /* =========================================
-   3. LAYOUT GERAL
+   3. LAYOUT DO JOGO (HEADER E NAV)
    ========================================= */
+
+/* Cabeçalho */
 .game-header {
-    background-color: var(--header-bg); color: white; padding: 15px 20px;
-    display: flex; justify-content: space-between; align-items: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3); flex-wrap: wrap; gap: 10px;
+    background-color: var(--header-bg);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    flex-wrap: wrap;
+    gap: 10px;
 }
-.game-title { font-family: 'Bungee', cursive; font-size: 1.5em; color: #fff; }
+
+.game-title {
+    font-family: 'Bungee', cursive;
+    font-size: 1.5em;
+    color: #fff;
+}
+
 .user-info {
-    background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px;
-    font-weight: bold; display: flex; align-items: center; gap: 15px; font-size: 1rem;
+    background: rgba(255,255,255,0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1rem;
 }
+
 .user-info .fa-coins { color: var(--coin-color); }
+
 .btn-logout {
-    background-color: #e74c3c; color: white; border: none;
-    padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; width: auto;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    flex-grow: 0; 
+    width: auto; 
 }
+
+/* Navegação (Abas) */
 .main-navigation {
-    display: flex; justify-content: center; background-color: #0f3460;
-    padding: 10px 0; position: sticky; top: 0; z-index: 50;
+    display: flex;
+    justify-content: center;
+    background-color: #0f3460;
+    padding: 10px 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
+
 .nav-btn {
-    background: none; border: 2px solid transparent; color: #aaa;
-    padding: 8px 20px; margin: 0 5px; border-radius: 20px; cursor: pointer;
-    font-size: 1rem; font-weight: bold; transition: 0.3s;
+    background: none;
+    border: 2px solid transparent;
+    color: #aaa;
+    padding: 8px 20px;
+    margin: 0 5px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: 0.3s;
 }
-.nav-btn.active { background-color: #e94560; color: white; border-color: #e94560; }
-.nav-btn:hover:not(.active) { color: white; background-color: rgba(255,255,255,0.1); }
-#main-content { padding: 20px; max-width: 1200px; margin: 0 auto; min-height: 80vh; }
+
+.nav-btn.active {
+    background-color: #e94560;
+    color: white;
+    border-color: #e94560;
+}
+
+.nav-btn:hover:not(.active) {
+    color: white;
+    background-color: rgba(255,255,255,0.1);
+}
+
+/* Área Principal */
+#main-content {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 80vh;
+}
 
 /* =========================================
-   4. CARTAS (DESIGN)
+   4. CARTAS (O CORAÇÃO DO DESIGN)
    ========================================= */
+
+/* --- CARTA PADRÃO (GRANDE - Usada no Admin) --- */
 .card-preview {
-    position: relative; width: 220px; height: 308px;
-    background-size: cover; background-position: center;
-    border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-    margin: 10px; border: 4px solid white; transition: transform 0.2s; flex-shrink: 0;
+    position: relative;
+    width: 220px;  /* Admin */
+    height: 308px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    margin: 10px;
+    border: 4px solid white;
+    transition: transform 0.2s;
+    flex-shrink: 0;
 }
-.card-preview:hover { transform: translateY(-5px); z-index: 10; }
+
+.card-preview:hover {
+    transform: translateY(-5px);
+    z-index: 10;
+}
+
+/* 1. RARIDADE (Correção do Esticado) */
+.card-preview .rarity-badge {
+    position: absolute;
+    bottom: 45px; /* Fica acima da barra de nome */
+    left: 8px;
+    
+    /* FORÇA O TAMANHO (Isso resolve o esticado) */
+    width: 28px !important;
+    height: 28px !important;
+    
+    /* Centraliza o texto (C, R, E) */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    border-radius: 6px; /* Bordas levemente arredondadas */
+    font-size: 14px;
+    font-weight: 800;
+    color: #fff; 
+    text-transform: uppercase;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+    z-index: 10;
+    
+    /* Reseta qualquer herança estranha */
+    padding: 0;
+    margin: 0;
+}
 
 .rarity-badge {
-    position: absolute; bottom: 45px; left: 8px; width: 28px !important; height: 28px !important;
-    display: flex; justify-content: center; align-items: center;
-    border-radius: 6px; font-size: 14px; font-weight: 800; color: #fff;
-    text-transform: uppercase; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.6); z-index: 10; padding: 0; margin: 0;
+    position: absolute;
+    /* Jogamos para baixo para limpar o topo */
+    bottom: 45px; 
+    left: 5px;
+    
+    /* Tamanho controlado */
+    padding: 2px 8px;
+    min-width: 20px; /* Mínimo para caber uma letra */
+    height: auto;
+    
+    border-radius: 4px;
+    font-size: 10px; /* Fonte pequena */
+    font-weight: 800;
+    color: white;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    z-index: 10;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+    
+    /* Garante que não estique */
+    display: inline-block;
+    width: auto; 
 }
+
+/* Ícone do Elemento */
+.card-preview .card-element-badge {
+    position: absolute;
+    top: 40px; /* <--- IMPORTANTE: Desce 40px para não ficar embaixo do botão Editar */
+    right: 8px;
+    
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    font-size: 18px;
+    color: white;
+    border: 2px solid white;
+    z-index: 15; /* Z-index alto para aparecer */
+    background-color: rgba(0,0,0,0.5); /* Fundo escuro para garantir contraste */
+}
+
 .card-element-badge {
-    position: absolute; top: 40px; right: 8px; width: 35px; height: 35px;
-    border-radius: 50%; display: flex; justify-content: center; align-items: center;
-    font-size: 18px; color: white; border: 2px solid white; z-index: 15;
-    background-color: rgba(0,0,0,0.5);
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6); /* Fundo escuro pra contrastar */
+    border: 2px solid white;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    z-index: 15;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
-.card-force-circle {
-    position: absolute; bottom: 45px; right: 8px; width: 50px; height: 50px;
-    border-radius: 50%; display: flex; justify-content: center; align-items: center;
-    font-weight: 800; font-size: 22px; font-family: 'Bungee', cursive;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.6); border: 3px solid white;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 15;
-}
-.card-name-footer {
-    position: absolute; bottom: 0; left: 0; width: 100%;
-    background: rgba(0, 0, 0, 0.85); color: white; text-align: center;
-    font-weight: bold; font-size: 12px; padding: 8px 0; z-index: 10;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+
+/* Círculo de Força */
+.card-preview .card-force-circle {
+    position: absolute;
+    bottom: 45px; /* Acima do rodapé */
+    right: 8px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    font-size: 22px;
     font-family: 'Bungee', cursive;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+    border: 3px solid white; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    z-index: 15;
 }
+
+/* FORÇA: Canto Inferior Direito (Acima do nome) */
+.card-force-circle {
+    position: absolute;
+    bottom: 40px;
+    right: 5px;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    font-size: 14px;
+    font-family: 'Bungee', cursive;
+    border: 2px solid white; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    z-index: 15;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+/* NOME: Barra no Rodapé */
+.card-name-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 8px 0;
+    z-index: 10;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Nome da Carta (Rodapé) */
+.card-preview .card-name-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+    padding: 10px 0;
+    z-index: 10;
+    font-family: 'Bungee', cursive;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* QUANTIDADE: Canto Superior ESQUERDO (Estilo Notificação) */
 .card-quantity {
-    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-    background-color: #e74c3c; color: white; border: 2px solid #fff;
-    border-radius: 50%; width: 28px; height: 28px; display: flex;
-    justify-content: center; align-items: center; font-size: 12px;
-    font-weight: bold; z-index: 20; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    position: absolute;
+    top: -12px;
+    left: 50%; /* Meio da carta */
+    transform: translateX(-50%); /* Centraliza exato */
+    
+    background-color: #e74c3c;
+    color: white;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 20;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
-/* Carta Pequena */
-.card-preview.card-small { width: 150px; height: 210px; }
+
+/* --- CARTA MÉDIA (JOGO/ÁLBUM) --- */
+/* Esta classe sobrescreve os tamanhos para o jogo */
+
+/* --- AJUSTES PARA CARTA PEQUENA (JOGO) --- */
+.card-preview.card-small {
+    width: 150px;
+    height: 210px;
+}
+
 .card-preview.card-small .rarity-badge {
-    top: 5px !important; left: 5px !important; bottom: auto !important;
-    width: 22px !important; height: 22px !important; font-size: 11px !important;
+    top: 5px !important;      /* Encosta no topo */
+    left: 5px !important;     /* Encosta na esquerda */
+    bottom: auto !important;  /* Remove do rodapé */
+    
+    /* Tamanho fixo pequeno */
+    width: 22px !important;
+    height: 22px !important;
+    padding: 0 !important;
+    font-size: 11px !important;
+    
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
 }
+
+/* Garante que o ícone apareça na carta pequena */
 .card-preview.card-small .card-element-badge {
-    top: 5px !important; right: 5px !important;
-    width: 24px !important; height: 24px !important; font-size: 12px !important;
+    top: 5px !important;      /* Encosta no topo */
+    right: 5px !important;    /* Positivo joga para DENTRO */
+    
+    /* Tamanho fixo pequeno */
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 12px !important;
+    
+    /* Garante que aparece */
+    display: flex !important;
+    z-index: 15 !important;
 }
+
 .card-preview.card-small .card-force-circle {
-    width: 35px; height: 35px; font-size: 14px; bottom: 35px; right: 5px; border-width: 2px;
+    width: 35px; height: 35px; 
+    font-size: 14px; 
+    bottom: 35px;
+    right: 5px;
+    border-width: 2px;
 }
-.card-preview.card-small .card-name-footer { font-size: 12px; padding: 6px 0; }
+
+.card-preview.card-small .card-name-footer {
+    font-size: 12px; 
+    padding: 6px 0;
+}
+
+/* Quantidade (Estilo Notificação) */
 .card-preview.card-small .card-quantity {
-    top: -10px !important; left: 50% !important; transform: translateX(-50%) !important;
+    top: -10px !important;
+    right: auto !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
 }
 
-/* Carta Bloqueada */
+/* --- ESTILO DA CARTA BLOQUEADA (MISSING) --- */
 .card-missing {
-    filter: grayscale(100%) brightness(0.4); opacity: 0.8;
-    border-style: dashed !important; border-color: #666 !important; cursor: not-allowed;
+    filter: grayscale(100%) brightness(0.4);
+    opacity: 0.8;
+    border-style: dashed !important;
+    border-color: #666 !important;
+    cursor: not-allowed;
 }
-.card-missing::after {
-    content: '\f023'; font-family: "Font Awesome 6 Free"; font-weight: 900;
-    position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-    font-size: 40px; color: rgba(255, 255, 255, 0.3);
-}
-.card-missing .card-force-circle, .card-missing .rarity-badge, .card-missing .card-quantity { display: none; }
 
-/* Botão Evolução */
+.card-missing::after {
+    content: '\f023'; /* Ícone de Cadeado */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    position: absolute;
+    top: 40%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Esconde detalhes se bloqueada */
+.card-missing .card-force-circle,
+.card-missing .rarity-badge,
+.card-missing .card-quantity {
+    display: none; 
+}
+
+
+/* =========================================
+   5. BOTÃO DE EVOLUÇÃO (NOVO)
+   ========================================= */
 .evolution-btn {
-    position: absolute; bottom: 35px; left: 50%; transform: translateX(-50%);
-    background: linear-gradient(45deg, #2ecc71, #00b894); color: white;
-    border: 1px solid #fff; border-radius: 20px; padding: 4px 10px;
-    font-size: 10px; font-weight: 800; font-family: 'Poppins', sans-serif;
-    text-transform: uppercase; cursor: pointer; z-index: 30; display: flex;
-    align-items: center; gap: 4px; box-shadow: 0 0 10px rgba(46, 204, 113, 0.8);
+    position: absolute;
+    bottom: 35px; /* Acima do rodapé */
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(45deg, #2ecc71, #00b894); 
+    color: white;
+    border: 1px solid #fff;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 800;
+    font-family: 'Poppins', sans-serif;
+    text-transform: uppercase;
+    cursor: pointer;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.8);
     animation: pulse-green 1.5s infinite;
 }
-.evolution-btn:hover { transform: translateX(-50%) scale(1.1); }
+
+.evolution-btn:hover {
+    transform: translateX(-50%) scale(1.1);
+}
+
 @keyframes pulse-green {
     0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
     70% { box-shadow: 0 0 0 8px rgba(46, 204, 113, 0); }
     100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
 }
 
-/* =========================================
-   5. ÁLBUM E ORIGENS
-   ========================================= */
-.card-grid, .origin-hub-grid {
-    display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; padding: 20px; width: 100%; box-sizing: border-box;
-}
-.origin-folder {
-    width: 220px; height: 308px; background-color: #2c3e50; background-size: cover;
-    background-position: center; border-radius: 15px; border: 4px solid #FFD700;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5); position: relative; overflow: hidden;
-    cursor: pointer; transition: transform 0.3s, box-shadow 0.3s;
-}
-.origin-folder:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); z-index: 10; }
-.origin-content-overlay {
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.8) 70%, #000 100%);
-    display: flex; flex-direction: column; justify-content: flex-end;
-    padding: 15px; box-sizing: border-box; text-align: center;
-}
-.origin-name { font-family: 'Bungee', cursive; font-size: 1.4em; color: white; text-shadow: 2px 2px 4px #000; margin: 0 0 5px 0; line-height: 1.1; text-transform: uppercase; }
-.origin-stats { font-family: 'Poppins', sans-serif; font-size: 0.9em; color: #FFD700; margin-bottom: 10px; font-weight: bold; }
-.progress-bar-container { width: 100%; height: 12px; background-color: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.3); margin-top: 5px; }
-.progress-bar-fill { height: 100%; transition: width 0.5s ease-in-out; background: linear-gradient(90deg, #f1c40f, #e67e22); }
-.percent-text { font-size: 0.8em; color: #ccc; margin-top: 5px; }
 
 /* =========================================
-   6. MODAIS GERAIS
+   6. ÁLBUM: ORGANIZAÇÃO E GRID
    ========================================= */
+
+/* Grid Inteligente das Cartas */
+/* Container das Cartas (Álbum) */
+.card-grid {
+    display: flex; /* Mudamos para Flex para garantir quebra de linha */
+    flex-wrap: wrap; /* Permite quebrar linha */
+    gap: 15px; /* Espaço entre cartas */
+    justify-content: center; /* Centraliza no meio da tela */
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Container das Pastas (Origens) */
+.origin-hub-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    justify-content: center;
+    padding: 20px;
+}
+
+.origin-folder {
+    /* Mesma proporção das cartas do jogo */
+    width: 220px; 
+    height: 308px;
+    
+    /* Estilo de Card Premium */
+    background-color: #2c3e50; /* Fundo se não tiver imagem */
+    background-size: cover;
+    background-position: center;
+    border-radius: 15px;
+    border: 4px solid #FFD700; /* Borda Dourada para diferenciar */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.origin-folder:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); /* Brilho dourado */
+    z-index: 10;
+}
+
+/* Overlay para o texto (Gradiente Escuro embaixo) */
+.origin-content-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Gradiente suave para ler o texto sobre a imagem */
+    background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.8) 70%, #000 100%);
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 15px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.origin-name {
+    font-family: 'Bungee', cursive;
+    font-size: 1.4em;
+    color: white;
+    text-shadow: 2px 2px 4px #000;
+    margin: 0 0 5px 0;
+    line-height: 1.1;
+    text-transform: uppercase;
+}
+
+.origin-stats {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9em;
+    color: #FFD700; /* Dourado */
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+/* Barra de Progresso Estilizada */
+.progress-bar-container {
+    width: 100%;
+    height: 12px;
+    background-color: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.3);
+    margin-top: 5px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    transition: width 0.5s ease-in-out;
+    /* Gradiente na barra de progresso */
+    background: linear-gradient(90deg, #f1c40f, #e67e22);
+}
+
+/* Percentual numérico */
+.percent-text {
+    font-size: 0.8em;
+    color: #ccc;
+    margin-top: 5px;
+}
+
+
+/* =========================================
+   7. MODAL DE PACOTES E NOTIFICAÇÕES
+   ========================================= */
+
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.9); display: flex; justify-content: center; align-items: center;
-    z-index: 20000; animation: fadeIn 0.3s;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 20000;
+    animation: fadeIn 0.3s;
 }
+
 .modal-content {
-    background: linear-gradient(to bottom, #2c3e50, #000000); padding: 30px;
-    border-radius: 15px; text-align: center; border: 2px solid var(--coin-color);
-    box-shadow: 0 0 50px rgba(255, 215, 0, 0.3); max-width: 90%; max-height: 90vh; overflow-y: auto;
+    background: linear-gradient(to bottom, #2c3e50, #000000);
+    padding: 30px; border-radius: 15px; text-align: center;
+    border: 2px solid var(--coin-color);
+    box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+    max-width: 90%; max-height: 90vh; overflow-y: auto;
 }
-.new-cards-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 20px 0; }
-@keyframes popIn { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); } }
+
+.new-cards-grid {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 20px 0;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    80% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); }
+}
+
 .new-cards-grid .card-preview { animation: popIn 0.5s ease-out backwards; }
 .new-cards-grid .card-preview:nth-child(1) { animation-delay: 0.1s; }
 .new-cards-grid .card-preview:nth-child(2) { animation-delay: 0.3s; }
 .new-cards-grid .card-preview:nth-child(3) { animation-delay: 0.5s; }
 
-.notification { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 8px; color: white; font-weight: bold; z-index: 1000; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
+.notification {
+    position: fixed; top: 20px; right: 20px;
+    padding: 15px 25px; border-radius: 8px;
+    color: white; font-weight: bold;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
 .notification.success { background-color: var(--secondary-color); }
 .notification.error { background-color: #f44336; }
 
+
 /* =========================================
-   7. ESTILOS DO ADMIN (ABAS, FORMS, MODAL)
+   8. ESTILOS DO ADMIN (MANTIDOS)
    ========================================= */
+/* Layout principal para PC */
+.main-forms-container { display: flex; gap: 20px; justify-content: center; padding: 20px; }
+.form-section { flex: 1; max-width: 500px; }
 
-/* --- Header & Abas --- */
-.admin-header {
-    background: #16213e; padding: 10px; position: sticky; top: 0; z-index: 1000;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-}
-.admin-header h2 { text-align: center; color: white; font-family: 'Bungee', cursive; margin-bottom: 15px; font-size: 1.2rem; }
-.admin-tabs-nav {
-    display: flex; gap: 12px; overflow-x: auto; padding: 10px 15px;
-    justify-content: flex-start; background: #121212; border-bottom: 1px solid #333;
-}
-.admin-tabs-nav::-webkit-scrollbar { height: 4px; }
-.admin-tabs-nav::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
-
-.tab-btn {
-    flex: 0 0 auto; width: auto; background: transparent;
-    color: #888; border: 1px solid #444; padding: 8px 16px;
-    border-radius: 20px; font-size: 0.9rem; transition: all 0.3s ease;
-}
-.tab-btn.active {
-    background: var(--primary-color); color: white; border-color: var(--primary-color);
-    box-shadow: 0 0 10px rgba(0, 123, 255, 0.4);
-}
-.tab-btn:hover:not(.active) { background: #3a3a55; color: white; }
-.tab-btn i { margin-right: 6px; }
-
-.tab-content { display: none; animation: fadeIn 0.3s ease-in-out; padding-bottom: 50px; }
-.tab-content.active { display: block; }
-.full-width { max-width: 100% !important; }
-
-/* --- Formulários Modernos (Escuros) --- */
-.modern-form label, .card-form label {
-    font-size: 0.85rem; color: #aaa; margin-bottom: 6px;
-    display: block; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-}
-/* Unificação de Inputs */
-.modern-form input, .modern-form select,
-.card-form input, .card-form select {
-    width: 100%; background-color: #1e1e2f; border: 1px solid #3a3a50;
-    color: #fff; padding: 12px 15px; border-radius: 8px; font-size: 1rem;
-    transition: 0.3s; outline: none; box-sizing: border-box; margin-bottom: 15px;
-}
-.modern-form input:focus, .modern-form select:focus,
-.card-form input:focus, .card-form select:focus {
-    border-color: var(--primary-color); background-color: #25253a;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
-.modern-form input:disabled { background-color: #151520; color: #555; border-color: #222; cursor: not-allowed; }
-
-.form-row { display: flex; gap: 15px; }
-.form-row > div { flex: 1; }
-
-.btn-save, .card-form button {
-    width: 100%; padding: 14px; background: linear-gradient(135deg, #007bff, #0056b3);
-    color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem;
-    cursor: pointer; margin-top: 10px; transition: transform 0.2s, box-shadow 0.2s;
-}
-.btn-save:hover, .card-form button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3); }
-
-/* Card Form Container (para a aba de criar) */
-.card-form { background: #222; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #444; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-.main-forms-container { display: flex; gap: 20px; justify-content: center; padding: 20px; flex-direction: column; }
-.form-section { width: 100%; }
-
-/* --- Modais do Admin (Escuros e Limpos) --- */
-.admin-modal-content {
-    background: #1a1a2e; border: 1px solid #444; color: white;
-    padding: 30px; border-radius: 12px; width: 90%; max-width: 500px;
-    position: relative; box-shadow: 0 15px 40px rgba(0,0,0,0.5); text-align: left;
-}
-.admin-modal-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 20px; border-bottom: 2px solid #444; padding-bottom: 10px;
-}
-.admin-modal-header h3 { margin: 0; color: white; font-family: 'Poppins', sans-serif; }
-.close-admin-modal {
-    background: none; border: none; font-size: 24px; color: #e74c3c;
-    cursor: pointer; padding: 0; margin: 0;
+@media (max-width: 800px) {
+    .main-forms-container { flex-direction: column; align-items: center; }
+    .form-section { max-width: 100%; width: 90%; }
 }
 
-/* --- Busca e Toasts --- */
-.admin-search-container {
-    position: sticky; top: 0; z-index: 900; background: #1a1a2e;
-    padding: 15px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border-bottom: 1px solid #333;
+.card-form {
+    background: #fff; padding: 20px; border-radius: 10px;
+    margin-bottom: 20px; color: #333;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
-.admin-search-input {
-    width: 100%; padding: 12px 40px 12px 15px; border-radius: 30px;
-    border: 1px solid #444; background: #16213e; color: white;
-    font-size: 1rem; outline: none; transition: 0.3s;
-}
-.admin-search-input:focus { border-color: var(--primary-color); box-shadow: 0 0 10px rgba(0, 123, 255, 0.3); }
 
-.toast-container {
-    position: fixed; top: 20px; right: 20px; z-index: 20001;
-    display: flex; flex-direction: column; gap: 10px;
-}
-.toast {
-    min-width: 250px; padding: 15px 20px; border-radius: 8px; color: white;
-    font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    display: flex; align-items: center; gap: 10px; animation: slideInRight 0.3s ease-out forwards;
-}
-.toast.success { background-color: #2ecc71; border-left: 5px solid #27ae60; }
-.toast.error { background-color: #e74c3c; border-left: 5px solid #c0392b; }
-@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-@keyframes fadeOutToast { to { opacity: 0; transform: translateY(-10px); } }
+label { display: block; margin-top: 10px; font-weight: bold; }
+input, select, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; }
+button { margin-top: 15px; cursor: pointer; }
 
-/* --- Tabelas Responsivas --- */
-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #222; color: white; }
-th, td { padding: 10px; border: 1px solid #444; text-align: left; }
+/* Tabelas do Admin */
+table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; color: #333; }
+th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
 th { background-color: var(--primary-color); color: white; }
-tr:nth-child(even) { background-color: #2a2a2a; }
 
-@media (max-width: 768px) {
-    table, thead, tbody, th, td, tr { display: block; }
-    thead tr { position: absolute; top: -9999px; left: -9999px; }
-    tr { border: 1px solid #444; margin-bottom: 15px; border-radius: 8px; background: #222; overflow: hidden; }
-    td { border: none; border-bottom: 1px solid #333; position: relative; padding-left: 50%; text-align: right; }
-    td:before {
-        position: absolute; top: 10px; left: 10px; width: 45%; padding-right: 10px;
-        white-space: nowrap; text-align: left; font-weight: bold; color: #007bff; content: attr(data-label);
+/* Loja visual */
+/* === ESTILO AVANÇADO DOS PACOTES === */
+
+.pack-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Um pouco mais estreito */
+    gap: 25px;
+    padding: 20px;
+    justify-items: center;
+}
+
+.pack-item {
+    width: 220px;
+    height: 320px; /* Formato retrato, parecido com carta */
+    background-color: #2c3e50; /* Cor de fundo se não tiver imagem */
+    background-size: cover;
+    background-position: center;
+    border-radius: 15px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 4px solid #FFD700; /* Borda dourada para parecer premium */
+}
+
+.pack-item:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 15px 30px rgba(255, 215, 0, 0.3); /* Brilho dourado ao passar mouse */
+}
+
+/* Camada escura sobre a imagem para o texto ficar legível */
+.pack-content-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50%; /* Ocupa metade de baixo */
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 20%, transparent);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 20px;
+    text-align: center;
+}
+
+.pack-item h4 {
+    color: #fff;
+    font-family: 'Bungee', cursive;
+    font-size: 1.4em;
+    margin: 0 0 5px 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+.pack-info {
+    color: #ddd;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}
+
+.pack-item .buy-pack-btn {
+    background: linear-gradient(45deg, #27ae60, #2ecc71);
+    color: white;
+    border: 2px solid white;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 1.1em;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    transition: 0.2s;
+}
+
+.pack-item .buy-pack-btn:hover {
+    transform: scale(1.1);
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+}
+
+/* Feedback visual para o Modo de Edição */
+.card-form.editing-mode {
+    border: 3px solid #FFD700; /* Borda amarela para indicar Edição */
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.card-form-fixed {
+    position: sticky; 
+    top: 10px;
+    z-index: 100; 
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Botões de Gerenciamento (Editar/Excluir) */
+.card-management-buttons {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 20;
+    display: flex;
+    gap: 5px;
+}
+
+.card-management-buttons button {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ccc;
+    cursor: pointer;
+    line-height: 1;
+    margin-top: 0; /* Corrige margem global */
+}
+
+.delete-btn { color: #E74C3C; }
+.edit-btn { color: #3498DB; }
+
+/* Custo de Evolução no Admin */
+.evolution-cost {
+    position: absolute;
+    bottom: 50px; /* Ajustado para não cobrir o nome */
+    left: 5px; 
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 5px;
+    font-size: 0.8em;
+    z-index: 10;
+}
+
+/* Ajustes finos para tabelas */
+tr:nth-child(even) { background-color: #f2f2f2; }
+table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; }
+
+.management-section {
+    overflow-x: auto;
+    padding: 10px;
+    margin-top: 30px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Hierarquia Visual do Admin */
+.group-title {
+    font-family: 'Bungee', cursive;
+    color: var(--secondary-color);
+    border-bottom: 3px solid var(--secondary-color);
+    margin-top: 40px;
+    font-size: 1.5em;
+}
+
+.sub-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 1.2em;
+    color: #333;
+    padding-left: 10px;
+    margin-top: 20px;
+    border-left: 5px solid var(--primary-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.base-management-buttons button {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 50%;
+    background: #f7f7f7;
+    border: 1px solid #ddd;
+    margin-top: 0;
+}
+
+/* Garante que as cartas fiquem lado a lado e quebrem linha se precisar */
+.card-evolution-line {
+    display: flex;
+    flex-direction: row; /* Força linha horizontal */
+    flex-wrap: wrap; /* Permite ir para baixo se acabar o espaço */
+    gap: 15px;
+    justify-content: center; /* Centraliza o grupo */
+    width: 100%;
+    padding-bottom: 10px;
+}
+
+/* === BÔNUS DIÁRIO === */
+
+.daily-content {
+    background: linear-gradient(135deg, #2c3e50, #4a148c); /* Roxo Místico */
+    border: 3px solid #FFD700;
+    min-width: 300px;
+}
+
+.daily-icon-container {
+    margin: 20px 0;
+    position: relative;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.daily-icon {
+    font-size: 80px;
+    color: rgba(255, 255, 255, 0.1);
+    position: absolute;
+}
+
+.daily-coin-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+}
+
+.daily-coin-display span {
+    font-family: 'Bungee', cursive;
+    font-size: 3em;
+    color: #FFD700;
+    text-shadow: 2px 2px 0px #d35400;
+}
+
+/* Animação da Moeda Girando */
+.spin-coin {
+    font-size: 50px;
+    color: #FFD700;
+    animation: spin 2s infinite linear;
+    margin-bottom: 5px;
+}
+
+@keyframes spin {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+}
+
+.streak-container {
+    background: rgba(0,0,0,0.3);
+    padding: 10px;
+    border-radius: 10px;
+    color: #ccc;
+}
+
+/* === ÁREA DE TROCAS === */
+
+.my-trades-area {
+    background: rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #444;
+}
+
+/* 1. Força a área "Meus Anúncios" a usar o mesmo GRID do álbum */
+.trade-slots-row {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap: 20px;
+    justify-items: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.market-card-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center; /* Centraliza a carta na célula */
+}
+
+.market-card-wrapper:hover .card-preview {
+    border-color: #2ecc71 !important; /* Fica verde ao passar o mouse */
+    transform: scale(1.05);
+}
+
+.trade-badge {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8);
+    color: #2ecc71;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    opacity: 0;
+    transition: 0.2s;
+    z-index: 20;
+    pointer-events: none;
+}
+
+.market-card-wrapper:hover .trade-badge {
+    opacity: 1;
+}
+
+/* Botão de Cancelar meu anúncio */
+.cancel-trade-btn {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 0.8em;
+    cursor: pointer;
+}
+
+/* =====================================================
+   CORREÇÃO DE TROCAS E MODAL (PC + CELULAR UNIFICADOS)
+   ===================================================== */
+
+/* --- ÁREA DE "MEUS ANÚNCIOS" (Página de Trocas) --- */
+.trade-slots-row {
+    display: grid !important;
+    /* PC: Colunas automáticas de 160px (Tamanho normal) */
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap: 20px;
+    justify-items: center;
+    width: 100%;
+}
+
+/* --- MODAL DE ESCOLHER CARTA (Janela Branca) --- */
+#my-offer-grid {
+    display: grid !important;
+    /* PC: Colunas menores (120px) para caber mais na janelinha */
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+    gap: 15px;
+    padding: 10px;
+    width: 100%;
+    max-height: 400px; /* Limita altura no PC */
+    overflow-y: auto;
+}
+
+/* Estilo da carta DENTRO do Modal (PC) */
+#my-offer-grid .card-preview.card-small {
+    width: 100% !important;
+    max-width: 140px; /* Limita largura no PC */
+    height: auto !important;
+    aspect-ratio: 220 / 308;
+    margin: 0 auto;
+}
+
+/* --- REGRAS ESPECÍFICAS PARA CELULAR (Tela < 600px) --- */
+@media (max-width: 600px) {
+    
+    /* 1. Ajuste da Janela do Modal no Celular */
+    #trade-offer-modal .modal-content {
+        width: 95% !important;
+        padding: 15px !important;
+    }
+
+    /* 2. Grid de "Meus Anúncios" no Celular */
+    .trade-slots-row {
+        grid-template-columns: 1fr 1fr !important; /* 2 Colunas fixas */
+        gap: 10px;
+    }
+
+    /* 3. Grid do Modal de Escolha no Celular */
+    #my-offer-grid {
+        grid-template-columns: repeat(2, 1fr) !important; /* 2 Colunas fixas */
+        gap: 8px;
+        max-height: 300px;
+    }
+
+    /* 4. Carta dentro do Modal (Celular) - Anti-Esmagamento */
+    #my-offer-grid .card-preview.card-small {
+        width: 100% !important;
+        min-height: 130px !important; /* Força altura mínima */
+        max-width: 100%;
+        font-size: 0.8em; /* Fonte menor */
+    }
+
+    /* Ajustes finos de fonte no celular */
+    #my-offer-grid .card-name-footer { font-size: 9px; padding: 3px 0; }
+    #my-offer-grid .card-quantity { width: 20px; height: 20px; font-size: 10px; }
+    #my-offer-grid .card-force-circle { width: 25px; height: 25px; font-size: 10px; bottom: 25px; }
+
+   /* Garante que o container fique no canto certo */
+    .folder-notifications {
+        top: 5px !important;
+        right: 5px !important;
+        gap: 3px !important;
+    }
+
+    /* Força o visual de "Botãozinho" colorido */
+    .notif-badge-new, 
+    .notif-badge-evo {
+        font-size: 8px !important;       /* Fonte menor para não tapar a capa */
+        padding: 3px 6px !important;     /* Espaçamento interno */
+        color: white !important;         /* FORÇA TEXTO BRANCO */
+        border-radius: 10px !important;  /* Arredondado */
+        border: 1px solid white !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
+        
+        /* Garante que o flex funcione para alinhar o ícone e o texto */
+        display: flex !important;
+        align-items: center !important;
+        width: fit-content !important;   /* Apenas o tamanho do texto */
+        margin-left: auto !important;    /* Alinha à direita */
+    }
+
+    /* Garante as cores de fundo */
+    .notif-badge-new {
+        background-color: #ff0000 !important; /* Vermelho */
+    }
+
+    .notif-badge-evo {
+        background-color: #2ecc71 !important; /* Verde */
+    }
+
+    /* Ajusta o ícone dentro do badge */
+    .notif-badge-new i, 
+    .notif-badge-evo i {
+        font-size: 9px !important;
+        margin-right: 3px !important;
     }
 }
 
-/* Admin Extras */
-.personagem-base-container { margin-bottom: 20px; }
-.base-management-buttons button, .card-management-buttons button {
-    width: 30px; height: 30px; padding: 0; border-radius: 50%;
-    background: #fff; border: 1px solid #ccc; margin-top: 0;
-    display: inline-flex; justify-content: center; align-items: center;
-}
-.card-management-buttons { position: absolute; top: 5px; right: 5px; z-index: 20; display: flex; gap: 5px; }
-.evolution-cost {
-    position: absolute; bottom: 50px; left: 5px; background: rgba(0, 0, 0, 0.7);
-    color: white; padding: 2px 6px; border-radius: 5px; font-size: 0.8em; z-index: 10;
+/* Container da carta no modal (para centralizar os efeitos) */
+.modal-card-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px;
 }
 
-/* Loja */
-.pack-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; padding: 20px; justify-items: center; }
-.pack-item {
-    width: 220px; height: 320px; background-color: #2c3e50; background-size: cover;
-    background-position: center; border-radius: 15px; position: relative; overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.4); transition: transform 0.3s, box-shadow 0.3s; border: 4px solid #FFD700;
-}
-.pack-item:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 15px 30px rgba(255, 215, 0, 0.3); }
-.pack-content-overlay {
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 50%;
-    background: linear-gradient(to top, rgba(0,0,0,0.9) 20%, transparent);
-    display: flex; flex-direction: column; justify-content: flex-end;
-    align-items: center; padding-bottom: 20px; text-align: center;
-}
-.pack-item h4 { color: #fff; font-family: 'Bungee', cursive; font-size: 1.4em; margin: 0 0 5px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
-.pack-info { color: #ddd; font-size: 0.9em; margin-bottom: 10px; }
-.pack-item .buy-pack-btn {
-    background: linear-gradient(45deg, #27ae60, #2ecc71); color: white;
-    border: 2px solid white; padding: 10px 20px; border-radius: 50px;
-    font-weight: bold; font-size: 1.1em; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.2s;
-}
-.pack-item .buy-pack-btn:hover { transform: scale(1.1); background: linear-gradient(45deg, #2ecc71, #27ae60); }
-
-/* =========================================
-   8. JOGOS E ANIMAÇÕES
-   ========================================= */
+/* --- 1. EFEITO DE "GOD RAYS" (Raios de Luz Giratórios) --- */
+/* Usado para Lendária e Mítica */
 .god-rays {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 300px; height: 300px;
-    background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.1) 0deg, rgba(255, 255, 255, 0.1) 10deg, transparent 10deg, transparent 20deg);
-    border-radius: 50%; animation: rotate-rays 10s linear infinite; z-index: 0; pointer-events: none;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    background: repeating-conic-gradient(
+        from 0deg,
+        rgba(255, 255, 255, 0.1) 0deg,
+        rgba(255, 255, 255, 0.1) 10deg,
+        transparent 10deg,
+        transparent 20deg
+    );
+    border-radius: 50%;
+    animation: rotate-rays 10s linear infinite;
+    z-index: 0; /* Fica atrás da carta */
+    pointer-events: none;
 }
+
+/* Variação Dourada para Mítica */
 .god-rays.mythic {
-    background: repeating-conic-gradient(from 0deg, rgba(255, 215, 0, 0.4) 0deg, rgba(255, 215, 0, 0.4) 10deg, transparent 10deg, transparent 20deg);
-    width: 400px; height: 400px; animation: rotate-rays 5s linear infinite;
+    background: repeating-conic-gradient(
+        from 0deg,
+        rgba(255, 215, 0, 0.4) 0deg,   /* Ouro */
+        rgba(255, 215, 0, 0.4) 10deg,
+        transparent 10deg,
+        transparent 20deg
+    );
+    width: 400px; height: 400px; /* Maior */
+    animation: rotate-rays 5s linear infinite; /* Mais rápido */
 }
-@keyframes rotate-rays { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
-.modal-content.luck-legendary { box-shadow: 0 0 60px rgba(255, 140, 0, 0.6); border-color: #FF8C00; animation: pulse-legendary 2s infinite; }
-.modal-content.luck-mythic { box-shadow: 0 0 80px rgba(255, 215, 0, 0.8); border-color: #FFD700; background: linear-gradient(to bottom, #4b3b00, #000000); animation: pulse-mythic 1.5s infinite; }
-@keyframes pulse-legendary { 0% { box-shadow: 0 0 40px rgba(255, 140, 0, 0.5); } 50% { box-shadow: 0 0 80px rgba(255, 140, 0, 0.8); } 100% { box-shadow: 0 0 40px rgba(255, 140, 0, 0.5); } }
-@keyframes pulse-mythic { 0% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.6); } 50% { box-shadow: 0 0 100px rgba(255, 215, 0, 1); border-color: white; } 100% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.6); } }
-.lucky-title { font-size: 2em !important; text-transform: uppercase; letter-spacing: 2px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
+@keyframes rotate-rays {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* --- 2. ANIMAÇÃO DE IMPACTO (A carta chega com força) --- */
+@keyframes epic-entry {
+    0% { transform: scale(0) rotate(-360deg); opacity: 0; }
+    60% { transform: scale(1.2) rotate(10deg); opacity: 1; }
+    80% { transform: scale(0.9) rotate(-5deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+/* Aplica a animação na carta */
+.modal-card-container .card-preview {
+    z-index: 5; /* Fica na frente dos raios */
+    animation: epic-entry 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    box-shadow: 0 0 30px currentColor; /* Brilho intenso */
+}
+
+/* --- 3. BRILHO PULSANTE (Para cartas normais) --- */
+@keyframes pulse-glow {
+    0% { box-shadow: 0 0 10px currentColor; }
+    50% { box-shadow: 0 0 30px currentColor; transform: scale(1.02); }
+    100% { box-shadow: 0 0 10px currentColor; }
+}
+
+.effect-pulse {
+    animation: pulse-glow 2s infinite !important;
+}
+
+/* === EFEITOS DE SORTE NO MODAL (GLOW) === */
+
+/* Sorte Lendária (Laranja Intenso) */
+.modal-content.luck-legendary {
+    box-shadow: 0 0 60px rgba(255, 140, 0, 0.6);
+    border-color: #FF8C00;
+    animation: pulse-legendary 2s infinite;
+}
+
+/* Sorte Mítica (Dourado Divino) */
+.modal-content.luck-mythic {
+    box-shadow: 0 0 80px rgba(255, 215, 0, 0.8);
+    border-color: #FFD700;
+    background: linear-gradient(to bottom, #4b3b00, #000000); /* Fundo mais rico */
+    animation: pulse-mythic 1.5s infinite;
+}
+
+/* Animações de Pulso da Janela */
+@keyframes pulse-legendary {
+    0% { box-shadow: 0 0 40px rgba(255, 140, 0, 0.5); }
+    50% { box-shadow: 0 0 80px rgba(255, 140, 0, 0.8); }
+    100% { box-shadow: 0 0 40px rgba(255, 140, 0, 0.5); }
+}
+
+@keyframes pulse-mythic {
+    0% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.6); }
+    50% { box-shadow: 0 0 100px rgba(255, 215, 0, 1); border-color: white; }
+    100% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.6); }
+}
+
+/* Título Especial */
+.lucky-title {
+    font-size: 2em !important;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* === NOTIFICAÇÕES DE NOVIDADE E EVOLUÇÃO === */
+
+/* 1. Badge "NOVO" na Carta Individual */
 .badge-new-card {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg);
-    background: linear-gradient(45deg, #ff0000, #ff5252); color: white;
-    padding: 5px 15px; font-family: 'Bungee', cursive; font-size: 1.2rem;
-    border: 3px solid white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-    z-index: 50; animation: pop-new 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    background: linear-gradient(45deg, #ff0000, #ff5252);
+    color: white;
+    padding: 5px 15px;
+    font-family: 'Bungee', cursive;
+    font-size: 1.2rem;
+    border: 3px solid white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    z-index: 50;
+    animation: pop-new 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none; /* Permite clicar na carta através do selo */
+    text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
 }
-@keyframes pop-new { 0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); } 100% { transform: translate(-50%, -50%) scale(1) rotate(-15deg); } }
 
-.folder-notifications { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 5px; z-index: 20; }
-.notif-badge-new { background-color: #ff0000; color: white; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 15px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.5); animation: bounce 1s infinite; display: flex; align-items: center; gap: 5px; }
-.notif-badge-evo { background-color: #2ecc71; color: white; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 15px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.5); animation: pulse-green 2s infinite; display: flex; align-items: center; gap: 5px; }
-@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes pop-new {
+    0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) scale(1) rotate(-15deg); }
+}
 
-/* Batalha */
-.battle-header { margin-bottom: 20px; }
-.score-board { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 50px; border: 1px solid #444; }
-.score-box { text-align: center; color: white; }
-.score-box span { font-family: 'Bungee', cursive; font-size: 2em; display: block; line-height: 1; }
-.round-indicator { text-align: center; color: #FFD700; font-weight: bold; }
-.combat-zone { display: flex; justify-content: center; align-items: center; gap: 20px; height: 320px; perspective: 1000px; }
-.card-slot { position: relative; width: 160px; height: 224px; border-radius: 10px; display: flex; justify-content: center; align-items: center; transition: 0.3s; }
-.card-slot.empty { border: 2px dashed #555; background: rgba(255,255,255,0.05); }
-.battle-power-display { position: absolute; top: -15px; background: #000; color: white; font-family: 'Bungee', cursive; font-size: 1.5em; padding: 5px 10px; border-radius: 5px; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.8); z-index: 100; display: none; }
-#enemy-slot.card-preview .battle-power-display, #player-slot.card-preview .battle-power-display { display: block !important; }
-.battle-power-display.winner { color: #2ecc71; border-color: #2ecc71; box-shadow: 0 0 15px #2ecc71; animation: flash-result 0.5s ease-out; }
+/* 2. Notificações na Capa da Pasta (Origem) */
+.folder-notifications {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 20;
+}
+
+/* Ícone de "Carta Nova" na pasta */
+.notif-badge-new {
+    background-color: #ff0000;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 15px;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    animation: bounce 1s infinite;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Ícone de "Evolução Disponível" na pasta */
+.notif-badge-evo {
+    background-color: #2ecc71; /* Verde */
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 15px;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    animation: pulse-green 2s infinite;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+/* === MINIGAMES === */
+
+/* Menu de Jogos */
+.games-list {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.game-card {
+    background: linear-gradient(145deg, #2c3e50, #1a252f);
+    border: 2px solid #007bff;
+    border-radius: 15px;
+    width: 160px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.game-card:hover { transform: translateY(-5px); border-color: #FFD700; }
+
+.game-card.locked { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); border-color: #555; }
+
+.game-icon { font-size: 40px; color: #FFD700; margin-bottom: 10px; }
+.game-cost { display: block; margin-top: 10px; font-size: 0.8em; color: #2ecc71; font-weight: bold; }
+
+/* === NOVA ARENA DE BATALHA === */
+
+.battle-header {
+    margin-bottom: 20px;
+}
+
+.score-board {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.5);
+    padding: 10px 20px;
+    border-radius: 50px;
+    border: 1px solid #444;
+}
+
+.score-box {
+    text-align: center;
+    color: white;
+}
+
+.score-box span {
+    font-family: 'Bungee', cursive;
+    font-size: 2em;
+    display: block;
+    line-height: 1;
+}
+
+.round-indicator {
+    text-align: center;
+    color: #FFD700;
+    font-weight: bold;
+}
+
+/* Zona de Combate */
+.combat-zone {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    height: 320px; /* Espaço para as cartas grandes */
+    perspective: 1000px; /* Para efeito 3D se quiser */
+}
+
+.card-slot {
+   position: relative; /* <--- MUITO IMPORTANTE */
+    width: 160px;
+    height: 224px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.3s;
+}
+
+.card-slot.empty {
+    border: 2px dashed #555;
+    background: rgba(255,255,255,0.05);
+}
+
+/* Novo display de força na arena */
+.battle-power-display {
+    position: absolute;
+    top: -15px; /* Acima do slot */
+    background: #000;
+    color: white;
+    font-family: 'Bungee', cursive;
+    font-size: 1.5em;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 2px solid white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.8);
+    z-index: 100;
+    display: none; /* Escondido por padrão */
+}
+
+/* Mostra apenas quando a carta está sendo jogada */
+#enemy-slot.card-preview .battle-power-display,
+#player-slot.card-preview .battle-power-display {
+    display: block !important;
+}
+
+/* Estilo para o vencedor (Brilho verde) */
+.battle-power-display.winner {
+    color: #2ecc71;
+    border-color: #2ecc71;
+    box-shadow: 0 0 15px #2ecc71;
+    animation: flash-result 0.5s ease-out; /* Reutiliza sua animação existente */
+}
+
+/* Posição específica no centro do topo para cada lado */
 #player-slot #player-battle-power { right: 50%; transform: translateX(50%); }
 #enemy-slot #cpu-battle-power { left: 50%; transform: translateX(-50%); }
-.card-back-pattern { width: 100%; height: 100%; background: repeating-linear-gradient(45deg, #16213e, #16213e 10px, #0f3460 10px, #0f3460 20px); border-radius: 10px; border: 2px solid #444; }
-.vs-icon { font-family: 'Bungee', cursive; font-size: 2em; color: #e74c3c; text-shadow: 2px 2px 0 #fff; }
-.player-hand-container { margin-top: 20px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 15px; overflow-x: auto; }
-.hand-grid { display: flex; gap: 10px; justify-content: center; padding-bottom: 10px; }
-.hand-card { width: 100px; height: 140px; cursor: pointer; transition: transform 0.2s; border: 2px solid white; border-radius: 8px; background-size: cover; position: relative; flex-shrink: 0; }
-.hand-card:hover { transform: translateY(-15px); border-color: #FFD700; z-index: 10; }
-.hand-card.selected { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
-.card-slot.win { border-color: #2ecc71 !important; box-shadow: 0 0 25px rgba(46, 204, 113, 0.9); transform: scale(1.05); }
-.card-slot.lose { border-color: #e74c3c !important; filter: brightness(0.6); }
-@keyframes flash-result { 0% { opacity: 0; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } 100% { transform: scale(1); } }
-.hand-card.played { filter: grayscale(100%) brightness(0.5); cursor: not-allowed; transform: scale(0.9); border-color: #555; }
-@keyframes clash-right { 0% { transform: translateX(0); } 50% { transform: translateX(30px) scale(1.1); } 100% { transform: translateX(0) scale(1); } }
-@keyframes clash-left { 0% { transform: translateX(0); } 50% { transform: translateX(-30px) scale(1.1); } 100% { transform: translateX(0) scale(1); } }
+
+/* Verso da Carta Inimiga */
+.card-back-pattern {
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+      45deg,
+      #16213e,
+      #16213e 10px,
+      #0f3460 10px,
+      #0f3460 20px
+    );
+    border-radius: 10px;
+    border: 2px solid #444;
+}
+
+.vs-icon {
+    font-family: 'Bungee', cursive;
+    font-size: 2em;
+    color: #e74c3c;
+    text-shadow: 2px 2px 0 #fff;
+}
+
+/* Mão do Jogador */
+.player-hand-container {
+    margin-top: 20px;
+    background: rgba(0,0,0,0.3);
+    padding: 10px;
+    border-radius: 15px;
+    overflow-x: auto; /* Rolar se não couber */
+}
+
+.hand-grid {
+    display: flex;
+    gap: 10px;
+    justify-content: center; /* Centraliza */
+    padding-bottom: 10px;
+}
+
+/* Carta na mão (Clicável) */
+.hand-card {
+    width: 100px; 
+    height: 140px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    border: 2px solid white;
+    border-radius: 8px;
+    background-size: cover;
+    position: relative;
+    
+    /* 🚨 ADICIONE ISSO PARA NÃO ESMAGAR NO MOBILE */
+    flex-shrink: 0; 
+}
+
+.hand-card:hover {
+    transform: translateY(-15px);
+    border-color: #FFD700;
+    z-index: 10;
+}
+
+.hand-card.selected {
+    opacity: 0.3;
+    pointer-events: none; /* Não pode clicar de novo */
+    filter: grayscale(1);
+}
+
+/* Ajuste Mobile */
+@media (max-width: 600px) {
+.combat-zone { gap: 5px; transform: scale(0.9); }
+    
+    /* 🚨 MUDE ISTO: Alinha no começo para permitir rolagem correta */
+    .hand-grid { 
+        justify-content: flex-start; 
+        padding-left: 10px; /* Um respiro na esquerda */
+        padding-right: 10px;
+    }
+
+   /* --- JOGO DA MEMÓRIA --- */
+    .memory-grid-container {
+        /* Diminui o espaço entre as cartas */
+        gap: 5px !important; 
+        padding: 5px !important;
+        /* Garante que não ultrapasse a largura da tela */
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    /* --- JOGO PUZZLE --- */
+    .puzzle-grid {
+        /* Muda de largura fixa (300px) para fluida */
+        width: 90% !important; 
+        max-width: 300px; /* Trava no máximo, mas encolhe se precisar */
+        margin: 0 auto; /* Centraliza */
+    }
+
+    /* --- JOGO O ALVO --- */
+    .target-game-container {
+        /* Diminui o espaçamento interno */
+        padding: 10px !important;
+        gap: 10px !important;
+    }
+
+    .target-tube {
+        /* Tubo um pouco menor no celular para caber na tela vertical */
+        height: 250px !important;
+    }
+
+    /* Força a carta do Alvo a ficar menor no celular */
+    #target-card-display {
+        transform: scale(0.7) !important; /* Reduz para 70% do tamanho */
+        margin-top: -20px !important; /* Puxa um pouco pra cima */
+    }
+    
+    /* Ajuste dos botões para não ficarem gigantes */
+    .battle-controls button {
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+   
+
+   
+}
+
+/* === EFEITOS DE RESULTADO NA BATALHA === */
+.card-slot.win {
+    border-color: #2ecc71 !important; /* Borda Verde */
+    box-shadow: 0 0 25px rgba(46, 204, 113, 0.9); /* Brilho verde forte */
+    transform: scale(1.05); /* Cresce um pouco */
+}
+
+.card-slot.lose {
+    border-color: #e74c3c !important; /* Borda Vermelha */
+    filter: brightness(0.6); /* Escurece a carta perdedora */
+}
+
+/* Animação de entrada do resultado */
+@keyframes flash-result {
+    0% { opacity: 0; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.power-display.winner {
+    color: #2ecc71;
+    animation: flash-result 0.5s ease-out;
+}
+
+/* Carta na mão quando já foi usada */
+.hand-card.played {
+    filter: grayscale(100%) brightness(0.5);
+    cursor: not-allowed;
+    transform: scale(0.9);
+    border-color: #555;
+}
+
+/* Animação de Impacto (Clash) */
+@keyframes clash-right {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(30px) scale(1.1); } /* Vai pra frente */
+    100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes clash-left {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(-30px) scale(1.1); } /* Vai pra frente */
+    100% { transform: translateX(0) scale(1); }
+}
+
 .clash-player { animation: clash-right 0.3s ease-in-out; }
 .clash-enemy { animation: clash-left 0.3s ease-in-out; }
-.energy-bar { margin-top: 8px; font-weight: bold; font-size: 0.9em; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 10px; display: inline-block; }
 
-/* Mobile Adjustments */
+.energy-bar {
+    margin-top: 8px;
+    font-weight: bold;
+    font-size: 0.9em;
+    background: rgba(0,0,0,0.6);
+    padding: 4px 8px;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+/* === JOGO DA MEMÓRIA === */
+
+.memory-grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 Colunas */
+    gap: 10px;
+    padding: 10px;
+    max-width: 500px; /* Não ficar gigante no PC */
+    margin: 0 auto;
+}
+
+/* Carta do Jogo da Memória */
+.memory-card {
+    position: relative;
+    aspect-ratio: 220/308; /* Mantém a proporção de carta */
+    cursor: pointer;
+    border-radius: 8px;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+}
+
+/* Quando a carta é virada (adicionada pelo JS) */
+.memory-card.flipped {
+    transform: rotateY(180deg);
+}
+
+/* Lados da Carta */
+.memory-front, .memory-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden; /* Esconde o verso quando virada */
+    border-radius: 8px;
+    border: 2px solid #fff;
+}
+
+/* Frente (A imagem do personagem) */
+.memory-front {
+    transform: rotateY(180deg); /* Começa virada pra trás */
+    background-size: cover;
+    background-position: center;
+}
+
+/* Verso (O desenho padrão) */
+.memory-back {
+    background: repeating-linear-gradient(45deg, #16213e, #16213e 10px, #0f3460 10px, #0f3460 20px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.memory-back::after {
+    content: '?';
+    font-family: 'Bungee', cursive;
+    font-size: 2em;
+    color: rgba(255,255,255,0.2);
+}
+
+/* === JOGO O ALVO === */
+
+.target-game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* O Tubo */
+.target-tube {
+    width: 60px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 4px solid #fff;
+    border-radius: 30px;
+    position: relative;
+    overflow: hidden; /* Para o líquido não vazar visualmente */
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+}
+
+/* O Líquido */
+.target-liquid-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%; /* Começa vazio */
+    background: linear-gradient(to top, #3498db, #2980b9);
+    transition: height 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); /* Efeito de subida suave */
+    box-shadow: 0 0 15px #3498db;
+}
+
+/* Mudança de cor quando perto de estourar */
+.target-liquid-fill.danger { background: linear-gradient(to top, #f1c40f, #e67e22); box-shadow: 0 0 15px #f1c40f; }
+.target-liquid-fill.exploded { background: linear-gradient(to top, #c0392b, #e74c3c); box-shadow: 0 0 20px #e74c3c; }
+
+/* A Linha do Alvo */
+.target-limit-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background-color: #e74c3c; /* Vermelho */
+    z-index: 10;
+    box-shadow: 0 0 10px red;
+}
+
+.target-limit-line::after {
+    content: 'ALVO';
+    position: absolute;
+    right: -45px;
+    top: -8px;
+    color: #e74c3c;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* === JOGO PUZZLE === */
+
+.difficulty-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espaço entre os blocos de dificuldade */
+    margin-top: 20px;
+    width: 100%;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.diff-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Estilo base dos grupos */
+.diff-group {
+    border-radius: 12px;
+    padding: 10px;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+/* Cores por Dificuldade */
+.easy-group {
+    background: rgba(46, 204, 113, 0.1); /* Fundo Verde Transparente */
+    border-color: #2ecc71;
+}
+.easy-group .diff-header { color: #2ecc71; }
+.easy-group .btn-diff { background-color: #2ecc71; border-color: #27ae60; }
+
+.normal-group {
+    background: rgba(52, 152, 219, 0.1); /* Fundo Azul Transparente */
+    border-color: #3498db;
+}
+.normal-group .diff-header { color: #3498db; }
+.normal-group .btn-diff { background-color: #3498db; border-color: #2980b9; }
+
+.hard-group {
+    background: rgba(155, 89, 182, 0.1); /* Fundo Roxo Transparente */
+    border-color: #9b59b6;
+}
+.hard-group .diff-header { color: #9b59b6; }
+.hard-group .btn-diff { background-color: #9b59b6; border-color: #8e44ad; }
+
+/* Cabeçalho (Ícone + Nome) */
+.diff-header {
+    font-family: 'Bungee', cursive;
+    font-size: 1.2em;
+    text-align: center;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.diff-header i { margin-right: 5px; }
+
+/* Botões lado a lado */
+.diff-buttons-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* O Botão em si */
+.btn-diff {
+    flex: 1; /* Ocupa espaço igual */
+    color: white;
+    padding: 12px 5px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1em;
+    transition: transform 0.2s;
+    border-style: solid;
+    border-width: 0 0 4px 0; /* Efeito 3D embaixo */
+}
+
+.btn-diff:active {
+    transform: translateY(2px);
+    border-width: 0;
+}
+
+.btn-diff small {
+    font-weight: normal;
+    opacity: 0.8;
+    font-size: 0.7em;
+}
+
+.btn-diff:hover { background: #007bff; transform: scale(1.05); }
+
+/* Layout do Jogo */
+#puzzle-board-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+/* Imagem de referência pequena */
+.puzzle-preview {
+    text-align: center;
+    color: #aaa;
+    font-size: 0.8em;
+}
+
+.puzzle-preview img {
+    width: 60px;
+    height: auto;
+    border-radius: 5px;
+    border: 1px solid #555;
+    opacity: 0.7;
+}
+
+/* O Tabuleiro do Quebra-Cabeça */
+.puzzle-grid {
+    display: grid;
+    /* As colunas serão definidas pelo JS */
+    width: 300px; /* Largura fixa para o tabuleiro */
+    aspect-ratio: 220/308; /* Mesma proporção das cartas */
+    border: 2px solid #FFD700;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    background-color: #222;
+}
+
+/* A Peça Individual */
+.puzzle-piece {
+    background-repeat: no-repeat;
+    cursor: pointer;
+    box-sizing: border-box;
+    /* Usamos OUTLINE porque ele não ocupa espaço em pixels na caixa */
+    outline: 1px solid rgba(0,0,0,0.3); 
+    border: none; 
+    transition: transform 0.2s;
+}
+
+/* Peça Selecionada */
+.puzzle-piece.selected {
+    border: 2px solid #2ecc71;
+    z-index: 10;
+    transform: scale(0.95);
+    box-shadow: 0 0 10px #2ecc71;
+}
+
+/* Animação de Vitória (Peças se juntam) */
+.puzzle-grid.solved .puzzle-piece {
+    border: none; /* Remove as linhas */
+    animation: flash-result 0.5s;
+}
+
+/* === JOGO JO-KEN-PO === */
+
+.jokenpo-battle-zone {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.jokenpo-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.element-indicator {
+    margin-top: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #333;
+    border: 2px solid #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    color: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* Animação de Vitória do Elemento */
+.element-indicator.win {
+    background-color: #2ecc71;
+    transform: scale(1.2);
+    box-shadow: 0 0 20px #2ecc71;
+    transition: 0.3s;
+}
+
+.element-indicator.lose {
+    background-color: #e74c3c;
+    opacity: 0.5;
+}
+
+/* === JOGO MASMORRA === */
+
+.dungeon-header {
+    display: flex;
+    justify-content: space-between;
+    background: rgba(0,0,0,0.5);
+    padding: 10px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #444;
+}
+
+.dungeon-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #aaa;
+    font-size: 0.8em;
+}
+
+.hearts-container {
+    font-size: 1.5em;
+    letter-spacing: 5px;
+}
+
+.loot-display {
+    font-size: 1.5em;
+    color: #FFD700;
+    font-weight: bold;
+    font-family: 'Bungee', cursive;
+}
+
+/* Grid 4x4 (16 cartas) */
+.dungeon-grid-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* MUDOU PARA 4 COLUNAS */
+    gap: 10px;
+    max-width: 450px; /* Um pouco mais largo */
+    margin: 0 auto 20px auto;
+}
+
+.tile-back.potion { 
+    background: linear-gradient(135deg, #2ecc71, #27ae60); 
+    border: 2px solid #fff; 
+    color: white;
+}
+
+/* Novos Tipos de Tile na Masmorra */
+
+/* Armadilha (Perde Carta) - Cinza Escuro/Roxo */
+.tile-back.trap { 
+    background: linear-gradient(135deg, #2c3e50, #000000); 
+    border: 2px solid #7f8c8d; 
+    color: #bdc3c7;
+}
+
+/* Reforço (Ganha Carta) - Azul Brilhante */
+.tile-back.reinforce { 
+    background: linear-gradient(135deg, #3498db, #2980b9); 
+    border: 2px solid #fff; 
+    color: white;
+    box-shadow: inset 0 0 15px rgba(255,255,255,0.5);
+}
+
+.dungeon-tile {
+    aspect-ratio: 220/308;
+    background-color: #2c3e50;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s;
+    border: 2px solid #555;
+}
+
+.dungeon-tile:hover {
+    border-color: #FFD700;
+}
+
+.dungeon-tile.revealed {
+    transform: rotateY(180deg);
+}
+
+/* Conteúdo do Tile (Frente e Verso) */
+.tile-front, .tile-back {
+    position: absolute;
+    width: 100%; height: 100%;
+    backface-visibility: hidden;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tile-front {
+    background: repeating-linear-gradient(45deg, #1a1a2e, #1a1a2e 10px, #16213e 10px, #16213e 20px);
+}
+
+.tile-front::after {
+    content: '?'; font-family: 'Bungee', cursive; font-size: 2em; color: rgba(255,255,255,0.1);
+}
+
+.tile-back {
+    transform: rotateY(180deg);
+    background-color: #333;
+    flex-direction: column;
+    color: white;
+    font-weight: bold;
+}
+
+/* Tipos de Tile */
+.tile-back.treasure { background: linear-gradient(135deg, #f1c40f, #e67e22); border: 2px solid #fff; }
+.tile-back.monster { background: linear-gradient(135deg, #c0392b, #8e44ad); border: 2px solid #000; }
+
+.dungeon-combat-content {
+    background: #1a1a2e;
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid #e74c3c;
+    width: 95%;
+    max-width: 500px;
+    text-align: center;
+}
+
+/* Ajuste Mobile */
 @media (max-width: 600px) {
-    .combat-zone { gap: 5px; transform: scale(0.9); }
-    .hand-grid { justify-content: flex-start; padding-left: 10px; padding-right: 10px; }
-    .memory-grid-container { gap: 5px !important; padding: 5px !important; width: 100% !important; box-sizing: border-box; }
-    .puzzle-grid { width: 90% !important; max-width: 300px; margin: 0 auto; }
-    .target-game-container { padding: 10px !important; gap: 10px !important; }
-    .target-tube { height: 250px !important; }
-    #target-card-display { transform: scale(0.7) !important; margin-top: -20px !important; }
-    .battle-controls button { padding: 10px 15px; font-size: 0.9em; }
+    .dungeon-grid-container { 
+        gap: 5px; 
+        width: 95%; 
+    }
+    /* Diminui um pouco a fonte/ícones no mobile para caber 4 colunas */
+    .tile-back i { font-size: 20px !important; }
+    .tile-back { font-size: 0.8em; }
+}
+
+/* Peça na posição CORRETA */
+.puzzle-piece.correct {
+    outline: none; /* Remove a linha de corte */
+    border: none;
+    cursor: default; /* Mostra que não é clicável */
+    z-index: 1; /* Fica abaixo das peças soltas */
+    filter: brightness(1.1); /* Fica levemente mais brilhante/nítida */
+}
+
+/* Animação rápida quando acerta (Flash Verde) */
+@keyframes flash-success {
+    0% { box-shadow: inset 0 0 0 transparent; }
+    50% { box-shadow: inset 0 0 20px #2ecc71; z-index: 20; }
+    100% { box-shadow: inset 0 0 0 transparent; }
+}
+
+.puzzle-piece.just-solved {
+    animation: flash-success 0.6s ease-out;
+}
+
+/* === SISTEMA DE ALERTAS PERSONALIZADOS === */
+
+.alert-content {
+    background: linear-gradient(135deg, #16213e, #0f3460);
+    border: 3px solid #FFD700;
+    min-width: 300px;
+    max-width: 90%;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    transform: scale(0.8);
+    animation: pop-alert 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes pop-alert {
+    to { transform: scale(1); }
+}
+
+/* Botões do Alerta */
+.modal-actions button {
+    min-width: 100px;
+    padding: 10px 20px;
+    font-family: 'Bungee', cursive;
+    font-size: 1em;
+}
+
+/* =========================================
+   9. MELHORIAS ADMIN (MODAL, BUSCA, TOAST)
+   ========================================= */
+
+/* --- BARRA DE BUSCA FIXA --- */
+.admin-search-container {
+    position: sticky;
+    top: 0;
+    z-index: 900; /* Abaixo do Modal, acima do resto */
+    background: #1a1a2e; /* Mesma cor do fundo para não ficar transparente */
+    padding: 15px 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    border-bottom: 1px solid #333;
+}
+
+.admin-search-input {
+    width: 100%;
+    padding: 12px 40px 12px 15px; /* Espaço para ícone */
+    border-radius: 30px;
+    border: 1px solid #444;
+    background: #16213e;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: 0.3s;
+}
+
+.admin-search-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+}
+
+/* --- ADMIN MODAL (Específico para Edição) --- */
+/* Reutiliza .modal-overlay do seu CSS, cria conteudo novo */
+.admin-modal-content {
+    background: #fff; /* Fundo branco para formulário limpo */
+    color: #333;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+    text-align: left; /* Alinha formulário a esquerda */
+    border: none; /* Remove bordas coloridas de loot */
+}
+
+.admin-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.close-admin-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #e74c3c;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    width: auto;
+}
+
+/* --- TOAST NOTIFICATION (Substitui Alert) --- */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 20001; /* Acima de tudo */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    min-width: 250px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideInRight 0.3s ease-out forwards;
+}
+
+.toast.success { background-color: #2ecc71; border-left: 5px solid #27ae60; }
+.toast.error { background-color: #e74c3c; border-left: 5px solid #c0392b; }
+.toast.info { background-color: #3498db; border-left: 5px solid #2980b9; }
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOutToast {
+    to { opacity: 0; transform: translateY(-10px); }
+}
+
+/* --- TABELAS RESPONSIVAS (Mobile Card View) --- */
+@media (max-width: 768px) {
+    /* Força a tabela a agir como blocos */
+    table, thead, tbody, th, td, tr { 
+        display: block; 
+    }
+    
+    /* Esconde o cabeçalho da tabela */
+    thead tr { 
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    tr { border: 1px solid #ccc; margin-bottom: 15px; border-radius: 8px; background: #fff; overflow: hidden;}
+    
+    td { 
+        border: none;
+        border-bottom: 1px solid #eee; 
+        position: relative;
+        padding-left: 50%; /* Espaço para o rótulo */
+        text-align: right;
+    }
+    
+    td:before { 
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 45%; 
+        padding-right: 10px; 
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #007bff;
+        content: attr(data-label); /* Pega o nome da coluna via HTML */
+    }
+
+    /* Ajuste para botões na tabela mobile */
+    td button {
+        width: auto;
+        margin-left: 5px;
+        padding: 8px 12px;
+    }
 }
