@@ -1208,16 +1208,23 @@ async function initBattleMatch() {
     if (!await checkAndSpendEnergy('battle')) return;
 
     // 3. Setup Visual (AQUI MUDA)
-    const btnStart = document.getElementById('btnStartBattle');
+const btnStart = document.getElementById('btnStartBattle');
     const battleStatus = document.getElementById('battle-status');
     
-    btnStart.classList.add('hidden'); // Some o botão
-    document.getElementById('battle-game-area').classList.remove('hidden'); // Aparece a mesa
+    btnStart.classList.add('hidden'); // Some botão buscar
+    
+    // Mostra a área do jogo
+    document.getElementById('battle-game-area').classList.remove('hidden'); 
+    
+    // 🚨 GARANTIA EXTRA: Força a mão a aparecer (caso o CSS antigo tenha escondido)
+    const handContainerDiv = document.querySelector('#battle-arena .player-hand-container');
+    if(handContainerDiv) handContainerDiv.classList.remove('hidden');
     
     battleState.isProcessing = false;
     
     if (battleStatus) {
-        battleStatus.textContent = "Buscando...";
+        battleStatus.textContent = "Buscando oponente...";
+        battleStatus.style.color = "#FFD700";
     }
 
     // ... (O RESTO DA FUNÇÃO CONTINUA IGUAL AO QUE VOCÊ JÁ TINHA) ...
