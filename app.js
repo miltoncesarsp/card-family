@@ -1865,7 +1865,6 @@ function targetStand() {
 
 async function endTargetGame(survived) {
     targetState.isGameOver = true;
-    // Esconde os botões de ação
     document.getElementById('btn-hit').classList.add('hidden');
     document.getElementById('btn-stand').classList.add('hidden');
     
@@ -1877,49 +1876,46 @@ async function endTargetGame(survived) {
         title = "QUEBROU! 💥";
         message = "O tubo estourou. Você foi ganancioso e perdeu tudo!";
     } else {
-        const diff = targetState.goal - targetState.current;
-        const errorPercentage = (diff / targetState.goal) * 100;
-
-        // 1. Pega o valor configurado no Admin
+        // --- LÓGICA PROPORCIONAL ---
+        // 1. Pega o prêmio máximo do Admin (Ex: 300)
         const config = minigameConfig['target'] || { reward: 150, multi: 1.0 };
         const maxPrize = Math.floor(config.reward * config.multi);
 
-        // 2. Fatias do Prêmio
-        if (diff === 0) { 
-            prize = maxPrize; 
-            title = "PERFEITO! 🎯"; 
-            message = `Na mosca! Você ganhou o prêmio máximo: +${prize} moedas!`;
-        } else if (errorPercentage <= 5) { 
-            prize = Math.floor(maxPrize * 0.70); 
-            title = "INCRÍVEL! 🔥"; 
-            message = `Muito perto! Você garantiu +${prize} moedas.`;
-        } else if (errorPercentage <= 15) { 
-            prize = Math.floor(maxPrize * 0.30); 
-            title = "BOA! 👍"; 
-            message = `Jogou seguro. Você ganhou +${prize} moedas.`;
-        } else { 
-            prize = Math.floor(maxPrize * 0.05); 
-            title = "LONGE... 😐"; 
-            message = `Valeu o esforço. Prêmio de consolação: +${prize} moedas.`;
+        // 2. Calcula a porcentagem atingida (Valor Atual / Meta)
+        // Ex: Meta 100, Parei em 50 -> 0.5 (50%)
+        const percentageReached = targetState.current / targetState.goal;
+        
+        // 3. Calcula o prêmio (Máximo * Porcentagem)
+        // Ex: 300 * 0.5 = 150 moedas
+        prize = Math.floor(maxPrize * percentageReached);
+
+        // Define mensagens baseadas na proximidade (apenas cosmético)
+        if (percentageReached === 1) {
+            title = "PERFEITO! 🎯";
+            message = `Na mosca! 100% do prêmio: +${prize} moedas!`;
+        } else if (percentageReached >= 0.9) {
+            title = "EXCELENTE! 🔥";
+            message = `Quase lá! Você garantiu +${prize} moedas.`;
+        } else if (percentageReached >= 0.5) {
+            title = "BOM! 👍";
+            message = `Você parou na metade do caminho. Ganhou +${prize} moedas.`;
+        } else {
+            title = "FRACO... 😐";
+            message = `Parou muito cedo! Ganhou apenas +${prize} moedas.`;
         }
 
-        // 3. Processa o pagamento
+        // 4. Paga
         if (prize > 0) {
             await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
             player.moedas += prize;
             updateHeaderInfo();
-            
-            // --- NOVO: Notificação flutuante ---
             showNotification(`+${prize} Moedas!`);
         }
     }
 
     setTimeout(async () => {
-        // Mostra o modal com o resultado e espera o clique no OK
         await showGameAlert(title, message);
-        
-        // --- NOVO: Sai do jogo automaticamente após o OK ---
-        quitTargetGame();
+        document.getElementById('btn-target-exit').classList.remove('hidden');
     }, 500);
 }
 
