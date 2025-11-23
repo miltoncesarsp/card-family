@@ -1126,32 +1126,12 @@ function closeTradeModal() {
 // =================================================
 
 function startBattleGame() {
-    // 1. Verifica se tem cartas suficientes ANTES de entrar
-    const myPlayableCards = cardsInAlbum.filter(c => c.owned);
-    if (myPlayableCards.length < 5) {
-        showNotification("Você precisa de 5 cartas para duelar!", true);
-        return;
-    }
-
     document.getElementById('games-menu').classList.add('hidden');
     document.getElementById('battle-arena').classList.remove('hidden');
     
     // --- ESTADO INICIAL LIMPO ---
-    document.getElementById('battle-game-area').classList.add('hidden'); // Esconde a mesa de combate
-    document.getElementById('btnStartBattle').classList.remove('hidden'); // Botão Buscar
-    
-    // --- NOVO: MOSTRA A MÃO IMEDIATAMENTE ---
-    const handContainer = document.querySelector('.player-hand-container');
-    handContainer.classList.remove('hidden'); // Garante que está visível
-    
-    // Sorteia as cartas AGORA
-    const shuffled = [...myPlayableCards].sort(() => 0.5 - Math.random());
-    battleState.myHand = shuffled.slice(0, 5);
-    
-    // Renderiza a mão na tela
-    renderPlayerHand();
-    // ----------------------------------------
-
+    document.getElementById('battle-game-area').classList.add('hidden'); // Esconde a mesa
+    document.getElementById('btnStartBattle').classList.remove('hidden'); // Mostra o botão Buscar
     document.getElementById('battle-status').textContent = "Encontre um oponente...";
     document.getElementById('battle-status').style.color = "#FFD700";
     
@@ -1217,20 +1197,28 @@ function resetUI() {
 }
 
 async function initBattleMatch() {
-    // A verificação de cartas < 5 já foi feita no startBattleGame, mas mal não faz manter
-    
-    // 1. COBRANÇA DE ENERGIA
+    // 1. Verifica Cartas
+    const myPlayableCards = cardsInAlbum.filter(c => c.owned);
+    if (myPlayableCards.length < 5) {
+        showNotification("Você precisa de pelo menos 5 cartas!", true);
+        return;
+    }
+
+    // 2. COBRANÇA DE ENERGIA
     if (!await checkAndSpendEnergy('battle')) return;
 
-    // 2. Setup Visual
-    const btnStart = document.getElementById('btnStartBattle');
+    // 3. Setup Visual (AQUI MUDA)
+const btnStart = document.getElementById('btnStartBattle');
     const battleStatus = document.getElementById('battle-status');
     
     btnStart.classList.add('hidden'); // Some botão buscar
-    document.getElementById('battle-game-area').classList.remove('hidden'); // Aparece a mesa
     
-    // Garante que a mão continua visível
-    document.querySelector('.player-hand-container').classList.remove('hidden');
+    // Mostra a área do jogo
+    document.getElementById('battle-game-area').classList.remove('hidden'); 
+    
+    // 🚨 GARANTIA EXTRA: Força a mão a aparecer (caso o CSS antigo tenha escondido)
+    const handContainerDiv = document.querySelector('#battle-arena .player-hand-container');
+    if(handContainerDiv) handContainerDiv.classList.remove('hidden');
     
     battleState.isProcessing = false;
     
@@ -1239,21 +1227,22 @@ async function initBattleMatch() {
         battleStatus.style.color = "#FFD700";
     }
 
-    // --- REMOVIDO: O SORTEIO DA MÃO DO JOGADOR (JÁ FOI FEITO) ---
-    // battleState.myHand = shuffled.slice(0, 5); <--- TIRE ISSO
+    // ... (O RESTO DA FUNÇÃO CONTINUA IGUAL AO QUE VOCÊ JÁ TINHA) ...
+    // 4. Sorteia Mão do Jogador...
+    const shuffled = [...myPlayableCards].sort(() => 0.5 - Math.random());
+    battleState.myHand = shuffled.slice(0, 5);
 
-    // 3. Busca Oponente e Configura Deck da CPU
     const { data: enemyData, error: enemyError } = await supabase.rpc('buscar_oponente_batalha');
     
     if (enemyError) {
         showNotification("Erro ao achar oponente.", true);
+        // Se der erro, volta ao estado inicial
         document.getElementById('battle-game-area').classList.add('hidden');
         btnStart.classList.remove('hidden');
         return;
     }
 
     battleState.enemyName = enemyData.nome;
-    // CPU continua embaralhando aqui para não repetir
     battleState.enemyDeck = [...enemyData.cartas].sort(() => 0.5 - Math.random());
 
     battleState.round = 1;
@@ -1264,7 +1253,7 @@ async function initBattleMatch() {
     if (enemyNameDisplay) enemyNameDisplay.textContent = battleState.enemyName.toUpperCase();
     
     updateRoundDisplay();
-    // renderPlayerHand(); <--- NÃO PRECISA RENDERIZAR DE NOVO, JÁ TÁ NA TELA
+    renderPlayerHand(); 
     
     if (battleStatus) battleStatus.textContent = "Sua vez! Escolha uma carta.";
 }
