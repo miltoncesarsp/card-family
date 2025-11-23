@@ -2096,10 +2096,10 @@ async function initJokenpoMatch() {
 
     // 3. Prepara Interface
     document.getElementById('btnStartJokenpo').classList.add('hidden');
-    document.getElementById('jk-game-area').classList.remove('hidden'); // Mostra jogo
+    document.getElementById('jk-game-area').classList.remove('hidden');
     document.getElementById('jk-status').textContent = "Buscando...";
 
-    // 4. Lógica do Jogo (Igual a antes)
+    // 4. Lógica do Jogo
     jokenpoState.playerScore = 0;
     jokenpoState.cpuScore = 0;
     jokenpoState.round = 1; 
@@ -2110,8 +2110,10 @@ async function initJokenpoMatch() {
         if (data) jokenpoState.rules = data;
     }
 
+    // Embaralha mão do jogador
     jokenpoState.myDeck = [...allMyOwned].sort(() => 0.5 - Math.random()).slice(0, 5);
 
+    // Busca oponente
     const { data: enemyData, error } = await supabase.rpc('buscar_oponente_batalha');
     if (error || !enemyData) {
         showNotification("Erro ao buscar oponente", true);
@@ -2119,9 +2121,11 @@ async function initJokenpoMatch() {
         return;
     }
 
-    jokenpoState.cpuDeck = enemyData.cartas;
+    // --- AQUI ESTÁ A MUDANÇA: EMBARALHA O DECK DA CPU ---
+    // Garante que a ordem seja aleatória e fixa para a partida
+    jokenpoState.cpuDeck = [...enemyData.cartas].sort(() => 0.5 - Math.random());
+    // ----------------------------------------------------
     
-    // Atualiza Nome Rival (adicione a classe .enemy-name-display no HTML do jokenpo se não tiver, ou use querySelector correto)
     const enemyDisplays = document.querySelectorAll('.enemy-name-display');
     enemyDisplays.forEach(el => el.textContent = enemyData.nome.toUpperCase());
 
