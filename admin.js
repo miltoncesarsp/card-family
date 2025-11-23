@@ -658,13 +658,14 @@ async function loadPlayers() {
     if (!listContainer) return;
     const { data: players } = await supabase.from("jogadores").select('*').order("data_criacao", { ascending: false });
     
+    // Adicionei data-label nas TDs abaixo:
     let html = '<table><thead><tr><th>Nome</th><th>Email</th><th>Moedas</th><th>Ações</th></tr></thead><tbody>';
     players.forEach(player => {
         html += `<tr>
-                <td>${player.nome}</td>
-                <td>${player.email}</td>
-                <td>${player.moedas}</td>
-                <td><button class="edit-player-btn" data-id="${player.id}"><i class="fas fa-edit"></i></button></td>
+                <td data-label="Nome">${player.nome}</td>
+                <td data-label="Email">${player.email}</td>
+                <td data-label="Moedas">${player.moedas}</td>
+                <td data-label="Ações"><button class="edit-player-btn" data-id="${player.id}"><i class="fas fa-edit"></i></button></td>
             </tr>`;
     });
     html += '</tbody></table>';
