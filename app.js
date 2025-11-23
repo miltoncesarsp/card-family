@@ -2564,19 +2564,20 @@ function quitDungeonGame() {
 async function loadGameConfig() {
     const { data } = await supabase.from('minigame').select('*');
     if(data) {
-        // Transforma em objeto fácil: { 'Jogo da Memória': {reward: 50, multi: 1.0} }
-        // Ou melhor, mapeia pelo tipo de jogo se você tiver coluna 'slug' ou pelo nome
-        // Vamos assumir mapeamento manual por nome para simplificar agora:
-        
         data.forEach(game => {
-            // Normaliza nomes para chaves internas
             let key = '';
+            
+            // Mapeamento exato dos novos nomes
             if(game.nome.includes('Memória')) key = 'memory';
             if(game.nome.includes('Alvo')) key = 'target';
-            if(game.nome.includes('Puzzle') || game.nome.includes('Quebra')) key = 'puzzle';
             if(game.nome.includes('Jo-Ken-Po')) key = 'jokenpo';
             if(game.nome.includes('Masmorra')) key = 'dungeon';
-            if(game.nome.includes('Batalha')) key = 'battle'; // Se tiver batalha pvp
+            if(game.nome.includes('Batalha')) key = 'battle'; 
+
+            // Lógica especial para os 3 Puzzles
+            if(game.nome.includes('Puzzle') && game.nome.includes('3x3')) key = 'puzzle_3';
+            if(game.nome.includes('Puzzle') && game.nome.includes('4x4')) key = 'puzzle_4';
+            if(game.nome.includes('Puzzle') && game.nome.includes('5x5')) key = 'puzzle_5';
             
             if(key) {
                 minigameConfig[key] = {
