@@ -2120,9 +2120,22 @@ async function initJokenpoMatch() {
     jokenpoState.round = 1; 
     jokenpoState.isProcessing = false;
 
-    if (jokenpoState.rules.length === 0) {
-        const { data } = await supabase.from('elementos').select('*');
-        if (data) jokenpoState.rules = data;
+// --- CORREÇÃO: CARREGAMENTO FORÇADO DAS REGRAS ---
+    // Sempre tenta buscar se estiver vazio
+    if (!jokenpoState.rules || jokenpoState.rules.length === 0) {
+        console.log("Baixando regras do banco...");
+        const { data, error } = await supabase.from('elementos').select('*');
+        
+        if (error) {
+            console.error("Erro ao baixar regras:", error);
+            showNotification("Erro de conexão com regras.", true);
+            return;
+        }
+        
+        if (data) {
+            jokenpoState.rules = data;
+            console.log("Regras baixadas com sucesso:", data.length);
+        }
     }
 
     // Embaralha mão do jogador
