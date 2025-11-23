@@ -413,25 +413,18 @@
 </div>      
 
 <div id="dungeon-arena" class="hidden">
-    
     <div class="dungeon-header">
-        <div class="dungeon-stat">
-            <span>VIDAS:</span>
-            <div id="dungeon-lives" class="hearts-container">❤️❤️❤️</div>
-        </div>
-        <div class="dungeon-stat">
-            <span>MOCHILA:</span>
-            <div class="loot-display">💰 <span id="dungeon-loot">0</span></div>
-        </div>
+        <div class="dungeon-stat"><span>VIDAS:</span> <div id="dungeon-lives" class="hearts-container">❤️❤️❤️</div></div>
+        <div class="dungeon-stat"><span>MOCHILA:</span> <div class="loot-display">💰 <span id="dungeon-loot">0</span></div></div>
     </div>
 
-    <div id="dungeon-grid" class="dungeon-grid-container">
-        </div>
+    <div class="dungeon-layout-container">
+        <div id="dungeon-grid" class="dungeon-grid-container"></div>
 
-    <div class="player-hand-container">
-        <p style="color:#aaa; margin-bottom:5px; text-align:center; font-size: 0.8em;">Suas Cartas (Defesa):</p>
-        <div id="dungeon-hand" class="hand-grid">
-            </div>
+        <div class="dungeon-sidebar">
+            <p style="color:#aaa; text-align:center; font-size:0.8em; margin-bottom:5px;">Sua Mão (Visualização):</p>
+            <div id="dungeon-hand-preview" class="hand-grid-vertical"></div>
+        </div>
     </div>
 
     <div class="battle-controls">
@@ -442,7 +435,7 @@
         <div class="dungeon-combat-content">
             <h3 style="color: #e74c3c;">MONSTRO ENCONTRADO!</h3>
             
-            <div class="combat-zone" style="height: 250px;">
+            <div class="combat-zone" style="height: 220px;">
                 <div id="dungeon-monster-card" class="card-preview card-small"></div>
                 <div class="vs-icon">VS</div>
                 <div id="dungeon-player-slot" class="card-slot empty">
@@ -450,13 +443,12 @@
                 </div>
             </div>
 
-            <p style="color: #FFD700; font-weight:bold; margin-top:10px;">
-                CLIQUE EM UMA CARTA DA SUA MÃO PARA ATACAR!
-                <br>
-                <small style="color:#ccc; font-weight:normal;">(Você precisa vencer a força <span id="monster-power-display">0</span>)</small>
+            <p style="color: #FFD700; font-weight:bold; margin-top:5px;">
+                ATAQUE! (Vença <span id="monster-power-display">0</span> de Força)
             </p>
             
-            </div>
+            <div id="dungeon-hand-combat" class="hand-grid" style="justify-content: center; margin-top: 15px;"></div>
+        </div>
     </div>
 </div>
                 
@@ -525,6 +517,14 @@
             <button id="btn-alert-cancel" class="btn-secondary hidden">Cancelar</button>
             <button id="btn-alert-ok" class="btn-primary">OK</button>
         </div>
+    </div>
+</div>
+
+    <div id="card-zoom-modal" class="modal-overlay hidden" onclick="closeCardZoom()">
+    <div class="card-zoom-content" onclick="event.stopPropagation()">
+        <div id="zoomed-card" class="card-preview" style="transform: scale(1.5); pointer-events: none;">
+            </div>
+        <button class="close-zoom-btn" onclick="closeCardZoom()">FECHAR</button>
     </div>
 </div>
 
