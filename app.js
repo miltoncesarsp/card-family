@@ -1774,9 +1774,8 @@ async function startTargetGame() {
         return;
     }
 
-    // --- LÓGICA INTELIGENTE DE ALVO ---
-    // Calcula a força média das cartas do jogador
-const totalPower = myDeck.reduce((sum, card) => sum + card.power, 0);
+    // ... (Cálculos de média e alvo continuam iguais) ...
+    const totalPower = myDeck.reduce((sum, card) => sum + card.power, 0);
     const avgPower = Math.ceil(totalPower / myDeck.length);
     const minTarget = avgPower * 3;
     const maxTarget = avgPower * 5;
@@ -1786,9 +1785,12 @@ const totalPower = myDeck.reduce((sum, card) => sum + card.power, 0);
     // UI Setup
     document.getElementById('games-menu').classList.add('hidden');
     document.getElementById('target-arena').classList.remove('hidden');
-    document.getElementById('btn-hit').classList.remove('hidden');
-    document.getElementById('btn-stand').classList.remove('hidden');
-    document.getElementById('btn-target-exit').classList.add('hidden');
+    
+    // --- AJUSTE DOS BOTÕES ---
+    document.getElementById('btn-hit').classList.remove('hidden'); // Botão Jogar
+    document.getElementById('btn-stand').classList.add('hidden');    // Esconde Parar
+    document.getElementById('btn-target-exit').classList.remove('hidden'); // Mostra Sair
+    // -------------------------
     
     const cardSlot = document.getElementById('target-card-display');
     cardSlot.innerHTML = '<div class="card-back-pattern"></div>';
@@ -1797,10 +1799,7 @@ const totalPower = myDeck.reduce((sum, card) => sum + card.power, 0);
 
     targetState.current = 0;
     targetState.isGameOver = false;
-    
-    // --- NOVO: TRAVA DE ENERGIA ---
-    targetState.firstMove = true; // Indica que ainda não pagou
-    // ------------------------------
+    targetState.firstMove = true; 
 
     // Renderiza
     document.getElementById('target-goal').textContent = targetState.goal;
@@ -1814,15 +1813,20 @@ const totalPower = myDeck.reduce((sum, card) => sum + card.power, 0);
     liquid.className = 'target-liquid-fill';
 }
 
-async function targetHit() { // <--- AGORA É ASYNC
+async function targetHit() { 
     if (targetState.isGameOver) return;
 
-    // --- COBRANÇA DE ENERGIA NO PRIMEIRO CLIQUE ---
+    // --- COBRANÇA DE ENERGIA ---
     if (targetState.firstMove) {
         const pagou = await checkAndSpendEnergy('target');
-        if (!pagou) return; // Se não tiver energia, não deixa jogar
+        if (!pagou) return; 
         
-        targetState.firstMove = false; // Já pagou, libera o resto
+        targetState.firstMove = false; 
+        
+        // --- AQUI A MÁGICA: TROCA OS BOTÕES ---
+        document.getElementById('btn-stand').classList.remove('hidden'); // Mostra Parar
+        document.getElementById('btn-target-exit').classList.add('hidden'); // Esconde Sair
+        // --------------------------------------
     }
     // ----------------------------------------------
 
@@ -2650,44 +2654,51 @@ async function forceDungeonExit() {
 
 
 async function startDungeonCombat(monsterCard) {
-    if (dungeonState.playerHand.length === 0) {
-        await showGameAlert("SEM DEFESA!", "Fim de jogo.");
-        dungeonState.lives = 0; updateDungeonUI(); gameOverDungeon();
+if (dungeonState.playerHand.length === 0) {
+        await showGameAlert("SEM DEFESA! 😱", "O monstro te atacou e você não tem mais cartas para se defender.");
+        dungeonState.lives = 0; 
+        updateDungeonUI();
+        gameOverDungeon();
         return;
     }
 
-    dungeonState.combatMonster = monsterCard;
+dungeonState.combatMonster = monsterCard;
     
     const overlay = document.getElementById('dungeon-combat-overlay');
     overlay.classList.remove('hidden');
 
     renderCardInSlot(monsterCard, 'dungeon-monster-card');
-    document.getElementById('monster-power-display').textContent = monsterCard.power;
+    
+    const powerDisplay = document.getElementById('monster-power-display');
+    powerDisplay.textContent = monsterCard.power;
 
-    // Limpa slot player
+    // Limpa slot do jogador
     const pSlot = document.getElementById('dungeon-player-slot');
-    pSlot.innerHTML = '<div class="slot-placeholder">?</div>';
-    pSlot.className = 'card-slot empty';
+    pSlot.innerHTML = '<div class="slot-placeholder">Sua vez...</div>';
     pSlot.removeAttribute('style');
+    pSlot.className = 'card-slot empty';
 
-    // RENDERIZA A MÃO INTERATIVA (DENTRO DO MODAL)
+    // --- AQUI: RENDERIZA A MÃO INTERATIVA ---
     const handContainer = document.getElementById('dungeon-hand-combat');
     handContainer.innerHTML = '';
 
+    // Ordena visualmente
     const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
 
     displayHand.forEach(card => {
         const wrapper = document.createElement('div');
         wrapper.className = 'hand-card-wrapper';
         
-        // Carta interativa
+        // Gera carta com visual completo
         wrapper.innerHTML = createCardHTML(card, false, null, false);
         
+        // Adiciona clique para atacar
         wrapper.onclick = () => resolveDungeonFight(card);
         
         handContainer.appendChild(wrapper);
     });
 }
+
 async function resolveDungeonFight(playerCard) {
     // Remove carta usada
     const cardIndex = dungeonState.playerHand.findIndex(c => c.id === playerCard.id);
@@ -2836,16 +2847,18 @@ function showGameAlert(title, message, isConfirm = false) {
 // --- ZOOM DE CARTA NO ÁLBUM ---
 function viewBigCard(cardId) {
     const card = cardsInAlbum.find(c => c.id === cardId);
-    if (!card || !card.owned) return; // Só abre se tiver a carta
+    if (!card || !card.owned) return;
 
     const container = document.getElementById('zoomed-card');
-    // Usa o createCardHTML mas sem botões e sem quantidade
+    // Limpa estilos manuais que estavam no HTML
+    container.removeAttribute('style'); 
+    
+    // Gera a carta sem botões
     container.innerHTML = createCardHTML(card, false, null, false);
     
-    // Remove classes extras que possam atrapalhar o tamanho
+    // Remove a classe 'card-small' para o CSS do modal aplicar o tamanho grande
     const innerCard = container.querySelector('.card-preview');
-    innerCard.classList.remove('card-small'); // Garante tamanho grande
-    innerCard.style.transform = ''; // Reseta transformações internas
+    innerCard.classList.remove('card-small'); 
     
     document.getElementById('card-zoom-modal').classList.remove('hidden');
 }
