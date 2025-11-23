@@ -2632,12 +2632,10 @@ async function forceDungeonExit() {
 
 
 async function startDungeonCombat(monsterCard) {
-    // VERIFICAÇÃO DE MORTE SÚBITA
+    // Morte Súbita (Sem cartas)
     if (dungeonState.playerHand.length === 0) {
-        await showGameAlert("SEM DEFESA! 😱", "O monstro te atacou e você não tem mais cartas para se defender.");
-        dungeonState.lives = 0; 
-        updateDungeonUI();
-        gameOverDungeon();
+        await showGameAlert("SEM DEFESA!", "O monstro te atacou sem piedade.");
+        dungeonState.lives = 0; updateDungeonUI(); gameOverDungeon();
         return;
     }
 
@@ -2646,51 +2644,32 @@ async function startDungeonCombat(monsterCard) {
     const overlay = document.getElementById('dungeon-combat-overlay');
     overlay.classList.remove('hidden');
 
-    // 1. Mostra Monstro (Agora usa a função corrigida acima, então vai ter elemento!)
+    // Mostra Monstro
     renderCardInSlot(monsterCard, 'dungeon-monster-card');
     
     const powerDisplay = document.getElementById('monster-power-display');
     powerDisplay.textContent = monsterCard.power;
-    powerDisplay.style.color = "#e74c3c";
-    powerDisplay.style.fontSize = "1.5em";
 
-    // Limpa slot do jogador
+    // Limpa slot visual do jogador
     const pSlot = document.getElementById('dungeon-player-slot');
-    pSlot.innerHTML = '<div class="slot-placeholder">Sua vez...</div>';
-    pSlot.removeAttribute('style');
+    pSlot.innerHTML = '<div class="slot-placeholder">Sua Carta</div>';
     pSlot.className = 'card-slot empty';
+    pSlot.removeAttribute('style');
 
-    // 2. RENDERIZA A MÃO (VISUAL PADRONIZADO)
-    const handContainer = document.getElementById('dungeon-hand');
-    handContainer.innerHTML = '';
-
-    // Ordena visualmente por força
-    const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
-
-    displayHand.forEach(card => {
-        // Usa o mesmo Wrapper do Duelo para ficar no tamanho certo
-        const wrapper = document.createElement('div');
-        wrapper.className = 'hand-card-wrapper';
-        
-        // Gera o HTML padrão do álbum (sem quantidade)
-        wrapper.innerHTML = createCardHTML(card, false, null, false);
-        
-        // Adiciona o clique
-        wrapper.onclick = () => resolveDungeonFight(card);
-        
-        handContainer.appendChild(wrapper);
-    });
+    // NÃO RENDERIZAMOS A MÃO AQUI MAIS. ELA JÁ ESTÁ EMBAIXO.
+    // O clique na mão lá embaixo vai chamar resolveDungeonFight.
 }
 
 async function resolveDungeonFight(playerCard) {
-    // 1. REMOVE A CARTA DA MÃO (Consome o recurso)
-    // Acha o índice da carta usada no array original
+    // Remove carta usada
     const cardIndex = dungeonState.playerHand.findIndex(c => c.id === playerCard.id);
     if (cardIndex > -1) {
-        dungeonState.playerHand.splice(cardIndex, 1); // Remove 1 elemento
+        dungeonState.playerHand.splice(cardIndex, 1);
     }
 
-    // Renderiza escolha
+    renderDungeonHand(); // <--- ATUALIZA VISUAL DA MÃO (Remove a carta jogada)
+
+    // Mostra carta na mesa de combate
     renderCardInSlot(playerCard, 'dungeon-player-slot');
 
     const monsterPower = dungeonState.combatMonster.power;
@@ -2700,23 +2679,18 @@ async function resolveDungeonFight(playerCard) {
 
     const overlay = document.getElementById('dungeon-combat-overlay');
 
-if (playerPower > monsterPower) {
-        // 🚨 SUBSTIUIÇÃO AQUI
-        await showGameAlert("VITÓRIA! ⚔️", "Você venceu o monstro!\nSua carta foi descartada.");
+    if (playerPower > monsterPower) {
+        await showGameAlert("VITÓRIA! ⚔️", "Monstro derrotado!");
         overlay.classList.add('hidden');
         dungeonState.isLocked = false;
     } else {
         dungeonState.lives--;
         updateDungeonUI();
-        // 🚨 SUBSTIUIÇÃO AQUI
-        await showGameAlert("DERROTA! 🩸", "Você perdeu 1 vida.\nSua carta foi descartada.");
+        await showGameAlert("DERROTA! 🩸", "O monstro era mais forte. Perdeu 1 vida.");
         overlay.classList.add('hidden');
         
-        if (dungeonState.lives <= 0) {
-            gameOverDungeon();
-        } else {
-            dungeonState.isLocked = false;
-        }
+        if (dungeonState.lives <= 0) gameOverDungeon();
+        else dungeonState.isLocked = false;
     }
 }
 
