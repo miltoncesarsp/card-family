@@ -986,7 +986,7 @@ async function renderTrade() {
 }
 
 // Função auxiliar para desenhar a carta (reaproveitando estilo)
-function createCardHTML(card, isMine, tradeId = null) {
+function createCardHTML(card, isMine, tradeId = null, showQuantity = true) {
     const rarityStyles = getRarityColors(card.rarity);
     const elementStyles = getElementStyles(card.element);
     
@@ -995,13 +995,11 @@ function createCardHTML(card, isMine, tradeId = null) {
         btnCancel = `<button class="cancel-trade-btn" onclick="cancelTrade('${tradeId}')">Cancelar</button>`;
     }
 
-    // --- NOVO: Lógica para mostrar quantidade ---
-    // Só mostra a bolinha se a propriedade 'quantidade' existir e for maior que 0
+    // SÓ MOSTRA SE TIVER QUANTIDADE E SE A FLAG showQuantity FOR TRUE
     let quantityHTML = '';
-    if (card.quantidade) {
+    if (card.quantidade && showQuantity) {
         quantityHTML = `<div class="card-quantity">x${card.quantidade}</div>`;
     }
-    // -------------------------------------------
 
     return `
         <div class="card-preview card-small" style="background-image: url('${card.image_url}'); border-color: ${rarityStyles.primary}; position: relative;">
@@ -1258,13 +1256,10 @@ function renderPlayerHand() {
         const wrapper = document.createElement('div');
         wrapper.className = 'hand-card-wrapper';
         
-        // Gera o HTML idêntico ao do álbum
-        // O false indica que não é "minha" no sentido de mercado (sem botão cancelar)
-        wrapper.innerHTML = createCardHTML(card, false); 
+        // AQUI: Passamos 'false' no final para NÃO mostrar quantidade
+        wrapper.innerHTML = createCardHTML(card, false, null, false); 
 
-        // Adiciona o evento de clique
-        wrapper.onclick = () => playRound(card, wrapper.firstElementChild); // Passa o filho (card-preview) para manipulação visual
-        
+        wrapper.onclick = () => playRound(card, wrapper.firstElementChild);
         handContainer.appendChild(wrapper);
     });
 }
@@ -2143,8 +2138,8 @@ function renderJokenpoHand() {
         const wrapper = document.createElement('div');
         wrapper.className = 'hand-card-wrapper';
         
-        // Usa o HTML do álbum
-        wrapper.innerHTML = createCardHTML(card, false);
+        // AQUI: Passamos 'false' no final para NÃO mostrar quantidade
+        wrapper.innerHTML = createCardHTML(card, false, null, false);
 
         wrapper.onclick = () => playJokenpoRound(card, wrapper.firstElementChild);
         container.appendChild(wrapper);
@@ -2248,37 +2243,57 @@ async function playJokenpoRound(playerCard, cardEl) {
 
 function nextJokenpoRound() {
     jokenpoState.round++;
-    updateJokenpoScore(); // Atualiza o texto "Rodada X / 3"
+    updateJokenpoScore(); 
     
-    resetJokenpoTable();
-    document.getElementById('btn-jk-next').classList.add('hidden');
-    jokenpoState.isProcessing = false;
+    resetJokenpoTable(); // Limpa a mesa
+    
+    // REMOVIDO: document.getElementById('btn-jk-next').classList.add('hidden'); 
+    // Não precisamos mais esconder o botão pois ele não existe.
+
+    jokenpoState.isProcessing = false; // Destrava para o jogador clicar de novo
 }
 
 function resetJokenpoTable() {
-    document.getElementById('jk-status').textContent = "Escolha sua carta...";
-    document.getElementById('jk-status').style.color = "#FFD700";
+    const statusEl = document.getElementById('jk-status');
+    if(statusEl) {
+        statusEl.textContent = "Escolha sua carta...";
+        statusEl.style.color = "#FFD700";
+    }
     
     const pSlot = document.getElementById('jk-player-card');
     const eSlot = document.getElementById('jk-enemy-card');
     
-    // Limpa cartas
-    pSlot.removeAttribute('style');
-    pSlot.innerHTML = '<div class="slot-placeholder">Sua Carta</div>';
-    pSlot.className = 'card-preview card-small empty';
+    // LIMPEZA DO JOGADOR
+    if(pSlot) {
+        pSlot.removeAttribute('style'); // Remove a imagem de fundo da carta anterior
+        pSlot.innerHTML = '<div class="slot-placeholder">Sua Carta</div>';
+        pSlot.className = 'card-preview card-small empty';
+        // Importante: Remover classes de borda de vitória/derrota se tiverem sido aplicadas diretamente aqui (geralmente são aplicadas nos ícones, mas por segurança)
+    }
 
-    eSlot.removeAttribute('style');
-    eSlot.innerHTML = '<div class="card-back-pattern"></div>';
-    eSlot.className = 'card-preview card-small';
+    // LIMPEZA DA CPU
+    if(eSlot) {
+        eSlot.removeAttribute('style');
+        eSlot.innerHTML = '<div class="card-back-pattern"></div>';
+        eSlot.className = 'card-preview card-small';
+    }
 
-    // Limpa ícones
-    document.getElementById('jk-player-element').className = 'element-indicator';
-    document.getElementById('jk-player-element').innerHTML = '?';
-    document.getElementById('jk-player-element').style.background = '#333';
+    // LIMPA ÍCONES DE ELEMENTO/RESULTADO
+    const pElIcon = document.getElementById('jk-player-element');
+    if(pElIcon) {
+        pElIcon.className = 'element-indicator';
+        pElIcon.innerHTML = '?';
+        pElIcon.style.background = '#333';
+        pElIcon.classList.remove('win', 'lose'); // Remove brilho verde/vermelho
+    }
     
-    document.getElementById('jk-enemy-element').className = 'element-indicator';
-    document.getElementById('jk-enemy-element').innerHTML = '?';
-    document.getElementById('jk-enemy-element').style.background = '#333';
+    const eElIcon = document.getElementById('jk-enemy-element');
+    if(eElIcon) {
+        eElIcon.className = 'element-indicator';
+        eElIcon.innerHTML = '?';
+        eElIcon.style.background = '#333';
+        eElIcon.classList.remove('win', 'lose');
+    }
 }
 
 function updateJokenpoScore() {
