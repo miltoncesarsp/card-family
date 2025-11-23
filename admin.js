@@ -920,6 +920,7 @@ const clickedBtn = document.querySelector(`button[onclick="openTab('${tabId}')"]
     if (tabId === 'tab-origins') loadOriginCovers();
     if (tabId === 'tab-rules') loadRarityRules();
     if (tabId === 'tab-games') loadMinigames(); // <--- NOVO
+    if (tabId === 'tab-daily') loadDailyRewards();
 }
 
 async function deleteOriginCover(id) {
@@ -1016,6 +1017,75 @@ async function loadMinigames() {
     container.innerHTML = html;
 }
 
+// Carregar Lista
+async function loadDailyRewards() {
+    const container = document.getElementById("dailyListContainer");
+    container.innerHTML = 'Carregando calendário...';
+
+    const { data: days, error } = await supabase
+        .from('recompensas_diarias')
+        .select('*')
+        .order('dia', { ascending: true });
+
+    if (error) { showToast("Erro ao carregar diário", "error"); return; }
+
+    let html = '';
+    days.forEach(day => {
+        // Define cor e ícone baseados no tipo
+        const isPack = day.tipo === 'pacote';
+        const color = isPack ? '#9b59b6' : '#f1c40f'; // Roxo para pacote, Amarelo para moeda
+        const icon = isPack ? '<i class="fas fa-box-open"></i>' : '<i class="fas fa-coins"></i>';
+        const valueText = isPack ? `Pacote ID: ${day.valor}` : `${day.valor} Moedas`;
+
+        html += `
+            <div class="base-item-card" style="border-left-color: ${color};">
+                <div class="base-info">
+                    <h4 style="color:${color}">Dia ${day.dia}</h4>
+                    <span style="font-weight:bold; color:white; font-size:1.1em;">${day.descricao}</span>
+                    <span style="font-size:0.9em; opacity:0.8;">${icon} ${valueText}</span>
+                </div>
+                <div class="base-actions">
+                    <button class="btn-edit-base" onclick="handleEditDailyClick(${day.dia})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+// Wrapper para o clique
+window.handleEditDailyClick = async (dia) => {
+    const { data: dayData } = await supabase.from('recompensas_diarias').select('*').eq('dia', dia).single();
+    
+    if(dayData) {
+        document.getElementById('modalDailyDay').value = dayData.dia;
+        document.getElementById('modalDailyDayDisplay').textContent = dayData.dia;
+        document.getElementById('modalDailyDesc').value = dayData.descricao;
+        document.getElementById('modalDailyType').value = dayData.tipo;
+        document.getElementById('modalDailyValue').value = dayData.valor;
+        
+        // Ajusta visual se for pacote
+        toggleDailyInputs(dayData.tipo);
+        
+        document.getElementById('editDailyModal').classList.remove('hidden');
+    }
+};
+
+function toggleDailyInputs(type) {
+    const label = document.getElementById('labelDailyValue');
+    const hint = document.getElementById('packIdHint');
+    
+    if (type === 'pacote') {
+        label.textContent = "ID do Pacote:";
+        hint.style.display = 'block';
+    } else {
+        label.textContent = "Quantidade de Moedas:";
+        hint.style.display = 'none';
+    }
+}
+
 // Wrappers globais para os onlicks do HTML funcionarem
 window.handleEditBaseCharacterClick = async (id) => {
     // Simula o evento que sua função original espera
@@ -1077,6 +1147,29 @@ document.getElementById("fileInput").addEventListener("change", previewCard);
 document.getElementById("cardName").addEventListener("input", previewCard);
 document.getElementById("cardPower").addEventListener("input", previewCard);
 document.getElementById("cardRarity").addEventListener("change", previewCard);
+
+// Lógica visual do Modal (Mudar Label Moeda vs Pacote)
+document.getElementById('modalDailyType').addEventListener('change', (e) => {
+    toggleDailyInputs(e.target.value);
+});
+
+document.getElementById('modalSaveDailyBtn').addEventListener('click', async () => {
+    const dia = document.getElementById('modalDailyDay').value;
+    const desc = document.getElementById('modalDailyDesc').value;
+    const tipo = document.getElementById('modalDailyType').value;
+    const valor = parseInt(document.getElementById('modalDailyValue').value);
+
+    const { error } = await supabase.from('recompensas_diarias')
+        .update({ descricao: desc, tipo: tipo, valor: valor })
+        .eq('dia', dia);
+
+    if (error) showToast("Erro ao salvar", "error");
+    else {
+        showToast(`Dia ${dia} atualizado!`);
+        closeModal('editDailyModal');
+        loadDailyRewards();
+    }
+});
 
 // Botão do formulário do TOPO (CRIAR)
 document.getElementById("saveCardBtn").addEventListener("click", saveNewCard); 
