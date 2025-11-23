@@ -373,24 +373,23 @@ function renderAlbum() {
 
                 const elementStyles = getElementStyles(card.element);
 
-                html += `
-                    <div class="card-preview card-small card-collected" 
-                         style="background-image: url('${card.image_url}'); border: 3px solid ${rarityStyles.primary};" 
-                         title="${card.name}">
-                        
-                        ${newBadgeHTML} ${evolutionBtnHTML}
-                        
-                        <div class="card-quantity">x${card.quantidade}</div>
-                        
-                        <div class="card-element-badge" style="background: ${elementStyles.background};">
-                            ${getElementIcon(card.element)}
-                        </div>
-
-                        <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity.substring(0,1)}</div>
-                        <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
-                        <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+html += `
+                <div class="card-preview card-small card-collected" 
+                     style="background-image: url('${card.image_url}'); border: 3px solid ${rarityStyles.primary}; cursor: pointer;" 
+                     title="${card.name}"
+                     onclick="viewBigCard('${card.id}')"> ${newBadgeHTML} ${evolutionBtnHTML}
+                    
+                    <div class="card-quantity">x${card.quantidade}</div>
+                    
+                    <div class="card-element-badge" style="background: ${elementStyles.background};">
+                        ${getElementIcon(card.element)}
                     </div>
-                `;
+
+                    <div class="rarity-badge" style="background-color: ${rarityStyles.primary}; color: white;">${card.rarity.substring(0,1)}</div>
+                    <div class="card-force-circle" style="background-color: ${rarityStyles.primary}; color: white; border-color: white;">${card.power}</div>
+                    <div class="card-name-footer" style="background-color: ${rarityStyles.primary}">${card.name}</div>
+                </div>
+            `;
             } else {
                 html += `
                     <div class="card-preview card-small card-missing" 
@@ -2422,6 +2421,23 @@ function quitJokenpoGame() {
 // MINIGAME: MASMORRA MISTERIOSA
 // =================================================
 
+// Renderiza a mão VISUAL (Exploração)
+function renderDungeonHandVisual() {
+    const container = document.getElementById('dungeon-hand-preview');
+    if (!container) return;
+    container.innerHTML = '';
+
+    // Ordena por força
+    const sortedHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
+
+    sortedHand.forEach(card => {
+        const div = document.createElement('div');
+        // Apenas visual, sem wrapper de interação
+        div.innerHTML = createCardHTML(card, false, null, false);
+        container.appendChild(div);
+    });
+}
+
 async function startDungeonGame() {
     const ownedCards = cardsInAlbum.filter(c => c.owned);
     if (ownedCards.length < 5) {
@@ -2432,7 +2448,7 @@ async function startDungeonGame() {
     // COBRANÇA DE ENERGIA (Adicione se ainda não tiver)
     if (!await checkAndSpendEnergy('dungeon')) return;
 
-    dungeonState.playerHand = [...ownedCards].sort(() => 0.5 - Math.random()).slice(0, 5);
+dungeonState.playerHand = [...ownedCards].sort(() => 0.5 - Math.random()).slice(0, 5);
 
     // Setup UI
     document.getElementById('games-menu').classList.add('hidden');
@@ -2444,11 +2460,10 @@ async function startDungeonGame() {
     dungeonState.currentLoot = 0;
     dungeonState.foundTreasures = 0;
     dungeonState.isLocked = false;
-    dungeonState.combatMonster = null; // Limpa monstro anterior
     updateDungeonUI();
     
-    // --- NOVO: Renderiza a mão imediatamente ---
-    renderDungeonHand();
+    // RENDERIZA A MÃO VISUAL
+    renderDungeonHandVisual();
 
     // 4. Gera o Tabuleiro (4x4 = 16 tiles)
     // NOVA DISTRIBUIÇÃO:
@@ -2580,7 +2595,7 @@ else if (type === 'trap') {
             const randomIndex = Math.floor(Math.random() * dungeonState.playerHand.length);
             const removedCard = dungeonState.playerHand.splice(randomIndex, 1)[0];
             showNotification(`ARMADILHA! Perdeu: ${removedCard.name}`, true);
-            renderDungeonHand(); // <--- ATUALIZA VISUAL
+           renderDungeonHandVisual(); // Atualiza a lateral
         } else {
             showNotification("Armadilha vazia (sem cartas).");
         }
@@ -2591,7 +2606,7 @@ else if (type === 'reinforce') {
         const newCard = ownedCards[Math.floor(Math.random() * ownedCards.length)];
         dungeonState.playerHand.push(newCard);
         showNotification(`REFORÇO! ${newCard.name} entrou!`);
-        renderDungeonHand(); // <--- ATUALIZA VISUAL
+        renderDungeonHandVisual(); // Atualiza a lateral
     }
     // --- 5. MONSTRO ---
     else {
@@ -2632,9 +2647,8 @@ async function forceDungeonExit() {
 
 
 async function startDungeonCombat(monsterCard) {
-    // Morte Súbita (Sem cartas)
     if (dungeonState.playerHand.length === 0) {
-        await showGameAlert("SEM DEFESA!", "O monstro te atacou sem piedade.");
+        await showGameAlert("SEM DEFESA!", "Fim de jogo.");
         dungeonState.lives = 0; updateDungeonUI(); gameOverDungeon();
         return;
     }
@@ -2644,22 +2658,33 @@ async function startDungeonCombat(monsterCard) {
     const overlay = document.getElementById('dungeon-combat-overlay');
     overlay.classList.remove('hidden');
 
-    // Mostra Monstro
     renderCardInSlot(monsterCard, 'dungeon-monster-card');
-    
-    const powerDisplay = document.getElementById('monster-power-display');
-    powerDisplay.textContent = monsterCard.power;
+    document.getElementById('monster-power-display').textContent = monsterCard.power;
 
-    // Limpa slot visual do jogador
+    // Limpa slot player
     const pSlot = document.getElementById('dungeon-player-slot');
-    pSlot.innerHTML = '<div class="slot-placeholder">Sua Carta</div>';
+    pSlot.innerHTML = '<div class="slot-placeholder">?</div>';
     pSlot.className = 'card-slot empty';
     pSlot.removeAttribute('style');
 
-    // NÃO RENDERIZAMOS A MÃO AQUI MAIS. ELA JÁ ESTÁ EMBAIXO.
-    // O clique na mão lá embaixo vai chamar resolveDungeonFight.
-}
+    // RENDERIZA A MÃO INTERATIVA (DENTRO DO MODAL)
+    const handContainer = document.getElementById('dungeon-hand-combat');
+    handContainer.innerHTML = '';
 
+    const displayHand = [...dungeonState.playerHand].sort((a, b) => a.power - b.power);
+
+    displayHand.forEach(card => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'hand-card-wrapper';
+        
+        // Carta interativa
+        wrapper.innerHTML = createCardHTML(card, false, null, false);
+        
+        wrapper.onclick = () => resolveDungeonFight(card);
+        
+        handContainer.appendChild(wrapper);
+    });
+}
 async function resolveDungeonFight(playerCard) {
     // Remove carta usada
     const cardIndex = dungeonState.playerHand.findIndex(c => c.id === playerCard.id);
@@ -2667,8 +2692,8 @@ async function resolveDungeonFight(playerCard) {
         dungeonState.playerHand.splice(cardIndex, 1);
     }
 
-    renderDungeonHand(); // <--- ATUALIZA VISUAL DA MÃO (Remove a carta jogada)
-
+renderDungeonHandVisual(); // Atualiza a mão lá de trás
+    
     // Mostra carta na mesa de combate
     renderCardInSlot(playerCard, 'dungeon-player-slot');
 
@@ -2803,4 +2828,25 @@ function showGameAlert(title, message, isConfirm = false) {
         // Mostra
         modal.classList.remove('hidden');
     });
+}
+
+// --- ZOOM DE CARTA NO ÁLBUM ---
+function viewBigCard(cardId) {
+    const card = cardsInAlbum.find(c => c.id === cardId);
+    if (!card || !card.owned) return; // Só abre se tiver a carta
+
+    const container = document.getElementById('zoomed-card');
+    // Usa o createCardHTML mas sem botões e sem quantidade
+    container.innerHTML = createCardHTML(card, false, null, false);
+    
+    // Remove classes extras que possam atrapalhar o tamanho
+    const innerCard = container.querySelector('.card-preview');
+    innerCard.classList.remove('card-small'); // Garante tamanho grande
+    innerCard.style.transform = ''; // Reseta transformações internas
+    
+    document.getElementById('card-zoom-modal').classList.remove('hidden');
+}
+
+function closeCardZoom() {
+    document.getElementById('card-zoom-modal').classList.add('hidden');
 }
