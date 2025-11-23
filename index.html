@@ -413,40 +413,47 @@
 </div>      
 
 <div id="dungeon-arena" class="hidden">
-    <div class="dungeon-header">
-        <div class="dungeon-stat"><span>VIDAS:</span> <div id="dungeon-lives" class="hearts-container">❤️❤️❤️</div></div>
-        <div class="dungeon-stat"><span>MOCHILA:</span> <div class="loot-display">💰 <span id="dungeon-loot">0</span></div></div>
-    </div>
-
-    <div class="dungeon-layout-container">
-        <div id="dungeon-grid" class="dungeon-grid-container"></div>
-
-        <div class="dungeon-sidebar">
-            <p style="color:#aaa; text-align:center; font-size:0.8em; margin-bottom:5px;">Sua Mão (Visualização):</p>
-            <div id="dungeon-hand-preview" class="hand-grid-vertical"></div>
+    
+    <div id="dungeon-menu-screen" style="text-align: center; padding: 20px;">
+        <i class="fas fa-dungeon" style="font-size: 80px; color: #7f8c8d; margin-bottom: 20px;"></i>
+        <h2 style="color: white; margin-bottom: 10px;">Masmorra Misteriosa</h2>
+        <p style="color: #aaa; margin-bottom: 30px;">Explore tiles, encontre tesouros e lute contra monstros.<br>Custo: 1 Energia</p>
+        
+        <div class="battle-controls">
+            <button class="btn-primary" onclick="initDungeonRun()">INICIAR EXPLORAÇÃO</button>
+            <button class="back-btn" onclick="quitDungeonGame()">SAIR</button>
         </div>
     </div>
 
-    <div class="battle-controls">
-        <button id="btn-dungeon-run" class="btn-secondary" onclick="escapeDungeon()">🏃 FUGIR COM O SAQUE</button>
+    <div id="dungeon-game-area" class="hidden">
+        <div class="dungeon-header">
+            <div class="dungeon-stat"><span>VIDAS:</span> <div id="dungeon-lives" class="hearts-container">❤️❤️❤️</div></div>
+            <div class="dungeon-stat"><span>MOCHILA:</span> <div class="loot-display">💰 <span id="dungeon-loot">0</span></div></div>
+        </div>
+
+        <div id="dungeon-grid" class="dungeon-grid-container"></div>
+
+        <div class="player-hand-container" style="margin-top: 15px;">
+            <p style="color:#aaa; margin-bottom:5px; text-align:center; font-size: 0.8em;">Sua Mão (Defesa):</p>
+            <div id="dungeon-hand" class="hand-grid"></div>
+        </div>
+
+        <div class="battle-controls">
+            <button id="btn-dungeon-run" class="btn-secondary" onclick="escapeDungeon()">🏃 FUGIR COM O SAQUE</button>
+        </div>
     </div>
 
     <div id="dungeon-combat-overlay" class="modal-overlay hidden" style="background: rgba(0,0,0,0.95);">
         <div class="dungeon-combat-content">
             <h3 style="color: #e74c3c;">MONSTRO ENCONTRADO!</h3>
-            
             <div class="combat-zone" style="height: 220px;">
                 <div id="dungeon-monster-card" class="card-preview card-small"></div>
                 <div class="vs-icon">VS</div>
-                <div id="dungeon-player-slot" class="card-slot empty">
-                    <div class="slot-placeholder">Sua Carta</div>
-                </div>
+                <div id="dungeon-player-slot" class="card-slot empty"><div class="slot-placeholder">Sua Carta</div></div>
             </div>
-
             <p style="color: #FFD700; font-weight:bold; margin-top:5px;">
                 ATAQUE! (Vença <span id="monster-power-display">0</span> de Força)
             </p>
-            
             <div id="dungeon-hand-combat" class="hand-grid" style="justify-content: center; margin-top: 15px;"></div>
         </div>
     </div>
