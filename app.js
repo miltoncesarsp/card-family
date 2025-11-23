@@ -1848,19 +1848,37 @@ async function endTargetGame(survived) {
         message = "O tubo estourou. Você foi ganancioso!";
     } else {
         const diff = targetState.goal - targetState.current;
+        // Calcula o erro em porcentagem (ex: era 50, parei em 48, erro de 4%)
         const errorPercentage = (diff / targetState.goal) * 100;
-        const config = minigameConfig['target'] || { reward: 100, multi: 1.5 };
-        const base = config.reward;
 
+        // --- LÓGICA DE PRÊMIO DINÂMICO ---
+        // 1. Pega o valor configurado no Admin (ex: 300)
+        const config = minigameConfig['target'] || { reward: 150, multi: 1.0 };
+        const maxPrize = Math.floor(config.reward * config.multi);
+
+        // 2. Fatias do Prêmio
         if (diff === 0) { 
-            prize = base; // Prêmio total
+            // PERFEITO: 100% do valor
+            prize = maxPrize; 
+            title = "PERFEITO! 🎯"; 
+            message = "Na mosca! Prêmio Máximo!";
         } else if (errorPercentage <= 5) { 
-            prize = Math.floor(base * 0.6); // 60%
+            // MUITO PERTO (Erro até 5%): 70% do valor
+            prize = Math.floor(maxPrize * 0.70); 
+            title = "INCRÍVEL! 🔥"; 
+            message = "Muito perto! Ganhou 70% do prêmio.";
         } else if (errorPercentage <= 15) { 
-            prize = Math.floor(base * 0.3); // 30%
+            // PERTO (Erro até 15%): 30% do valor
+            prize = Math.floor(maxPrize * 0.30); 
+            title = "BOA! 👍"; 
+            message = "Jogou seguro. Ganhou 30% do prêmio.";
         } else { 
-            prize = Math.floor(base * 0.1); // 10%
+            // LONGE: 5% do valor (Consolação)
+            prize = Math.floor(maxPrize * 0.05); 
+            title = "LONGE... 😐"; 
+            message = "Valeu o esforço. Prêmio de consolação.";
         }
+        // ----------------------------------
 
         if (prize > 0) {
             await supabase.rpc('atualizar_moedas_jogo', { qtd: prize });
@@ -1870,7 +1888,6 @@ async function endTargetGame(survived) {
     }
 
     setTimeout(async () => {
-        // 🚨 SUBSTIUIÇÃO AQUI
         await showGameAlert(title, message);
         document.getElementById('btn-target-exit').classList.remove('hidden');
     }, 500);
