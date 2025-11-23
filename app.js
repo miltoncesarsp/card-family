@@ -2613,7 +2613,7 @@ else if (type === 'reinforce') {
         const newCard = ownedCards[Math.floor(Math.random() * ownedCards.length)];
         dungeonState.playerHand.push(newCard);
         showNotification(`REFORÇO! ${newCard.name} entrou!`);
-        renderDungeonHandVisual(); // Atualiza a lateral
+        renderDungeonHand(); // Atualiza a lateral
     }
     // --- 5. MONSTRO ---
     else {
@@ -2691,6 +2691,10 @@ dungeonState.combatMonster = monsterCard;
         
         // Gera carta com visual completo
         wrapper.innerHTML = createCardHTML(card, false, null, false);
+
+        // FORÇA O TAMANHO PEQUENO na carta gerada
+    const innerCard = wrapper.querySelector('.card-preview');
+    if(innerCard) innerCard.classList.add('card-small');
         
         // Adiciona clique para atacar
         wrapper.onclick = () => resolveDungeonFight(card);
@@ -2706,7 +2710,7 @@ async function resolveDungeonFight(playerCard) {
         dungeonState.playerHand.splice(cardIndex, 1);
     }
 
-renderDungeonHandVisual(); // Atualiza a mão lá de trás
+renderDungeonHand(); // Atualiza a mão lá de trás
     
     // Mostra carta na mesa de combate
     renderCardInSlot(playerCard, 'dungeon-player-slot');
@@ -2850,18 +2854,18 @@ function viewBigCard(cardId) {
     if (!card || !card.owned) return;
 
     const container = document.getElementById('zoomed-card');
+    container.removeAttribute('style'); 
     
     // 1. Gera o HTML da carta
     container.innerHTML = createCardHTML(card, false, null, false);
     
     // 2. Aplica os estilos necessários (cor da borda)
     const innerCard = container.querySelector('.card-preview');
-    const rarityStyles = getRarityStyles(card.rarity);
+    // CORREÇÃO: Usando getRarityColors
+    const rarityStyles = getRarityColors(card.rarity); 
     
-    // Remove a classe 'card-small' para usar o tamanho grande
     innerCard.classList.remove('card-small'); 
     
-    // Adiciona a borda dinâmica e desativa o clique
     innerCard.style.border = `4px solid ${rarityStyles.primary}`; 
     innerCard.style.cursor = 'default'; 
 
