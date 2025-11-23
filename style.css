@@ -2088,6 +2088,22 @@ table button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 0.8em; 
     border: none; /* Remove bordas coloridas de loot */
 }
 
+#dungeon-monster-card, 
+#dungeon-player-slot {
+    /* Força o uso do tamanho do .card-small */
+    width: 90px !important;
+    height: 126px !important;
+    font-size: 0.7em !important;
+    margin: 0 !important; /* Limpa margens */
+}
+/* Ajuste para as cartas do monstro/jogador não saírem da tela */
+#dungeon-combat-overlay .combat-zone {
+    gap: 10px;
+    transform: scale(0.9); /* Reduz levemente para caber em telas pequenas */
+    width: 100%;
+    justify-content: center;
+}
+
 .admin-modal-header {
     display: flex;
     justify-content: space-between;
